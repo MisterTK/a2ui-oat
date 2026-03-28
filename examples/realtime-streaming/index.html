@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>a2ui-oat: Realtime Streaming Example</title>
+
+  <!-- Oat CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/@nicedoc/oat@latest/oat.min.css">
+  <style>
+    body { max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+    .metric-card { margin-bottom: 1.5rem; }
+    .metric-card h3 { margin-bottom: 0.25rem; }
+    progress, meter { width: 100%; height: 1.5rem; display: block; }
+    .badge { display: inline-block; padding: 0.15em 0.6em; border-radius: 4px;
+             font-weight: 600; font-size: 0.9rem; }
+    .badge-ok    { background: #d4edda; color: #155724; }
+    .badge-warn  { background: #fff3cd; color: #856404; }
+    .badge-error { background: #f8d7da; color: #721c24; }
+    .alert { padding: 0.75rem 1rem; border-radius: 4px; margin-top: 1rem; display: none; }
+    .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .uptime { font-variant-numeric: tabular-nums; font-size: 1.1rem; }
+    .requests { font-variant-numeric: tabular-nums; }
+    .disconnected { opacity: 0.5; }
+  </style>
+</head>
+<body>
+
+  <h1>Realtime Streaming Metrics</h1>
+  <p>
+    Demonstrates the <strong>subscribeSSE</strong> registered function pattern from the
+    <a href="../../a2ui-oat-architecture.md">a2ui-oat architecture</a> (Section 6.5).
+    The agent creates the surface once with bound components; the client opens an
+    EventSource and keeps everything updated indefinitely with zero agent involvement.
+  </p>
+  <hr>
+
+  <!-- Surface root -->
+  <div id="surface"></div>
+
+  <!--
+    Embedded A2UI agent-output JSON.
+    In production this arrives via A2A / MCP / SSE transport.
+  -->
+  <script type="application/json" id="agent-output">
+  {
+    "version": "v0.9",
+    "createSurface": {
+      "surfaceId": "metrics-dashboard",
+      "catalogId": "https://a2ui-oat.dev/catalog/v1/oat-catalog.json",
+      "theme": { "primaryColor": "#1A73E8", "mode": "light" },
+      "sendDataModel": true
+    },
+    "updateComponents": {
+      "surfaceId": "metrics-dashboard",
+      "components": [
+        {
+          "id": "root",
+          "component": "Column",
+          "children": ["cpu-card", "memory-card", "errors-card", "requests-card", "uptime-card", "error-alert"],
+          "action": {
+            "functionCall": {
+              "call": "subscribeSSE",
+              "args": {
+                "url": "http://localhost:3002/metrics/stream",
+                "targetPath": "/liveMetrics"
+              }
+            }
+          }
+        },
+        {
+          "id": "cpu-card",
+          "component": "Progress",
+          "value": { "path": "/liveMetrics/cpu" },
+          "max": 100
+        },
+        {
+          "id": "memory-card",
+          "component": "Meter",
+          "value": { "path": "/liveMetrics/memory" },
+          "min": 0,
+          "max": 100,
+          "low": 30,
+          "high": 80
+        },
+        {
+          "id": "errors-card",
+          "component": "Badge",
+          "text": { "path": "/liveMetrics/errors" },
+          "variant": "info"
+        },
+        {
+          "id": "requests-card",
+          "component": "Text",
+          "text": { "path": "/liveMetrics/requests" },
+          "variant": "p"
+        },
+        {
+          "id": "uptime-card",
+          "component": "Text",
+          "text": { "path": "/liveMetrics/uptime" },
+          "variant": "p"
+        },
+        {
+          "id": "error-alert",
+          "component": "Alert",
+          "text": "Error count is high! Investigate immediately.",
+          "variant": "error"
+        }
+      ]
+    },
+    "updateDataModel": {
+      "surfaceId": "metrics-dashboard",
+      "data": {
+        "liveMetrics": {
+          "cpu": 0,
+          "memory": 0,
+          "requests": 0,
+          "errors": 0,
+          "uptime": 0
+        }
+      }
+    }
+  }
+  </script>
+
+  <script type="module">
+    // -----------------------------------------------------------------------
+    // Minimal A2UI simulation
+    //
+    // A real deployment uses @a2ui/web-lib for stream parsing, data binding,
+    // and surface lifecycle. This example inlines the essentials so it can
+    // run standalone.
+    // -----------------------------------------------------------------------
+
+    const SSE_URL = "http://localhost:3002/metrics/stream";
+    const ERROR_THRESHOLD = 60;
+
+    // -- Data model ---------------------------------------------------------
+
+    const dataModel = {
+      liveMetrics: {
+        cpu: 0,
+        memory: 0,
+        requests: 0,
+        errors: 0,
+        uptime: 0,
+      },
+    };
+
+    // -- Render helpers -----------------------------------------------------
+
+    const surface = document.getElementById("surface");
+
+    function formatUptime(seconds) {
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = seconds % 60;
+      return [
+        h > 0 ? `${h}h` : null,
+        m > 0 ? `${m}m` : null,
+        `${s}s`,
+      ]
+        .filter(Boolean)
+        .join(" ");
+    }
+
+    function errorBadgeClass(errors) {
+      if (errors >= ERROR_THRESHOLD) return "badge-error";
+      if (errors >= 30) return "badge-warn";
+      return "badge-ok";
+    }
+
+    function renderSurface() {
+      const m = dataModel.liveMetrics;
+      const showAlert = m.errors >= ERROR_THRESHOLD;
+
+      surface.innerHTML = `
+        <section class="metric-card">
+          <h3>CPU Usage</h3>
+          <progress value="${m.cpu}" max="100"></progress>
+          <small>${m.cpu}%</small>
+        </section>
+
+        <section class="metric-card">
+          <h3>Memory Usage</h3>
+          <meter value="${m.memory}" min="0" max="100" low="30" high="80" optimum="50"></meter>
+          <small>${m.memory}%</small>
+        </section>
+
+        <section class="metric-card">
+          <h3>Error Count</h3>
+          <span class="badge ${errorBadgeClass(m.errors)}" data-badge>${m.errors}</span>
+        </section>
+
+        <section class="metric-card">
+          <h3>Total Requests</h3>
+          <p class="requests">${m.requests.toLocaleString()}</p>
+        </section>
+
+        <section class="metric-card">
+          <h3>Uptime</h3>
+          <p class="uptime">${formatUptime(m.uptime)}</p>
+        </section>
+
+        <div role="alert" class="alert alert-error" style="display: ${showAlert ? "block" : "none"}">
+          Error count is high (${m.errors})! Investigate immediately.
+        </div>
+      `;
+    }
+
+    // -- Registered function: subscribeSSE ----------------------------------
+
+    function subscribeSSE(url, targetPath) {
+      const source = new EventSource(url);
+
+      source.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          // Write to data model at targetPath
+          dataModel.liveMetrics = data;
+          renderSurface();
+        } catch {
+          console.error("Failed to parse SSE event:", event.data);
+        }
+      };
+
+      source.onerror = () => {
+        console.warn("SSE connection lost. Attempting to reconnect...");
+        surface.classList.add("disconnected");
+      };
+
+      source.onopen = () => {
+        surface.classList.remove("disconnected");
+      };
+
+      return source;
+    }
+
+    // -- Surface creation triggers subscribeSSE -----------------------------
+
+    renderSurface();
+    subscribeSSE(SSE_URL, "/liveMetrics");
+  </script>
+</body>
+</html>

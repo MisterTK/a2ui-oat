@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "subscribeSSE",
+  "description": "Opens a Server-Sent Events (SSE) stream and writes each incoming event to the specified data model path. Enables real-time data updates without agent involvement.",
+  "backedBy": "EventSource",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "The SSE endpoint URL to connect to."
+      },
+      "targetPath": {
+        "type": "string",
+        "description": "The JSON pointer path in the data model where each incoming event will be written."
+      },
+      "eventName": {
+        "type": "string",
+        "description": "The specific SSE event name to listen for. If omitted, listens for the default 'message' event."
+      }
+    },
+    "required": ["url", "targetPath"],
+    "additionalProperties": false
+  }
+}

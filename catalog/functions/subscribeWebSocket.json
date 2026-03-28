@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "subscribeWebSocket",
+  "description": "Opens a WebSocket connection and writes parsed messages to the specified data model path. Enables bidirectional real-time communication for live-updating surfaces.",
+  "backedBy": "WebSocket",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "The WebSocket endpoint URL to connect to (ws:// or wss://)."
+      },
+      "targetPath": {
+        "type": "string",
+        "description": "The JSON pointer path in the data model where each parsed message will be written."
+      },
+      "messageParser": {
+        "type": "string",
+        "description": "An optional parser identifier for incoming messages (e.g., 'json'). If omitted, messages are written as raw strings."
+      }
+    },
+    "required": ["url", "targetPath"],
+    "additionalProperties": false
+  }
+}

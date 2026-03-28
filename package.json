@@ -1,0 +1,28 @@
+{
+  "name": "a2ui-oat",
+  "version": "0.1.0",
+  "description": "A lightweight A2UI renderer and catalog for agent-driven web interfaces, built on Oat CSS",
+  "license": "MIT",
+  "type": "module",
+  "main": "renderer/index.js",
+  "keywords": [
+    "a2ui",
+    "oat",
+    "agent-ui",
+    "a2a",
+    "renderer",
+    "lightweight",
+    "framework-free"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MisterTK/a2ui-oat"
+  },
+  "author": "Thomas Kraus",
+  "files": [
+    "catalog/",
+    "renderer/",
+    "direct/",
+    "shared/"
+  ]
+}

@@ -1,0 +1,1124 @@
+{
+  "$schema": "https://a2ui.org/specification/v0_9/catalog-schema.json",
+  "catalogId": "https://a2ui-oat.dev/catalog/v1/oat-catalog.json",
+  "version": "v0.9",
+  "name": "Oat Catalog",
+  "description": "A lightweight A2UI catalog pairing Google's A2UI protocol with Kailash Nadh's Oat CSS library. Defines 35 semantic HTML components, 10 registered client-side functions, and theme properties mapped to Oat CSS custom properties.",
+
+  "components": {
+
+    "Row": {
+      "description": "Horizontal flex container that lays out children in a row.",
+      "htmlElement": "div",
+      "properties": {
+        "children": {
+          "type": "ChildList",
+          "description": "Ordered list of child component IDs rendered inside the row."
+        },
+        "justify": {
+          "type": "string",
+          "enum": ["start", "center", "end", "space-between", "space-around", "space-evenly"],
+          "description": "Horizontal alignment of children along the main axis."
+        },
+        "align": {
+          "type": "string",
+          "enum": ["start", "center", "end", "stretch", "baseline"],
+          "description": "Vertical alignment of children along the cross axis."
+        }
+      },
+      "requiredProperties": ["children"]
+    },
+
+    "Column": {
+      "description": "Vertical flex container within a grid row. The weight property maps to Oat's 12-column grid (col-1 through col-12).",
+      "htmlElement": "div",
+      "properties": {
+        "children": {
+          "type": "ChildList",
+          "description": "Ordered list of child component IDs rendered inside the column."
+        },
+        "justify": {
+          "type": "string",
+          "enum": ["start", "center", "end", "space-between", "space-around", "space-evenly"],
+          "description": "Vertical alignment of children along the main axis."
+        },
+        "align": {
+          "type": "string",
+          "enum": ["start", "center", "end", "stretch", "baseline"],
+          "description": "Horizontal alignment of children along the cross axis."
+        },
+        "weight": {
+          "type": "number",
+          "description": "Column span in the 12-column grid (1-12). Maps to Oat class col-{n}."
+        }
+      },
+      "requiredProperties": ["children"]
+    },
+
+    "Grid": {
+      "description": "12-column responsive grid container. Wraps children in an Oat container and row structure.",
+      "htmlElement": "div",
+      "properties": {
+        "children": {
+          "type": "ChildList",
+          "description": "Ordered list of child component IDs (typically Column components) rendered inside the grid."
+        },
+        "columns": {
+          "type": "number",
+          "description": "Number of grid columns (1-12). Defaults to 12."
+        },
+        "gap": {
+          "type": "string",
+          "description": "Gap between grid cells (CSS length value)."
+        }
+      },
+      "requiredProperties": ["children"]
+    },
+
+    "List": {
+      "description": "Ordered or unordered list that renders children as list items. Supports template-based rendering for data-bound arrays.",
+      "htmlElement": "ul",
+      "properties": {
+        "children": {
+          "type": "ChildList",
+          "description": "Ordered list of child component IDs rendered as list items."
+        },
+        "template": {
+          "type": "ComponentId",
+          "description": "Template component ID used to render each item in a data-bound array."
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["vertical", "horizontal"],
+          "description": "Layout direction of the list. Vertical renders as a standard list; horizontal renders inline."
+        }
+      },
+      "requiredProperties": []
+    },
+
+    "Sidebar": {
+      "description": "Side navigation panel rendered as an aside element. Supports collapsible behavior and left/right positioning.",
+      "htmlElement": "aside",
+      "properties": {
+        "child": {
+          "type": "ComponentId",
+          "description": "Component ID of the sidebar content."
+        },
+        "position": {
+          "type": "string",
+          "enum": ["left", "right"],
+          "description": "Which side of the viewport the sidebar appears on."
+        },
+        "collapsible": {
+          "type": "boolean",
+          "description": "Whether the sidebar can be collapsed by the user."
+        }
+      },
+      "requiredProperties": ["child"]
+    },
+
+    "Text": {
+      "description": "Text display component supporting headings (h1-h6) and paragraph variants.",
+      "htmlElement": "p",
+      "properties": {
+        "text": {
+          "type": "DynamicString",
+          "description": "The text content to display. Supports data binding."
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["h1", "h2", "h3", "h4", "h5", "h6", "p", "span", "small", "strong", "em"],
+          "description": "Semantic HTML element used for rendering."
+        }
+      },
+      "requiredProperties": ["text"]
+    },
+
+    "Image": {
+      "description": "Displays an image with optional fit and variant styling.",
+      "htmlElement": "img",
+      "properties": {
+        "url": {
+          "type": "DynamicString",
+          "description": "Image source URL. Supports data binding."
+        },
+        "alt": {
+          "type": "string",
+          "description": "Alternative text for accessibility."
+        },
+        "fit": {
+          "type": "string",
+          "enum": ["contain", "cover", "fill", "none", "scale-down"],
+          "description": "CSS object-fit value controlling how the image fills its container."
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["default", "rounded", "circle"],
+          "description": "Visual style variant for the image."
+        },
+        "width": {
+          "type": "string",
+          "description": "Width of the image (CSS length value)."
+        },
+        "height": {
+          "type": "string",
+          "description": "Height of the image (CSS length value)."
+        }
+      },
+      "requiredProperties": ["url"]
+    },
+
+    "Icon": {
+      "description": "Displays an icon by class name. The renderer applies the icon as a CSS class on a span element.",
+      "htmlElement": "span",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Icon identifier or CSS class name."
+        },
+        "size": {
+          "type": "string",
+          "enum": ["small", "medium", "large"],
+          "description": "Size of the icon."
+        }
+      },
+      "requiredProperties": ["name"]
+    },
+
+    "Divider": {
+      "description": "A horizontal or vertical rule used to separate content.",
+      "htmlElement": "hr",
+      "properties": {
+        "axis": {
+          "type": "string",
+          "enum": ["horizontal", "vertical"],
+          "description": "Orientation of the divider. Defaults to horizontal."
+        }
+      },
+      "requiredProperties": []
+    },
+
+    "Badge": {
+      "description": "A small status indicator or label rendered as a span with data-badge attribute.",
+      "htmlElement": "span",
+      "properties": {
+        "text": {
+          "type": "DynamicString",
+          "description": "Badge text content. Supports data binding."
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["default", "info", "success", "warning", "error"],
+          "description": "Visual style variant."
+        }
+      },
+      "requiredProperties": ["text"]
+    },
+
+    "Avatar": {
+      "description": "Displays a user avatar image or initials fallback.",
+      "htmlElement": "img",
+      "properties": {
+        "url": {
+          "type": "DynamicString",
+          "description": "Avatar image URL. Supports data binding."
+        },
+        "size": {
+          "type": "string",
+          "enum": ["small", "medium", "large"],
+          "description": "Size of the avatar."
+        },
+        "initials": {
+          "type": "DynamicString",
+          "description": "Fallback initials displayed when url is not provided. Supports data binding."
+        }
+      },
+      "requiredProperties": []
+    },
+
+    "Spinner": {
+      "description": "An animated loading spinner indicator.",
+      "htmlElement": "div",
+      "properties": {
+        "size": {
+          "type": "string",
+          "enum": ["small", "medium", "large"],
+          "description": "Size of the spinner."
+        }
+      },
+      "requiredProperties": []
+    },
+
+    "Skeleton": {
+      "description": "A placeholder skeleton loader displayed while content is loading.",
+      "htmlElement": "div",
+      "properties": {
+        "width": {
+          "type": "string",
+          "description": "Width of the skeleton element (CSS length value)."
+        },
+        "height": {
+          "type": "string",
+          "description": "Height of the skeleton element (CSS length value)."
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["text", "circle", "rect"],
+          "description": "Shape variant of the skeleton placeholder."
+        }
+      },
+      "requiredProperties": []
+    },
+
+    "Progress": {
+      "description": "A progress bar indicating completion of a task.",
+      "htmlElement": "progress",
+      "properties": {
+        "value": {
+          "type": "DynamicNumber",
+          "description": "Current progress value. Supports data binding."
+        },
+        "max": {
+          "type": "number",
+          "description": "Maximum value of the progress bar. Defaults to 100."
+        }
+      },
+      "requiredProperties": ["value", "max"]
+    },
+
+    "Meter": {
+      "description": "A meter gauge for displaying a scalar measurement within a known range.",
+      "htmlElement": "meter",
+      "properties": {
+        "value": {
+          "type": "DynamicNumber",
+          "description": "Current meter value. Supports data binding."
+        },
+        "min": {
+          "type": "number",
+          "description": "Minimum value of the range."
+        },
+        "max": {
+          "type": "number",
+          "description": "Maximum value of the range."
+        },
+        "low": {
+          "type": "number",
+          "description": "Upper boundary of the low range."
+        },
+        "high": {
+          "type": "number",
+          "description": "Lower boundary of the high range."
+        }
+      },
+      "requiredProperties": ["value", "min", "max"]
+    },
+
+    "Button": {
+      "description": "An interactive button that triggers an action when clicked.",
+      "htmlElement": "button",
+      "properties": {
+        "child": {
+          "type": "ComponentId",
+          "description": "Component ID of the button's label content."
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["default", "primary", "secondary", "danger", "outline", "ghost"],
+          "description": "Visual style variant of the button."
+        },
+        "action": {
+          "type": "Action",
+          "description": "Action to execute on click (server event or function call)."
+        },
+        "checks": {
+          "type": "array",
+          "description": "Validation checks to run before executing the action.",
+          "items": {
+            "type": "object"
+          }
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "Whether the button is disabled."
+        }
+      },
+      "requiredProperties": ["child"]
+    },
+
+    "TextField": {
+      "description": "A text input or textarea for collecting user input.",
+      "htmlElement": "input",
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "Label text displayed above or beside the input."
+        },
+        "value": {
+          "type": "DynamicString",
+          "description": "Current input value. Supports two-way data binding."
+        },
+        "textFieldType": {
+          "type": "string",
+          "enum": ["text", "email", "password", "number", "tel", "url", "search", "textarea"],
+          "description": "Type of the text input. 'textarea' renders a multi-line input."
+        },
+        "placeholder": {
+          "type": "string",
+          "description": "Placeholder text displayed when the field is empty."
+        },
+        "action": {
+          "type": "Action",
+          "description": "Action to execute on value change or submit."
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "Whether the input is disabled."
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether the field is required for form validation."
+        }
+      },
+      "requiredProperties": ["label"]
+    },
+
+    "CheckBox": {
+      "description": "A checkbox input for boolean or multi-select values.",
+      "htmlElement": "input",
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "Label text displayed beside the checkbox."
+        },
+        "value": {
+          "type": "DynamicString",
+          "description": "Data model path for the checkbox state. Supports two-way data binding."
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "Whether the checkbox is disabled."
+        },
+        "action": {
+          "type": "Action",
+          "description": "Action to execute on state change."
+        }
+      },
+      "requiredProperties": ["label", "value"]
+    },
+
+    "Switch": {
+      "description": "A toggle switch input rendered as a checkbox with role='switch'. Styled by Oat CSS.",
+      "htmlElement": "input",
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "Label text displayed beside the switch."
+        },
+        "value": {
+          "type": "DynamicString",
+          "description": "Data model path for the switch state. Supports two-way data binding."
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "Whether the switch is disabled."
+        },
+        "action": {
+          "type": "Action",
+          "description": "Action to execute on toggle."
+        }
+      },
+      "requiredProperties": ["label", "value"]
+    },
+
+    "Slider": {
+      "description": "A range slider input for selecting a numeric value within a range.",
+      "htmlElement": "input",
+      "properties": {
+        "value": {
+          "type": "DynamicNumber",
+          "description": "Current slider value. Supports two-way data binding."
+        },
+        "minValue": {
+          "type": "number",
+          "description": "Minimum selectable value."
+        },
+        "maxValue": {
+          "type": "number",
+          "description": "Maximum selectable value."
+        },
+        "step": {
+          "type": "number",
+          "description": "Step increment between selectable values."
+        },
+        "label": {
+          "type": "string",
+          "description": "Label text for the slider."
+        },
+        "action": {
+          "type": "Action",
+          "description": "Action to execute on value change."
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "Whether the slider is disabled."
+        }
+      },
+      "requiredProperties": ["value", "minValue", "maxValue"]
+    },
+
+    "DateTimeInput": {
+      "description": "A date and/or time picker input.",
+      "htmlElement": "input",
+      "properties": {
+        "value": {
+          "type": "DynamicString",
+          "description": "Current date/time value as ISO 8601 string. Supports two-way data binding."
+        },
+        "enableDate": {
+          "type": "boolean",
+          "description": "Whether to enable the date picker. Defaults to true."
+        },
+        "enableTime": {
+          "type": "boolean",
+          "description": "Whether to enable the time picker. Defaults to false."
+        },
+        "label": {
+          "type": "string",
+          "description": "Label text for the input."
+        },
+        "action": {
+          "type": "Action",
+          "description": "Action to execute on value change."
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "Whether the input is disabled."
+        }
+      },
+      "requiredProperties": ["value"]
+    },
+
+    "ChoicePicker": {
+      "description": "A selection component rendered as a dropdown select or radio group depending on configuration.",
+      "htmlElement": "select",
+      "properties": {
+        "options": {
+          "type": "array",
+          "description": "Array of selectable options, each with label and value.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "description": "Display label for the option."
+              },
+              "value": {
+                "type": "string",
+                "description": "Value submitted when the option is selected."
+              }
+            }
+          }
+        },
+        "selections": {
+          "type": "DynamicString",
+          "description": "Data model path for the currently selected value(s). Supports two-way data binding."
+        },
+        "maxSelections": {
+          "type": "number",
+          "description": "Maximum number of selections allowed. 1 = single select (dropdown), >1 = multi-select (checkboxes/radio group)."
+        },
+        "label": {
+          "type": "string",
+          "description": "Label text for the picker."
+        },
+        "action": {
+          "type": "Action",
+          "description": "Action to execute on selection change."
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "Whether the picker is disabled."
+        }
+      },
+      "requiredProperties": ["options", "selections"]
+    },
+
+    "Autocomplete": {
+      "description": "A text input with floating autocomplete suggestions powered by floatype.js.",
+      "htmlElement": "input",
+      "properties": {
+        "source": {
+          "type": "DynamicString",
+          "description": "URL or data model path for autocomplete suggestions. Supports data binding."
+        },
+        "minChars": {
+          "type": "number",
+          "description": "Minimum number of characters before suggestions appear. Defaults to 2."
+        },
+        "value": {
+          "type": "DynamicString",
+          "description": "Current input value. Supports two-way data binding."
+        },
+        "label": {
+          "type": "string",
+          "description": "Label text for the input."
+        },
+        "placeholder": {
+          "type": "string",
+          "description": "Placeholder text displayed when the field is empty."
+        },
+        "action": {
+          "type": "Action",
+          "description": "Action to execute when a suggestion is selected."
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "Whether the input is disabled."
+        }
+      },
+      "requiredProperties": ["source"]
+    },
+
+    "Card": {
+      "description": "A content container rendered as an article or section element.",
+      "htmlElement": "article",
+      "properties": {
+        "child": {
+          "type": "ComponentId",
+          "description": "Component ID of the card content."
+        },
+        "title": {
+          "type": "DynamicString",
+          "description": "Optional card title. Supports data binding."
+        }
+      },
+      "requiredProperties": ["child"]
+    },
+
+    "Modal": {
+      "description": "A dialog overlay rendered using the native HTML dialog element. The entry point child is the trigger element; the content child is the dialog body.",
+      "htmlElement": "dialog",
+      "properties": {
+        "entryPointChild": {
+          "type": "ComponentId",
+          "description": "Component ID of the trigger element that opens the modal."
+        },
+        "contentChild": {
+          "type": "ComponentId",
+          "description": "Component ID of the modal body content."
+        },
+        "dismissible": {
+          "type": "boolean",
+          "description": "Whether the modal can be dismissed by clicking outside or pressing Escape."
+        }
+      },
+      "requiredProperties": ["entryPointChild", "contentChild"]
+    },
+
+    "Tabs": {
+      "description": "A tabbed interface rendered as an oat-tabs web component. Each tab has a title and a child component.",
+      "htmlElement": "oat-tabs",
+      "properties": {
+        "tabItems": {
+          "type": "array",
+          "description": "Array of tab definitions, each with a title and child component ID.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Display title for the tab."
+              },
+              "child": {
+                "type": "ComponentId",
+                "description": "Component ID of the tab panel content."
+              }
+            }
+          }
+        },
+        "activeTab": {
+          "type": "DynamicNumber",
+          "description": "Index of the initially active tab. Supports data binding."
+        }
+      },
+      "requiredProperties": ["tabItems"]
+    },
+
+    "Accordion": {
+      "description": "A collapsible content panel set using details/summary elements. Supports grouped mode where only one panel is open at a time.",
+      "htmlElement": "details",
+      "properties": {
+        "items": {
+          "type": "array",
+          "description": "Array of accordion panel definitions, each with a title and child component ID.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Summary text displayed in the accordion header."
+              },
+              "child": {
+                "type": "ComponentId",
+                "description": "Component ID of the panel content."
+              }
+            }
+          }
+        },
+        "grouped": {
+          "type": "boolean",
+          "description": "When true, only one panel can be open at a time (exclusive mode)."
+        }
+      },
+      "requiredProperties": ["items"]
+    },
+
+    "Tooltip": {
+      "description": "A tooltip that appears on hover, rendered using Oat's data-tooltip attribute.",
+      "htmlElement": "span",
+      "properties": {
+        "child": {
+          "type": "ComponentId",
+          "description": "Component ID of the element that triggers the tooltip on hover."
+        },
+        "text": {
+          "type": "DynamicString",
+          "description": "Tooltip text content. Supports data binding."
+        },
+        "position": {
+          "type": "string",
+          "enum": ["top", "bottom", "left", "right"],
+          "description": "Position of the tooltip relative to the trigger element."
+        }
+      },
+      "requiredProperties": ["child", "text"]
+    },
+
+    "Dropdown": {
+      "description": "A dropdown menu rendered as an Oat dropdown web component. Displays a trigger element that reveals a list of actions or options.",
+      "htmlElement": "oat-dropdown",
+      "properties": {
+        "child": {
+          "type": "ComponentId",
+          "description": "Component ID of the trigger element that opens the dropdown."
+        },
+        "items": {
+          "type": "array",
+          "description": "Array of dropdown menu items, each with a label and action.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "description": "Display text for the menu item."
+              },
+              "action": {
+                "type": "Action",
+                "description": "Action to execute when the item is selected."
+              },
+              "disabled": {
+                "type": "boolean",
+                "description": "Whether this menu item is disabled."
+              }
+            }
+          }
+        },
+        "position": {
+          "type": "string",
+          "enum": ["bottom-start", "bottom-end", "top-start", "top-end"],
+          "description": "Position of the dropdown menu relative to the trigger."
+        }
+      },
+      "requiredProperties": ["child", "items"]
+    },
+
+    "Table": {
+      "description": "A data table with column definitions and template-based row rendering. Supports sorting and striped styling.",
+      "htmlElement": "table",
+      "properties": {
+        "columns": {
+          "type": "array",
+          "description": "Array of column definitions with header labels and data keys.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "description": "Column header label."
+              },
+              "key": {
+                "type": "string",
+                "description": "Data key for the column, used to extract cell values from row data."
+              },
+              "sortable": {
+                "type": "boolean",
+                "description": "Whether the column supports sorting."
+              }
+            }
+          }
+        },
+        "rows": {
+          "type": "DynamicString",
+          "description": "Data model path to the array of row data objects. Supports data binding."
+        },
+        "sortable": {
+          "type": "boolean",
+          "description": "Whether the table supports column sorting."
+        },
+        "striped": {
+          "type": "boolean",
+          "description": "Whether to apply alternating row striping."
+        }
+      },
+      "requiredProperties": ["columns", "rows"]
+    },
+
+    "Pagination": {
+      "description": "A navigation component for paging through data sets. Renders as a nav element with page links.",
+      "htmlElement": "nav",
+      "properties": {
+        "currentPage": {
+          "type": "DynamicNumber",
+          "description": "The currently active page number. Supports data binding."
+        },
+        "totalPages": {
+          "type": "DynamicNumber",
+          "description": "Total number of pages. Supports data binding."
+        },
+        "action": {
+          "type": "Action",
+          "description": "Action to execute when a page is selected (typically a fetchPage function call)."
+        }
+      },
+      "requiredProperties": ["currentPage", "totalPages", "action"]
+    },
+
+    "Alert": {
+      "description": "An alert message banner for displaying status information to the user.",
+      "htmlElement": "div",
+      "properties": {
+        "text": {
+          "type": "DynamicString",
+          "description": "Alert message text. Supports data binding."
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["info", "success", "warning", "error"],
+          "description": "Visual style variant indicating alert severity."
+        },
+        "dismissible": {
+          "type": "boolean",
+          "description": "Whether the alert can be dismissed by the user."
+        }
+      },
+      "requiredProperties": ["text", "variant"]
+    },
+
+    "Toast": {
+      "description": "A temporary notification rendered as an oat-toast web component. Automatically dismisses after a duration.",
+      "htmlElement": "oat-toast",
+      "properties": {
+        "text": {
+          "type": "DynamicString",
+          "description": "Toast message text. Supports data binding."
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["info", "success", "warning", "error"],
+          "description": "Visual style variant."
+        },
+        "duration": {
+          "type": "number",
+          "description": "Auto-dismiss duration in milliseconds. Defaults to 3000."
+        },
+        "position": {
+          "type": "string",
+          "enum": ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right"],
+          "description": "Screen position where the toast appears."
+        }
+      },
+      "requiredProperties": ["text"]
+    },
+
+    "Breadcrumb": {
+      "description": "A breadcrumb navigation trail rendered as a nav with aria-label='breadcrumb'.",
+      "htmlElement": "nav",
+      "properties": {
+        "items": {
+          "type": "array",
+          "description": "Ordered array of breadcrumb items, each with a label and optional action.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "description": "Display text for the breadcrumb link."
+              },
+              "action": {
+                "type": "Action",
+                "description": "Action to execute when the breadcrumb is clicked (typically navigateTo or openUrl)."
+              }
+            }
+          }
+        }
+      },
+      "requiredProperties": ["items"]
+    },
+
+    "OatHTML": {
+      "description": "Escape hatch component that renders sanitized HTML. For semi-trusted agents that need layout flexibility beyond catalog components. The HTML string is passed through a configurable sanitizer before DOM insertion.",
+      "htmlElement": "div",
+      "properties": {
+        "html": {
+          "type": "DynamicString",
+          "description": "Sanitized HTML string to render. Supports data binding. Processed through DOMPurify or equivalent before insertion."
+        },
+        "sanitize": {
+          "type": "boolean",
+          "description": "Whether to sanitize the HTML before rendering. Defaults to true. Should only be set to false in fully trusted environments."
+        }
+      },
+      "requiredProperties": ["html"]
+    }
+  },
+
+  "functions": {
+
+    "fetchPage": {
+      "description": "Client-side pagination. Fetches the next page of data from a URL using cursor-based pagination and writes the result to the data model.",
+      "parameters": {
+        "url": {
+          "type": "DynamicString",
+          "description": "API endpoint URL. Supports data binding."
+        },
+        "cursor": {
+          "type": "DynamicString",
+          "description": "Data model path or value for the pagination cursor. Supports data binding."
+        },
+        "targetPath": {
+          "type": "string",
+          "description": "JSON Pointer path in the data model where fetched data will be written."
+        },
+        "method": {
+          "type": "string",
+          "enum": ["GET", "POST"],
+          "description": "HTTP method for the request. Defaults to GET."
+        }
+      },
+      "requiredParameters": ["url", "targetPath"]
+    },
+
+    "fetchAndAppend": {
+      "description": "Infinite scroll data loading. Fetches additional data and appends it to an existing array in the data model.",
+      "parameters": {
+        "url": {
+          "type": "DynamicString",
+          "description": "API endpoint URL. Supports data binding."
+        },
+        "cursor": {
+          "type": "DynamicString",
+          "description": "Data model path or value for the pagination cursor. Supports data binding."
+        },
+        "targetPath": {
+          "type": "string",
+          "description": "JSON Pointer path to the array in the data model where results will be appended."
+        },
+        "method": {
+          "type": "string",
+          "enum": ["GET", "POST"],
+          "description": "HTTP method for the request. Defaults to GET."
+        }
+      },
+      "requiredParameters": ["url", "targetPath"]
+    },
+
+    "subscribeSSE": {
+      "description": "Opens a Server-Sent Events stream and writes each event's data to the data model for real-time updates.",
+      "parameters": {
+        "url": {
+          "type": "string",
+          "description": "SSE endpoint URL."
+        },
+        "targetPath": {
+          "type": "string",
+          "description": "JSON Pointer path in the data model where event data will be written."
+        },
+        "eventName": {
+          "type": "string",
+          "description": "SSE event name to listen for. Defaults to 'message'."
+        }
+      },
+      "requiredParameters": ["url", "targetPath"]
+    },
+
+    "subscribeWebSocket": {
+      "description": "Opens a WebSocket connection and writes parsed messages to the data model for real-time updates.",
+      "parameters": {
+        "url": {
+          "type": "string",
+          "description": "WebSocket endpoint URL (ws:// or wss://)."
+        },
+        "targetPath": {
+          "type": "string",
+          "description": "JSON Pointer path in the data model where parsed messages will be written."
+        },
+        "messageParser": {
+          "type": "string",
+          "enum": ["json", "text"],
+          "description": "How to parse incoming messages. 'json' parses as JSON; 'text' writes raw string. Defaults to 'json'."
+        }
+      },
+      "requiredParameters": ["url", "targetPath"]
+    },
+
+    "openUrl": {
+      "description": "Opens a URL in the browser. Standard A2UI navigation function.",
+      "parameters": {
+        "url": {
+          "type": "DynamicString",
+          "description": "URL to open. Supports data binding."
+        },
+        "target": {
+          "type": "string",
+          "enum": ["_self", "_blank"],
+          "description": "Browser target for the URL. Defaults to '_blank'."
+        }
+      },
+      "requiredParameters": ["url"]
+    },
+
+    "navigateTo": {
+      "description": "Client-side SPA routing via tinyrouter.js and window.history. Navigates to a path without full page reload.",
+      "parameters": {
+        "path": {
+          "type": "DynamicString",
+          "description": "Route path to navigate to. Supports data binding."
+        },
+        "params": {
+          "type": "object",
+          "description": "Optional route parameters passed to the route handler."
+        }
+      },
+      "requiredParameters": ["path"]
+    },
+
+    "showToast": {
+      "description": "Triggers a toast notification using the Oat Toast web component.",
+      "parameters": {
+        "text": {
+          "type": "DynamicString",
+          "description": "Toast message text. Supports data binding."
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["info", "success", "warning", "error"],
+          "description": "Visual style variant."
+        },
+        "duration": {
+          "type": "number",
+          "description": "Auto-dismiss duration in milliseconds. Defaults to 3000."
+        }
+      },
+      "requiredParameters": ["text"]
+    },
+
+    "debounce": {
+      "description": "Wraps another action with a debounce delay. Useful for search-as-you-type inputs to avoid excessive requests.",
+      "parameters": {
+        "targetAction": {
+          "type": "Action",
+          "description": "The action to debounce."
+        },
+        "delayMs": {
+          "type": "number",
+          "description": "Debounce delay in milliseconds. Defaults to 300."
+        }
+      },
+      "requiredParameters": ["targetAction"]
+    },
+
+    "formatDate": {
+      "description": "Locale-aware date formatting using Intl.DateTimeFormat. Writes the formatted string to the data model.",
+      "parameters": {
+        "value": {
+          "type": "DynamicString",
+          "description": "Date value to format (ISO 8601 string or data model path). Supports data binding."
+        },
+        "locale": {
+          "type": "string",
+          "description": "BCP 47 locale string (e.g., 'en-US', 'de-DE'). Defaults to browser locale."
+        },
+        "options": {
+          "type": "object",
+          "description": "Intl.DateTimeFormat options (dateStyle, timeStyle, etc.)."
+        }
+      },
+      "requiredParameters": ["value"]
+    },
+
+    "formatNumber": {
+      "description": "Locale-aware number formatting using Intl.NumberFormat. Writes the formatted string to the data model.",
+      "parameters": {
+        "value": {
+          "type": "DynamicNumber",
+          "description": "Number value to format or data model path. Supports data binding."
+        },
+        "locale": {
+          "type": "string",
+          "description": "BCP 47 locale string (e.g., 'en-US', 'de-DE'). Defaults to browser locale."
+        },
+        "options": {
+          "type": "object",
+          "description": "Intl.NumberFormat options (style, currency, minimumFractionDigits, etc.)."
+        }
+      },
+      "requiredParameters": ["value"]
+    }
+  },
+
+  "theme": {
+    "primaryColor": {
+      "type": "string",
+      "description": "Primary action and accent color. Maps to CSS variable --color-primary.",
+      "cssVariable": "--color-primary",
+      "default": "#1a73e8"
+    },
+    "backgroundColor": {
+      "type": "string",
+      "description": "Page and surface background color. Maps to CSS variable --color-bg.",
+      "cssVariable": "--color-bg",
+      "default": "#ffffff"
+    },
+    "textColor": {
+      "type": "string",
+      "description": "Default text color. Maps to CSS variable --color-text.",
+      "cssVariable": "--color-text",
+      "default": "#202124"
+    },
+    "fontFamily": {
+      "type": "string",
+      "description": "Base font stack. Maps to CSS variable --font-family.",
+      "cssVariable": "--font-family",
+      "default": "system-ui"
+    },
+    "borderRadius": {
+      "type": "string",
+      "description": "Component corner radius. Maps to CSS variable --border-radius.",
+      "cssVariable": "--border-radius",
+      "default": "4px"
+    },
+    "spacing": {
+      "type": "string",
+      "description": "Base spacing unit for margins and padding. Maps to CSS variable --spacing.",
+      "cssVariable": "--spacing",
+      "default": "1rem"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["light", "dark", "auto"],
+      "description": "Color mode preference. Applied as a data attribute on the surface root element. 'auto' follows the user's OS preference via CSS media queries.",
+      "default": "auto"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "debounce",
+  "description": "Wraps another action with a debounce delay. Ensures the target action is only executed after the specified delay has elapsed since the last invocation, useful for search-as-you-type and other high-frequency input patterns.",
+  "backedBy": "vanilla JS",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "targetAction": {
+        "type": "object",
+        "description": "The A2UI action definition to wrap with debounce. This is a complete action object (e.g., containing a functionCall or serverEvent)."
+      },
+      "delayMs": {
+        "type": "number",
+        "default": 300,
+        "description": "The debounce delay in milliseconds. The target action will only fire after this many milliseconds of inactivity."
+      }
+    },
+    "required": ["targetAction"],
+    "additionalProperties": false
+  }
+}

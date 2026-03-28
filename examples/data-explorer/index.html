@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Explorer Example -- a2ui-oat</title>
+
+  <!-- Oat CSS & JS via CDN -->
+  <link rel="stylesheet" href="https://unpkg.com/@nicedoc/oat@latest/oat.min.css">
+  <script src="https://unpkg.com/@nicedoc/oat@latest/oat.min.js" defer></script>
+
+  <!-- Companion libraries via CDN -->
+  <script src="https://unpkg.com/floatype@latest/floatype.min.js" defer></script>
+  <script src="https://unpkg.com/tinyrouter@latest/tinyrouter.min.js" defer></script>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 1rem 2rem;
+      background: #f8f9fa;
+    }
+    h1 { margin-top: 0; }
+
+    .explorer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid #dee2e6;
+    }
+    .tab {
+      padding: 0.6rem 1.2rem;
+      cursor: pointer;
+      font-weight: 500;
+      color: #666;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.15s, border-color 0.15s;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+      font-size: 0.95rem;
+    }
+    .tab:hover { color: #333; }
+    .tab.active {
+      color: #1a73e8;
+      border-bottom-color: #1a73e8;
+    }
+
+    /* Search */
+    .search-box {
+      position: relative;
+    }
+    .search-box input {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      width: 260px;
+    }
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 0 0 6px 6px;
+      max-height: 240px;
+      overflow-y: auto;
+      z-index: 10;
+      display: none;
+    }
+    .search-results.visible { display: block; }
+    .search-result-item {
+      padding: 0.5rem 0.75rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .search-result-item:hover { background: #f0f4ff; }
+    .search-result-item .category {
+      color: #888;
+      font-size: 0.8rem;
+    }
+
+    /* Table */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .data-table th, .data-table td {
+      text-align: left;
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid #eee;
+    }
+    .data-table th {
+      background: #f4f4f5;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #555;
+    }
+    .data-table tr:nth-child(even) { background: #fafbfc; }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .status-badge.active   { background: #d4edda; color: #155724; }
+    .status-badge.archived { background: #e2e3e5; color: #383d41; }
+    .status-badge.flagged  { background: #fff3cd; color: #856404; }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      padding: 0.75rem 0;
+    }
+    .pagination button {
+      padding: 0.4rem 0.8rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .pagination button:hover:not(:disabled) { background: #f0f4ff; }
+    .pagination button:disabled { opacity: 0.4; cursor: default; }
+    .pagination .page-info { color: #666; font-size: 0.9rem; }
+
+    .loading { text-align: center; padding: 2rem; color: #888; }
+    .empty   { text-align: center; padding: 2rem; color: #888; }
+  </style>
+</head>
+<body>
+
+  <h1>Data Explorer</h1>
+  <p>
+    Demonstrates the data explorer pattern from Section 6.6.
+    The agent builds the surface once; the client handles tabs, search, pagination, and routing autonomously.
+  </p>
+
+  <div class="explorer-header">
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-status="">All</button>
+      <button class="tab" data-status="Active">Active</button>
+      <button class="tab" data-status="Archived">Archived</button>
+      <button class="tab" data-status="Flagged">Flagged</button>
+    </nav>
+    <div class="search-box">
+      <input type="text" id="search-input" placeholder="Search items..." autocomplete="off">
+      <div class="search-results" id="search-results"></div>
+    </div>
+  </div>
+
+  <table class="data-table" id="data-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Status</th>
+        <th>Category</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody id="table-body">
+      <tr><td colspan="5" class="loading">Loading...</td></tr>
+    </tbody>
+  </table>
+
+  <div class="pagination" id="pagination"></div>
+
+  <script type="module">
+    // -----------------------------------------------------------------------
+    // Configuration -- mirrors what an agent would set up via A2UI JSON
+    // -----------------------------------------------------------------------
+
+    const API_BASE = "http://localhost:3200";
+    const PAGE_LIMIT = 50;
+
+    // -----------------------------------------------------------------------
+    // Data model -- in A2UI mode, @a2ui/web-lib manages this.
+    // Here we simulate it for demonstration purposes.
+    // -----------------------------------------------------------------------
+
+    const dataModel = {
+      filter: { status: "" },
+      tableData: { items: [], pagination: {} },
+    };
+
+    // -----------------------------------------------------------------------
+    // Registered function: fetchPage (Section 6.1)
+    //
+    // Fetches a page of items from the API and writes results to the data
+    // model. The surface updates automatically via re-render.
+    // -----------------------------------------------------------------------
+
+    async function fetchPage(cursor = 0) {
+      const status = dataModel.filter.status;
+      const params = new URLSearchParams({ limit: String(PAGE_LIMIT) });
+      if (status) params.set("status", status);
+      if (cursor != null) params.set("cursor", String(cursor));
+
+      const url = `${API_BASE}/api/items?${params}`;
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`API error: ${resp.status}`);
+
+      const data = await resp.json();
+      dataModel.tableData = data;
+      renderTable();
+      renderPagination();
+    }
+
+    // -----------------------------------------------------------------------
+    // Registered function: navigateTo (Section 6.2)
+    //
+    // Client-side SPA routing. Changes the URL hash and updates the filter,
+    // which triggers a data refresh. In production this uses tinyrouter.js.
+    // -----------------------------------------------------------------------
+
+    function navigateTo(status) {
+      const path = status ? `/${status.toLowerCase()}` : "/";
+      window.history.replaceState({}, "", `#${path}`);
+      dataModel.filter.status = status;
+
+      // Update tab UI
+      for (const tab of document.querySelectorAll("#tabs .tab")) {
+        tab.classList.toggle("active", tab.dataset.status === status);
+      }
+
+      // Fetch first page with new filter
+      fetchPage(0);
+    }
+
+    // -----------------------------------------------------------------------
+    // Debounced search -- wired to Autocomplete component (Section 6.3)
+    // -----------------------------------------------------------------------
+
+    let searchTimer = null;
+
+    async function searchItems(query) {
+      if (!query.trim()) {
+        hideSearchResults();
+        return;
+      }
+
+      const resp = await fetch(
+        `${API_BASE}/api/search?q=${encodeURIComponent(query)}`
+      );
+      if (!resp.ok) return;
+
+      const results = await resp.json();
+      showSearchResults(results);
+    }
+
+    function debouncedSearch(query) {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => searchItems(query), 250);
+    }
+
+    // -----------------------------------------------------------------------
+    // Rendering
+    // -----------------------------------------------------------------------
+
+    const tableBody = document.getElementById("table-body");
+    const paginationEl = document.getElementById("pagination");
+    const searchResultsEl = document.getElementById("search-results");
+
+    function renderTable() {
+      const items = dataModel.tableData.items ?? [];
+
+      if (items.length === 0) {
+        tableBody.innerHTML =
+          '<tr><td colspan="5" class="empty">No items found</td></tr>';
+        return;
+      }
+
+      tableBody.innerHTML = items
+        .map(
+          (item) => `
+          <tr>
+            <td>${item.id}</td>
+            <td>${escapeHtml(item.name)}</td>
+            <td><span class="status-badge ${item.status.toLowerCase()}">${item.status}</span></td>
+            <td>${escapeHtml(item.category)}</td>
+            <td>${item.date}</td>
+          </tr>`
+        )
+        .join("");
+    }
+
+    function renderPagination() {
+      const p = dataModel.tableData.pagination ?? {};
+      const { currentPage = 1, totalPages = 1, totalItems = 0 } = p;
+
+      paginationEl.innerHTML = `
+        <button id="prev-btn" ${p.prevCursor == null ? "disabled" : ""}>Previous</button>
+        <span class="page-info">Page ${currentPage} of ${totalPages} (${totalItems} items)</span>
+        <button id="next-btn" ${p.nextCursor == null ? "disabled" : ""}>Next</button>
+      `;
+
+      const prevBtn = document.getElementById("prev-btn");
+      const nextBtn = document.getElementById("next-btn");
+
+      prevBtn.addEventListener("click", () => {
+        if (p.prevCursor != null) fetchPage(p.prevCursor);
+      });
+      nextBtn.addEventListener("click", () => {
+        if (p.nextCursor != null) fetchPage(p.nextCursor);
+      });
+    }
+
+    function showSearchResults(results) {
+      if (results.length === 0) {
+        hideSearchResults();
+        return;
+      }
+
+      searchResultsEl.innerHTML = results
+        .map(
+          (r) => `
+          <div class="search-result-item" data-id="${r.id}">
+            <div>${escapeHtml(r.name)}</div>
+            <div class="category">${escapeHtml(r.category)} &middot; ${r.status}</div>
+          </div>`
+        )
+        .join("");
+      searchResultsEl.classList.add("visible");
+
+      // Click on a search result to filter by that item's status
+      for (const el of searchResultsEl.querySelectorAll(".search-result-item")) {
+        el.addEventListener("click", () => {
+          hideSearchResults();
+          document.getElementById("search-input").value = "";
+        });
+      }
+    }
+
+    function hideSearchResults() {
+      searchResultsEl.classList.remove("visible");
+      searchResultsEl.innerHTML = "";
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    // -----------------------------------------------------------------------
+    // Wire up event handlers
+    //
+    // In A2UI mode, these bindings are declared in JSON and executed by the
+    // renderer. Here we wire them manually to demonstrate the pattern.
+    // -----------------------------------------------------------------------
+
+    // Tabs -> navigateTo
+    for (const tab of document.querySelectorAll("#tabs .tab")) {
+      tab.addEventListener("click", () => navigateTo(tab.dataset.status));
+    }
+
+    // Search input -> debounced search (Autocomplete component)
+    const searchInput = document.getElementById("search-input");
+    searchInput.addEventListener("input", (e) => debouncedSearch(e.target.value));
+    searchInput.addEventListener("blur", () => {
+      // Delay to allow click on results
+      setTimeout(hideSearchResults, 200);
+    });
+
+    // -----------------------------------------------------------------------
+    // The A2UI agent output that would set up this surface
+    //
+    // This JSON represents what the agent would emit to create the data
+    // explorer. The client-side rendering above is the equivalent of what
+    // the Oat Renderer + @a2ui/web-lib would produce from this JSON.
+    // -----------------------------------------------------------------------
+
+    const agentOutput = {
+      version: "v0.9",
+      messages: [
+        {
+          createSurface: {
+            surfaceId: "data-explorer",
+            catalogId: "https://a2ui-oat.dev/catalog/v1/oat-catalog.json",
+            theme: { primaryColor: "#1A73E8", mode: "light" },
+            sendDataModel: true,
+          },
+        },
+        {
+          updateDataModel: {
+            surfaceId: "data-explorer",
+            data: {
+              filter: { status: "" },
+              tableData: { items: [], pagination: {} },
+            },
+          },
+        },
+        {
+          updateComponents: {
+            surfaceId: "data-explorer",
+            components: [
+              {
+                id: "root",
+                component: "Column",
+                children: ["header", "table", "pager"],
+              },
+              {
+                id: "header",
+                component: "Row",
+                justify: "space-between",
+                children: ["tabs", "search"],
+              },
+              {
+                id: "tabs",
+                component: "Tabs",
+                tabItems: [
+                  {
+                    title: "All",
+                    action: {
+                      functionCall: {
+                        call: "navigateTo",
+                        args: { path: "/", params: { status: "" } },
+                      },
+                    },
+                  },
+                  {
+                    title: "Active",
+                    action: {
+                      functionCall: {
+                        call: "navigateTo",
+                        args: { path: "/active", params: { status: "Active" } },
+                      },
+                    },
+                  },
+                  {
+                    title: "Archived",
+                    action: {
+                      functionCall: {
+                        call: "navigateTo",
+                        args: {
+                          path: "/archived",
+                          params: { status: "Archived" },
+                        },
+                      },
+                    },
+                  },
+                  {
+                    title: "Flagged",
+                    action: {
+                      functionCall: {
+                        call: "navigateTo",
+                        args: {
+                          path: "/flagged",
+                          params: { status: "Flagged" },
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+              {
+                id: "search",
+                component: "Autocomplete",
+                source: `${API_BASE}/api/search?q=`,
+                minChars: 2,
+                action: {
+                  functionCall: {
+                    call: "debounce",
+                    args: {
+                      delayMs: 250,
+                      targetAction: {
+                        functionCall: {
+                          call: "fetchPage",
+                          args: {
+                            url: `${API_BASE}/api/search`,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                id: "table",
+                component: "Table",
+                columns: [
+                  { header: "ID", field: "id" },
+                  { header: "Name", field: "name" },
+                  { header: "Status", field: "status" },
+                  { header: "Category", field: "category" },
+                  { header: "Date", field: "date" },
+                ],
+                rows: { path: "/tableData/items" },
+                striped: true,
+                sortable: true,
+              },
+              {
+                id: "pager",
+                component: "Pagination",
+                currentPage: { path: "/tableData/pagination/currentPage" },
+                totalPages: { path: "/tableData/pagination/totalPages" },
+                action: {
+                  functionCall: {
+                    call: "fetchPage",
+                    args: {
+                      url: `${API_BASE}/api/items`,
+                      cursor: { path: "/tableData/pagination/nextCursor" },
+                      targetPath: "/tableData",
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        },
+      ],
+    };
+
+    // Log the agent output to the console for reference
+    console.log(
+      "A2UI agent output (what the agent would emit):",
+      JSON.stringify(agentOutput, null, 2)
+    );
+
+    // -----------------------------------------------------------------------
+    // Initialize: read route from hash, then fetch first page
+    // -----------------------------------------------------------------------
+
+    function initFromRoute() {
+      const hash = window.location.hash.replace("#", "").replace("/", "");
+      const statusMap = { active: "Active", archived: "Archived", flagged: "Flagged" };
+      const status = statusMap[hash] || "";
+      dataModel.filter.status = status;
+
+      for (const tab of document.querySelectorAll("#tabs .tab")) {
+        tab.classList.toggle("active", tab.dataset.status === status);
+      }
+
+      fetchPage(0);
+    }
+
+    initFromRoute();
+  </script>
+</body>
+</html>

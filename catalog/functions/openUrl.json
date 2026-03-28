@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "openUrl",
+  "description": "Opens a URL in the browser. Standard A2UI navigation function for external links.",
+  "backedBy": "window.open",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "The URL to open."
+      },
+      "target": {
+        "type": "string",
+        "default": "_blank",
+        "description": "The browsing context target (e.g., '_blank', '_self', '_parent', '_top')."
+      }
+    },
+    "required": ["url"],
+    "additionalProperties": false
+  }
+}

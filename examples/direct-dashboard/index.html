@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Operations Dashboard -- Direct Mode</title>
+
+  <!--
+    Direct Mode: Load only Oat CSS and JS via CDN.
+    No @a2ui/web-lib, no renderer, no catalog, no JSON intermediary.
+    Total footprint: ~13KB (Oat CSS + JS).
+  -->
+  <link rel="stylesheet" href="https://unpkg.com/@nicedoc/oat@latest/oat.min.css">
+  <script defer src="https://unpkg.com/@nicedoc/oat@latest/oat.min.js"></script>
+  <style>
+    progress, meter { width: 100%; }
+  </style>
+</head>
+<body>
+
+  <!--
+    =========================================================================
+    DIRECT MODE EXAMPLE: Operations Dashboard
+    =========================================================================
+    In Direct Mode the agent emits semantic HTML directly. The browser renders
+    it and Oat CSS styles it automatically -- no A2UI JSON, no catalog
+    validation, no renderer mapping. The agent must be trusted.
+
+    Compare this with the a2ui-dashboard example where the same content is
+    expressed as A2UI JSON components and rendered through the Oat Renderer.
+    =========================================================================
+  -->
+
+  <div class="container">
+
+    <!-- ===== Header row: title + status badge ===== -->
+    <!--
+      A2UI Mode equivalent:
+      { "component": "Row", "children": ["title", "status-badge"] }
+      { "component": "Text", "variant": "h1", "text": "Operations Dashboard" }
+      { "component": "Badge", "text": "Live", "variant": "success" }
+
+      Direct Mode: just write HTML.
+    -->
+    <div class="row" style="align-items: center; justify-content: space-between;">
+      <div class="col-9">
+        <h1>Operations Dashboard</h1>
+        <p>Real-time infrastructure monitoring &mdash; Direct Mode</p>
+      </div>
+      <div class="col-3" style="text-align: right;">
+        <span data-badge="success">Live</span>
+        <span data-badge>Direct Mode</span>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="row">
+
+      <!-- ===== Sidebar navigation ===== -->
+      <!--
+        A2UI Mode equivalent:
+        { "component": "Sidebar", "position": "left", "child": "nav-list" }
+        { "component": "List", "children": [...nav items...] }
+
+        Direct Mode: a semantic <aside> with a list.
+      -->
+      <div class="col-2">
+        <aside>
+          <nav>
+            <strong>Navigation</strong>
+            <ul>
+              <li><a href="#overview">Overview</a></li>
+              <li><a href="#metrics">Metrics</a></li>
+              <li><a href="#incidents">Incidents</a></li>
+              <li><a href="#alerts">Alerts</a></li>
+              <li><a href="#settings">Settings</a></li>
+            </ul>
+          </nav>
+        </aside>
+      </div>
+
+      <!-- ===== Main content area ===== -->
+      <div class="col-10">
+
+        <!-- ===== Breadcrumb navigation ===== -->
+        <!--
+          A2UI Mode equivalent:
+          { "component": "Breadcrumb", "items": [
+              { "label": "Home", "action": {...} },
+              { "label": "Dashboards" },
+              { "label": "Operations" }
+          ]}
+
+          Direct Mode: a semantic <nav> with aria-label.
+        -->
+        <nav aria-label="breadcrumb">
+          <a href="#">Home</a> /
+          <a href="#">Dashboards</a> /
+          <strong>Operations</strong>
+        </nav>
+
+        <br>
+
+        <!-- ===== Metric cards row ===== -->
+        <!--
+          A2UI Mode equivalent (repeated for each card):
+          { "component": "Card", "child": "uptime-content" }
+          { "component": "Text", "variant": "h3", "text": "Uptime" }
+          { "component": "Meter", "value": 0.997, "min": 0, "max": 1, "low": 0.95, "high": 0.99 }
+
+          Direct Mode: semantic <article> cards with native HTML elements.
+        -->
+        <div class="row" id="overview">
+
+          <div class="col-3">
+            <article>
+              <h3>Uptime</h3>
+              <p><strong>99.7%</strong></p>
+              <meter value="0.997" min="0" max="1" low="0.95" high="0.99">99.7%</meter>
+              <p><small>Last 30 days</small></p>
+            </article>
+          </div>
+
+          <div class="col-3">
+            <article>
+              <h3>Response Time</h3>
+              <p><strong>142ms</strong> avg</p>
+              <progress value="142" max="500">142ms</progress>
+              <p><small>Target: &lt; 200ms</small></p>
+            </article>
+          </div>
+
+          <div class="col-3">
+            <article>
+              <h3>Error Rate</h3>
+              <p><strong>0.3%</strong></p>
+              <meter value="0.003" min="0" max="0.05" low="0.01" high="0.03">0.3%</meter>
+              <p><small>Last 24 hours</small></p>
+            </article>
+          </div>
+
+          <div class="col-3">
+            <article>
+              <h3>Active Alerts</h3>
+              <p>
+                <span data-badge="error">3 Critical</span>
+                <span data-badge="warning">7 Warning</span>
+              </p>
+              <progress value="10" max="50">10 of 50</progress>
+              <p><small>Threshold: 50</small></p>
+            </article>
+          </div>
+
+        </div>
+
+        <br>
+
+        <!-- ===== Deployment progress ===== -->
+        <div class="row" id="metrics">
+          <div class="col-6">
+            <article>
+              <h3>Deployment Pipeline</h3>
+              <p>Build <span data-badge="success">passing</span></p>
+              <label>Build progress</label>
+              <progress value="100" max="100">100%</progress>
+
+              <label>Test suite</label>
+              <progress value="87" max="100">87%</progress>
+
+              <label>Staging rollout</label>
+              <progress value="60" max="100">60%</progress>
+
+              <label>Production rollout</label>
+              <progress value="0" max="100">0%</progress>
+            </article>
+          </div>
+
+          <div class="col-6">
+            <article>
+              <h3>Resource Utilization</h3>
+
+              <label>CPU &mdash; 68%</label>
+              <meter value="0.68" min="0" max="1" low="0.5" high="0.85">68%</meter>
+
+              <label>Memory &mdash; 74%</label>
+              <meter value="0.74" min="0" max="1" low="0.5" high="0.85">74%</meter>
+
+              <label>Disk I/O &mdash; 45%</label>
+              <meter value="0.45" min="0" max="1" low="0.5" high="0.85">45%</meter>
+
+              <label>Network &mdash; 31%</label>
+              <meter value="0.31" min="0" max="1" low="0.5" high="0.85">31%</meter>
+            </article>
+          </div>
+        </div>
+
+        <br>
+
+        <!-- ===== Warning alert ===== -->
+        <!--
+          A2UI Mode equivalent:
+          { "component": "Alert", "text": "...", "variant": "warning" }
+
+          Direct Mode: a <div> with role="alert".
+        -->
+        <div role="alert" id="alerts">
+          <strong>Warning:</strong> Memory utilization on <code>prod-node-07</code> has exceeded
+          85% for the past 15 minutes. Auto-scaling has been triggered. Monitor the
+          <a href="#incidents">incidents table</a> for updates.
+        </div>
+
+        <br>
+
+        <!-- ===== Incidents data table ===== -->
+        <!--
+          A2UI Mode equivalent:
+          { "component": "Table", "columns": [...], "rows": { "template": ... }, "striped": true }
+          Data would be bound via data model paths.
+
+          Direct Mode: a plain <table> with semantic markup.
+        -->
+        <h2 id="incidents">Recent Incidents</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Severity</th>
+              <th>Service</th>
+              <th>Description</th>
+              <th>Status</th>
+              <th>Opened</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>INC-4012</code></td>
+              <td><span data-badge="error">Critical</span></td>
+              <td>auth-service</td>
+              <td>Elevated 5xx responses on /token endpoint</td>
+              <td><span data-badge="warning">Investigating</span></td>
+              <td>2026-03-28 09:14 UTC</td>
+            </tr>
+            <tr>
+              <td><code>INC-4011</code></td>
+              <td><span data-badge="error">Critical</span></td>
+              <td>payment-gateway</td>
+              <td>Timeout on downstream provider connection</td>
+              <td><span data-badge="warning">Mitigating</span></td>
+              <td>2026-03-28 08:47 UTC</td>
+            </tr>
+            <tr>
+              <td><code>INC-4010</code></td>
+              <td><span data-badge="error">Critical</span></td>
+              <td>cdn-edge</td>
+              <td>Cache invalidation storm after deploy v2.14.3</td>
+              <td><span data-badge>Monitoring</span></td>
+              <td>2026-03-28 07:32 UTC</td>
+            </tr>
+            <tr>
+              <td><code>INC-4009</code></td>
+              <td><span data-badge="warning">Warning</span></td>
+              <td>search-index</td>
+              <td>Reindex job running 2x expected duration</td>
+              <td><span data-badge>Monitoring</span></td>
+              <td>2026-03-28 06:10 UTC</td>
+            </tr>
+            <tr>
+              <td><code>INC-4008</code></td>
+              <td><span data-badge="warning">Warning</span></td>
+              <td>notification-svc</td>
+              <td>Delivery queue depth above threshold</td>
+              <td><span data-badge="success">Resolved</span></td>
+              <td>2026-03-27 22:45 UTC</td>
+            </tr>
+            <tr>
+              <td><code>INC-4007</code></td>
+              <td><span data-badge="warning">Warning</span></td>
+              <td>api-gateway</td>
+              <td>Rate limiter misconfiguration on /v2 routes</td>
+              <td><span data-badge="success">Resolved</span></td>
+              <td>2026-03-27 18:30 UTC</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <br>
+
+        <!-- ===== Accordion: additional details ===== -->
+        <!--
+          A2UI Mode equivalent:
+          { "component": "Accordion", "items": [...], "grouped": true }
+
+          Direct Mode: native <details>/<summary>.
+        -->
+        <h3>Service Health Details</h3>
+        <details>
+          <summary>auth-service</summary>
+          <p>Region: us-east-1. Replicas: 8/8 healthy. P99 latency: 230ms (elevated). Last deploy: v3.2.1, 2026-03-27 14:00 UTC.</p>
+        </details>
+        <details>
+          <summary>payment-gateway</summary>
+          <p>Region: us-west-2. Replicas: 5/6 healthy. Downstream provider experiencing intermittent timeouts. Failover to secondary provider active.</p>
+        </details>
+        <details>
+          <summary>cdn-edge</summary>
+          <p>Global. Cache hit ratio: 87% (normally 98%). Invalidation storm subsiding. Full recovery estimated within 30 minutes.</p>
+        </details>
+        <details>
+          <summary>search-index</summary>
+          <p>Region: eu-west-1. Cluster: 12 nodes. Reindex progress: 64%. No user-facing impact -- serving from stale index.</p>
+        </details>
+
+        <br>
+
+        <!-- ===== Footer ===== -->
+        <hr>
+        <p>
+          <small>
+            a2ui-oat Direct Mode example. Styled by
+            <a href="https://oat.ink/" target="_blank" rel="noopener">Oat CSS</a>.
+            No frameworks. No build step. ~13KB total.
+          </small>
+        </p>
+
+      </div>
+    </div>
+  </div>
+
+  <!--
+    =========================================================================
+    OPTIONAL: Live updates via SSE or HTMX
+    =========================================================================
+    In Direct Mode, there is no A2UI data model or subscribeSSE registered
+    function. Instead, you use standard browser APIs or lightweight libraries
+    like HTMX to keep the dashboard updated.
+
+    Below is a sketch showing how an SSE connection could push metric updates
+    to the DOM. This is commented-out since there is no real SSE endpoint, but
+    it illustrates the Direct Mode equivalent of the A2UI subscribeSSE pattern.
+    =========================================================================
+  -->
+  <script>
+    // --- Direct Mode live-update sketch (SSE) ---
+    //
+    // In A2UI Mode, the agent would register:
+    //   { "call": "subscribeSSE", "args": { "url": "...", "targetPath": "/liveMetrics" } }
+    // and data-bound components would re-render automatically.
+    //
+    // In Direct Mode, the same result is achieved with vanilla JS:
+    //
+    // const source = new EventSource('/api/metrics/stream');
+    // source.addEventListener('metric', (event) => {
+    //   const data = JSON.parse(event.data);
+    //
+    //   // Update uptime meter
+    //   if (data.uptime !== undefined) {
+    //     document.querySelector('#overview meter').value = data.uptime;
+    //   }
+    //
+    //   // Update response time progress bar
+    //   if (data.responseTime !== undefined) {
+    //     document.querySelectorAll('#overview progress')[0].value = data.responseTime;
+    //   }
+    // });
+    //
+    // --- Alternative: HTMX polling ---
+    //
+    // With HTMX, you can replace sections of the page on a timer:
+    //   <div hx-get="/api/dashboard/metrics" hx-trigger="every 5s" hx-swap="innerHTML">
+    //     ...metric cards...
+    //   </div>
+    //
+    // Both approaches work. HTMX is simpler for full-section replacement;
+    // SSE is better for granular, real-time field updates.
+  </script>
+
+</body>
+</html>

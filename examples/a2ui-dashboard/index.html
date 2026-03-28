@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A2UI Dashboard -- Oat Renderer Example</title>
+
+  <!-- Oat CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/@nicedoc/oat@latest/oat.min.css">
+
+  <style>
+    :root {
+      --color-primary: #3B82F6;
+      --color-bg: #111827;
+      --color-text: #F9FAFB;
+      --font-family: system-ui, sans-serif;
+      --border-radius: 6px;
+      --spacing: 1rem;
+    }
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-family);
+      margin: 0;
+      padding: var(--spacing);
+    }
+    /* Dark-mode overrides for semantic elements */
+    article, section, aside {
+      background: #1F2937;
+      border: 1px solid #374151;
+      border-radius: var(--border-radius);
+      padding: var(--spacing);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #374151;
+    }
+    th { color: #9CA3AF; font-weight: 600; }
+    tr:nth-child(even) { background: #1F2937; }
+    tr:nth-child(odd) { background: #111827; }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing);
+    }
+    .row.space-between { justify-content: space-between; }
+    .row.center { align-items: center; }
+    .col { flex: 1; min-width: 0; }
+    .container { width: 100%; }
+    aside {
+      min-width: 180px;
+    }
+    aside ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    aside ul li { margin-bottom: 0.25rem; }
+    aside button {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      color: var(--color-text);
+      border: none;
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+    }
+    aside button:hover, aside button.primary {
+      background: #374151;
+    }
+    aside button.primary {
+      background: var(--color-primary);
+      color: #fff;
+    }
+    h1 { margin: 0; font-size: 1.5rem; }
+    h2 { margin: 0; font-size: 1.75rem; }
+    p { margin: 0 0 0.25rem 0; color: #9CA3AF; font-size: 0.875rem; }
+    [data-badge] {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    [data-badge].success { background: #065F46; color: #6EE7B7; }
+    [data-badge].info { background: #1E3A5F; color: #93C5FD; }
+    [data-badge].error { background: #7F1D1D; color: #FCA5A5; }
+    [data-badge].warning { background: #78350F; color: #FCD34D; }
+    progress {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    progress::-webkit-progress-bar { background: #374151; border-radius: 4px; }
+    progress::-webkit-progress-value { background: var(--color-primary); border-radius: 4px; }
+    progress::-moz-progress-bar { background: var(--color-primary); border-radius: 4px; }
+    [role="alert"] {
+      padding: 0.75rem 1rem;
+      border-radius: var(--border-radius);
+      font-size: 0.875rem;
+      margin-top: var(--spacing);
+    }
+    [role="alert"].warning { background: #78350F; color: #FCD34D; border: 1px solid #92400E; }
+    [role="alert"].error { background: #7F1D1D; color: #FCA5A5; border: 1px solid #991B1B; }
+    [role="alert"].success { background: #065F46; color: #6EE7B7; border: 1px solid #047857; }
+    nav[aria-label="breadcrumb"] ol {
+      list-style: none;
+      display: flex;
+      gap: 0.5rem;
+      padding: 0;
+      margin: var(--spacing) 0 0 0;
+      font-size: 0.875rem;
+      color: #9CA3AF;
+    }
+    nav[aria-label="breadcrumb"] li + li::before {
+      content: "/";
+      margin-right: 0.5rem;
+      color: #4B5563;
+    }
+    nav[aria-label="breadcrumb"] a {
+      color: var(--color-primary);
+      text-decoration: none;
+    }
+    nav[aria-label="breadcrumb"] a:hover { text-decoration: underline; }
+    #surface { max-width: 1200px; margin: 0 auto; }
+    .status-cell.healthy { color: #6EE7B7; }
+    .status-cell.warning { color: #FCD34D; }
+    .status-cell.degraded { color: #FCA5A5; }
+    /* Data model update highlight */
+    .flash { animation: flash 0.6s ease-out; }
+    @keyframes flash {
+      0% { background: rgba(59,130,246,0.3); }
+      100% { background: transparent; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="surface"></div>
+<div id="controls" style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #374151;">
+  <p style="color: #6B7280; font-size: 0.75rem;">Data binding demo: click the button below to simulate an updateDataModel message.</p>
+  <button onclick="simulateDataUpdate()" style="margin-top:0.5rem; background:var(--color-primary); color:#fff; border:none; padding:0.5rem 1rem; border-radius:var(--border-radius); cursor:pointer;">
+    Simulate Data Update
+  </button>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Minimal A2UI simulation layer
+// Replaces @a2ui/web-lib for this self-contained example.
+// ---------------------------------------------------------------------------
+const A2UISim = (() => {
+  let componentMap = {};
+  let dataModel = {};
+  let renderFn = null;
+
+  return {
+    registerRenderer(fn) { renderFn = fn; },
+
+    processBatch(messages) {
+      for (const msg of messages) {
+        if (msg.createSurface) {
+          applyTheme(msg.createSurface.theme);
+        }
+        if (msg.updateComponents) {
+          for (const c of msg.updateComponents.components) {
+            componentMap[c.id] = c;
+          }
+          render();
+        }
+        if (msg.updateDataModel) {
+          dataModel = mergeDeep(dataModel, msg.updateDataModel.data);
+          render();
+        }
+      }
+    },
+
+    updateData(data) {
+      dataModel = mergeDeep(dataModel, data);
+      render();
+    },
+
+    resolve(binding) {
+      if (binding && typeof binding === "object" && binding.path) {
+        return resolvePath(dataModel, binding.path);
+      }
+      return binding;
+    },
+
+    getComponent(id) { return componentMap[id]; }
+  };
+
+  function render() {
+    if (!renderFn) return;
+    const root = componentMap["root-grid"];
+    if (!root) return;
+    const target = document.getElementById("surface");
+    target.innerHTML = "";
+    target.appendChild(renderFn(root));
+  }
+
+  function applyTheme(theme) {
+    if (!theme) return;
+    const map = {
+      primaryColor: "--color-primary",
+      backgroundColor: "--color-bg",
+      textColor: "--color-text",
+      fontFamily: "--font-family",
+      borderRadius: "--border-radius",
+      spacing: "--spacing"
+    };
+    for (const [key, cssVar] of Object.entries(map)) {
+      if (theme[key]) document.documentElement.style.setProperty(cssVar, theme[key]);
+    }
+    if (theme.mode === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  }
+
+  function resolvePath(obj, path) {
+    const parts = path.replace(/^\//, "").split("/");
+    let cur = obj;
+    for (const p of parts) {
+      if (cur == null) return undefined;
+      cur = cur[p];
+    }
+    return cur;
+  }
+
+  function mergeDeep(target, source) {
+    const out = { ...target };
+    for (const key of Object.keys(source)) {
+      if (
+        source[key] &&
+        typeof source[key] === "object" &&
+        !Array.isArray(source[key]) &&
+        target[key] &&
+        typeof target[key] === "object" &&
+        !Array.isArray(target[key])
+      ) {
+        out[key] = mergeDeep(target[key], source[key]);
+      } else {
+        out[key] = source[key];
+      }
+    }
+    return out;
+  }
+})();
+
+
+// ---------------------------------------------------------------------------
+// Oat Renderer -- maps A2UI component types to semantic HTML
+// ---------------------------------------------------------------------------
+function resolve(binding) { return A2UISim.resolve(binding); }
+function getComp(id) { return A2UISim.getComponent(id); }
+
+function renderChildren(ids) {
+  const frag = document.createDocumentFragment();
+  if (!ids) return frag;
+  for (const id of ids) {
+    const child = getComp(id);
+    if (child) frag.appendChild(oatRender(child));
+  }
+  return frag;
+}
+
+function renderChild(id) {
+  if (!id) return document.createTextNode("");
+  const child = getComp(id);
+  return child ? oatRender(child) : document.createTextNode("");
+}
+
+function oatRender(component) {
+  if (!component) return document.createTextNode("");
+
+  switch (component.component) {
+    case "Grid": {
+      const container = document.createElement("div");
+      container.className = "container";
+      const row = document.createElement("div");
+      row.className = "row";
+      if (component.gap) row.style.gap = component.gap;
+      row.appendChild(renderChildren(component.children));
+      container.appendChild(row);
+      return container;
+    }
+
+    case "Row": {
+      const div = document.createElement("div");
+      div.className = "row";
+      if (component.justify === "space-between") div.classList.add("space-between");
+      if (component.align === "center") div.classList.add("center");
+      div.appendChild(renderChildren(component.children));
+      return div;
+    }
+
+    case "Column": {
+      const div = document.createElement("div");
+      div.className = "col";
+      if (component.weight) div.style.flex = component.weight;
+      div.appendChild(renderChildren(component.children));
+      return div;
+    }
+
+    case "Text": {
+      const variant = component.variant || "p";
+      const el = document.createElement(variant);
+      el.textContent = resolve(component.text) || "";
+      return el;
+    }
+
+    case "Badge": {
+      const span = document.createElement("span");
+      span.setAttribute("data-badge", "");
+      if (component.variant) span.className = component.variant;
+      span.textContent = resolve(component.text) || "";
+      return span;
+    }
+
+    case "Progress": {
+      const prog = document.createElement("progress");
+      prog.value = resolve(component.value) || 0;
+      prog.max = component.max || 100;
+      return prog;
+    }
+
+    case "Card": {
+      const article = document.createElement("article");
+      article.appendChild(renderChild(component.child));
+      return article;
+    }
+
+    case "Sidebar": {
+      const aside = document.createElement("aside");
+      aside.appendChild(renderChild(component.child));
+      return aside;
+    }
+
+    case "List": {
+      const ul = document.createElement("ul");
+      if (component.children) {
+        for (const id of component.children) {
+          const li = document.createElement("li");
+          const child = getComp(id);
+          if (child) li.appendChild(oatRender(child));
+          ul.appendChild(li);
+        }
+      }
+      return ul;
+    }
+
+    case "Button": {
+      const btn = document.createElement("button");
+      if (component.variant) btn.className = component.variant;
+      btn.appendChild(renderChild(component.child));
+      if (component.action && component.action.functionCall) {
+        const fc = component.action.functionCall;
+        btn.addEventListener("click", () => {
+          console.log(`[A2UI] functionCall: ${fc.call}(${JSON.stringify(fc.args)})`);
+        });
+      }
+      return btn;
+    }
+
+    case "Table": {
+      const table = document.createElement("table");
+      if (component.striped) table.classList.add("striped");
+
+      const thead = document.createElement("thead");
+      const headerRow = document.createElement("tr");
+      for (const col of component.columns || []) {
+        const th = document.createElement("th");
+        th.textContent = col.label || col.key;
+        headerRow.appendChild(th);
+      }
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+      const rows = resolve(component.rows) || [];
+      for (const row of rows) {
+        const tr = document.createElement("tr");
+        for (const col of component.columns || []) {
+          const td = document.createElement("td");
+          const val = row[col.key];
+          td.textContent = val != null ? val : "";
+          if (col.key === "status") {
+            td.className = "status-cell " + String(val).toLowerCase();
+          }
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
+      return table;
+    }
+
+    case "Alert": {
+      const div = document.createElement("div");
+      div.setAttribute("role", "alert");
+      if (component.variant) div.className = component.variant;
+      div.textContent = resolve(component.text) || "";
+      return div;
+    }
+
+    case "Breadcrumb": {
+      const nav = document.createElement("nav");
+      nav.setAttribute("aria-label", "breadcrumb");
+      const ol = document.createElement("ol");
+      for (const item of component.items || []) {
+        const li = document.createElement("li");
+        if (item.action) {
+          const a = document.createElement("a");
+          a.href = "#";
+          a.textContent = item.label;
+          a.addEventListener("click", (e) => {
+            e.preventDefault();
+            const fc = item.action.functionCall;
+            if (fc) console.log(`[A2UI] functionCall: ${fc.call}(${JSON.stringify(fc.args)})`);
+          });
+          li.appendChild(a);
+        } else {
+          li.textContent = item.label;
+        }
+        ol.appendChild(li);
+      }
+      nav.appendChild(ol);
+      return nav;
+    }
+
+    default: {
+      const div = document.createElement("div");
+      div.textContent = `[Unknown component: ${component.component}]`;
+      return div;
+    }
+  }
+}
+
+
+// ---------------------------------------------------------------------------
+// Bootstrap: load agent-output.json and render
+// ---------------------------------------------------------------------------
+A2UISim.registerRenderer(oatRender);
+
+fetch("agent-output.json")
+  .then(res => res.json())
+  .then(messages => A2UISim.processBatch(messages))
+  .catch(err => {
+    document.getElementById("surface").textContent = "Failed to load agent-output.json. Serve this directory with a local HTTP server (e.g. npx serve .).";
+    console.error(err);
+  });
+
+
+// ---------------------------------------------------------------------------
+// Data binding demo: simulate an updateDataModel message
+// ---------------------------------------------------------------------------
+const BASELINE_ERRORS = 342;
+const BASELINE_REQUESTS = 1284503;
+
+function simulateDataUpdate() {
+  const newErrors = Math.floor(Math.random() * 500);
+  const newCpu = Math.floor(Math.random() * 100);
+  const errorDelta = ((newErrors - BASELINE_ERRORS) / BASELINE_ERRORS * 100).toFixed(1);
+  A2UISim.updateData({
+    metrics: {
+      errors: String(newErrors),
+      errorsTrend: (newErrors > BASELINE_ERRORS ? "+" : "") + errorDelta + "%",
+      requests: (BASELINE_REQUESTS + Math.floor(Math.random() * 10000)).toLocaleString()
+    },
+    tableData: {
+      rows: [
+        { name: "api-gateway-01", status: "Healthy", cpu: newCpu, memory: 67 },
+        { name: "api-gateway-02", status: "Healthy", cpu: 38, memory: 61 },
+        { name: "worker-pool-01", status: newCpu > 80 ? "Warning" : "Healthy", cpu: Math.min(newCpu + 40, 99), memory: 82 },
+        { name: "worker-pool-02", status: "Healthy", cpu: 23, memory: 45 },
+        { name: "cache-redis-01", status: "Healthy", cpu: 15, memory: 72 },
+        { name: "db-primary", status: "Healthy", cpu: 55, memory: 78 },
+        { name: "db-replica-01", status: "Healthy", cpu: 31, memory: 54 },
+        { name: "db-replica-02", status: newErrors > 400 ? "Degraded" : "Healthy", cpu: 91, memory: 93 }
+      ]
+    }
+  });
+  document.getElementById("surface").classList.add("flash");
+  setTimeout(() => document.getElementById("surface").classList.remove("flash"), 600);
+}
+</script>
+</body>
+</html>

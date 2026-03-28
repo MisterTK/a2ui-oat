@@ -1,0 +1,695 @@
+A2UI Oat Catalog -- Prompt Rules for LLM JSON Generation
+==========================================================
+
+You are generating A2UI JSON against the Oat Catalog. Follow these rules exactly.
+
+VERSION AND CATALOG
+-------------------
+Always set version to "v0.9" in every A2UI message.
+Always reference catalogId "https://a2ui-oat.dev/catalog/v1/oat-catalog.json" when creating surfaces.
+
+
+COMPONENT TYPES
+---------------
+The Oat Catalog defines 35 component types. Use only these names (case-sensitive):
+
+Layout (5):       Row, Column, Grid, List, Sidebar
+Display (10):     Text, Image, Icon, Divider, Badge, Avatar, Spinner, Skeleton, Progress, Meter
+Interactive (8):  Button, TextField, CheckBox, Switch, Slider, DateTimeInput, ChoicePicker, Autocomplete
+Container (5):    Card, Modal, Tabs, Accordion, Tooltip
+Data/Feedback (5): Table, Pagination, Alert, Toast, Breadcrumb
+Escape Hatch (1): OatHTML
+Special (1):      Dropdown
+
+OatHTML accepts a sanitized HTML string for cases needing HTML flexibility within A2UI mode.
+Dropdown renders a dropdown menu via Oat's Web Component.
+
+Never invent component types outside this list. Unknown types will be ignored by the renderer.
+
+
+COMPONENT PROPERTIES
+--------------------
+
+Layout components:
+
+  Row
+    required: children (array of string IDs)
+    optional: justify ("start"|"center"|"end"|"between"|"around"), align ("start"|"center"|"end"|"stretch")
+
+  Column
+    required: children (array of string IDs)
+    optional: justify, align (same values as Row), weight (integer 1-12, maps to col-{n})
+
+  Grid
+    required: children (array of string IDs)
+    optional: columns (integer 1-12, default 12), gap (string CSS value)
+
+  List
+    required: children (array of string IDs) OR template (string ID + data binding)
+    optional: direction ("vertical"|"horizontal"), ordered (boolean)
+
+  Sidebar
+    required: child (string ID)
+    optional: position ("left"|"right"), collapsible (boolean)
+
+Display components:
+
+  Text
+    required: text (string or data binding)
+    optional: variant ("h1"|"h2"|"h3"|"h4"|"h5"|"h6"|"body"|"caption"|"code")
+
+  Image
+    required: url (string or data binding)
+    optional: fit ("cover"|"contain"|"fill"|"none"), variant ("rounded"|"circle"), alt (string)
+
+  Icon
+    required: name (string)
+    optional: size (string)
+
+  Divider
+    optional: axis ("horizontal"|"vertical")
+
+  Badge
+    required: text (string or data binding)
+    optional: variant ("info"|"success"|"warning"|"error")
+
+  Avatar
+    required: url (string or data binding) OR initials (string)
+    optional: size ("small"|"medium"|"large")
+
+  Spinner
+    optional: size ("small"|"medium"|"large")
+
+  Skeleton
+    optional: width (string), height (string), variant ("text"|"circle"|"rect")
+
+  Progress
+    required: value (number or data binding)
+    optional: max (number, default 100)
+
+  Meter
+    required: value (number or data binding)
+    optional: min (number), max (number), low (number), high (number)
+
+Interactive components:
+
+  Button
+    required: child (string ID)
+    optional: variant ("primary"|"secondary"|"outline"|"danger"), action (action object), checks (array of check objects)
+
+  TextField
+    required: label (string)
+    optional: value (string or data binding), textFieldType ("text"|"email"|"password"|"number"|"tel"|"url"|"textarea"), placeholder (string), action (action object for onChange)
+
+  CheckBox
+    required: label (string)
+    optional: value (boolean or data binding), action (action object)
+
+  Switch
+    required: label (string)
+    optional: value (boolean or data binding), action (action object)
+
+  Slider
+    required: value (number or data binding)
+    optional: minValue (number), maxValue (number), step (number), action (action object)
+
+  DateTimeInput
+    optional: value (string or data binding), enableDate (boolean), enableTime (boolean), action (action object)
+
+  ChoicePicker
+    required: options (array of {label, value})
+    optional: selections (array or data binding), maxSelections (integer), action (action object)
+
+  Autocomplete
+    required: source (string URL or data binding)
+    optional: minChars (integer), action (action object), placeholder (string)
+
+Container components:
+
+  Card
+    required: child (string ID)
+
+  Modal
+    required: entryPointChild (string ID), contentChild (string ID)
+
+  Tabs
+    required: tabItems (array of {title: string, child: string ID})
+    optional: action (action object for tab change)
+
+  Accordion
+    required: items (array of {title: string, child: string ID})
+    optional: grouped (boolean -- when true, only one item open at a time)
+
+  Tooltip
+    required: child (string ID), text (string)
+    optional: position ("top"|"bottom"|"left"|"right")
+
+Data and Feedback components:
+
+  Table
+    required: columns (array of {key: string, label: string}), rows (data binding or array)
+    optional: sortable (boolean), striped (boolean)
+
+  Pagination
+    required: currentPage (number or data binding), totalPages (number or data binding)
+    optional: action (action object, receives {page} arg)
+
+  Alert
+    required: text (string or data binding)
+    optional: variant ("success"|"warning"|"error"|"info")
+
+  Toast
+    required: text (string)
+    optional: variant ("success"|"warning"|"error"|"info"), duration (integer ms), position ("top"|"bottom"|"top-right"|"bottom-right")
+
+  Breadcrumb
+    required: items (array of {label: string, action: action object})
+
+Escape Hatch component:
+
+  OatHTML
+    required: html (string -- sanitized HTML fragment)
+    optional: sanitize (boolean, default true -- pass through configurable sanitizer)
+
+Special component:
+
+  Dropdown
+    required: child (string ID -- trigger element), items (array of {label: string, action: action object})
+
+
+DATA BINDING SYNTAX
+-------------------
+To bind a property to the data model, use a path object instead of a literal value:
+
+  {"path": "/model/key"}
+
+The path is a JSON Pointer into the surface's data model. The renderer resolves the value at render time and re-renders when the value changes.
+
+Examples:
+  "text": {"path": "/user/name"}
+  "value": {"path": "/settings/darkMode"}
+  "rows": {"path": "/tableData/rows"}
+  "currentPage": {"path": "/pagination/currentPage"}
+
+
+ACTION WIRING
+-------------
+Actions are attached to components via the "action" property. There are two kinds:
+
+1. Server event -- sends an event back to the agent:
+  "action": {
+    "event": {
+      "eventId": "row-clicked",
+      "data": {"rowId": {"path": "/selectedRow/id"}}
+    }
+  }
+
+2. Function call -- invokes a registered function on the client:
+  "action": {
+    "functionCall": {
+      "call": "<functionName>",
+      "args": { ... }
+    }
+  }
+
+Registered functions in the Oat Catalog:
+
+  fetchPage(url, cursor, targetPath, method)
+    Fetches a page from an API and writes the result to targetPath in the data model.
+    Updates cursor automatically. Used with Pagination.
+
+  fetchAndAppend(url, cursor, targetPath, method)
+    Like fetchPage but appends results to an existing array. Used for infinite scroll.
+
+  subscribeSSE(url, targetPath, eventName)
+    Opens an EventSource connection. Each event is written to targetPath.
+
+  subscribeWebSocket(url, targetPath, messageParser)
+    Opens a WebSocket. Parsed messages are written to targetPath.
+
+  openUrl(url, target)
+    Opens a URL in the browser. target is "_blank" or "_self".
+
+  navigateTo(path, params)
+    Client-side SPA navigation via tinyrouter.js / window.history.
+
+  showToast(text, variant, duration)
+    Programmatically triggers a toast notification.
+
+  debounce(targetAction, delayMs)
+    Wraps another action with a debounce delay.
+
+  formatDate(value, locale, options)
+    Locale-aware date formatting via Intl.DateTimeFormat.
+
+  formatNumber(value, locale, options)
+    Locale-aware number formatting via Intl.NumberFormat.
+
+Function arguments may use data bindings:
+  "args": {
+    "url": {"path": "/api/endpoint"},
+    "cursor": {"path": "/pagination/nextCursor"},
+    "targetPath": "/tableData/rows"
+  }
+
+
+SURFACE CREATION
+----------------
+Always start by creating a surface with a createSurface message:
+
+{
+  "version": "v0.9",
+  "createSurface": {
+    "surfaceId": "<unique-id>",
+    "catalogId": "https://a2ui-oat.dev/catalog/v1/oat-catalog.json",
+    "theme": {
+      "primaryColor": "#1A73E8",
+      "backgroundColor": "#ffffff",
+      "textColor": "#202124",
+      "fontFamily": "system-ui",
+      "borderRadius": "4px",
+      "spacing": "1rem",
+      "mode": "light"
+    },
+    "sendDataModel": true
+  }
+}
+
+Theme properties are all optional. The "mode" property accepts "light", "dark", or "auto".
+Set "sendDataModel" to true if you need to receive data model state back from the client.
+
+Follow createSurface immediately with updateComponents and optionally updateDataModel.
+
+
+COMPONENT UPDATES
+-----------------
+Send components to a surface with updateComponents:
+
+{
+  "version": "v0.9",
+  "updateComponents": {
+    "surfaceId": "<surface-id>",
+    "components": [
+      {
+        "id": "main-col",
+        "component": "Column",
+        "children": ["title", "content"]
+      },
+      {
+        "id": "title",
+        "component": "Text",
+        "text": "Hello World",
+        "variant": "h1"
+      },
+      {
+        "id": "content",
+        "component": "Text",
+        "text": {"path": "/content/body"},
+        "variant": "body"
+      }
+    ]
+  }
+}
+
+Every component must have a unique "id" (string) and a "component" (one of the 35 types).
+
+Update the data model with updateDataModel:
+
+{
+  "version": "v0.9",
+  "updateDataModel": {
+    "surfaceId": "<surface-id>",
+    "data": {
+      "content": {
+        "body": "This text is data-bound."
+      }
+    }
+  }
+}
+
+
+CHILDREN REFERENCES
+-------------------
+Components reference their children by string ID, never by inline component objects.
+
+Correct:
+  {"id": "card-1", "component": "Card", "child": "card-content"}
+
+Wrong:
+  {"id": "card-1", "component": "Card", "child": {"id": "card-content", "component": "Text", "text": "Hello"}}
+
+All referenced children must be included in the same updateComponents message or a prior one.
+
+
+COMMON PATTERNS
+---------------
+
+Pattern 1: Client-side pagination (fetchPage + Table + Pagination)
+
+  Send a surface with a Table bound to data, a Pagination component wired to fetchPage,
+  and an initial data model with the API endpoint and first page cursor.
+
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "data-view",
+      "components": [
+        {
+          "id": "root",
+          "component": "Column",
+          "children": ["data-table", "pager"]
+        },
+        {
+          "id": "data-table",
+          "component": "Table",
+          "columns": [
+            {"key": "name", "label": "Name"},
+            {"key": "email", "label": "Email"}
+          ],
+          "rows": {"path": "/tableData/rows"},
+          "striped": true
+        },
+        {
+          "id": "pager",
+          "component": "Pagination",
+          "currentPage": {"path": "/pagination/currentPage"},
+          "totalPages": {"path": "/pagination/totalPages"},
+          "action": {
+            "functionCall": {
+              "call": "fetchPage",
+              "args": {
+                "url": {"path": "/api/endpoint"},
+                "cursor": {"path": "/pagination/nextCursor"},
+                "targetPath": "/tableData/rows"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+
+  Initial data model:
+
+  {
+    "version": "v0.9",
+    "updateDataModel": {
+      "surfaceId": "data-view",
+      "data": {
+        "api": {"endpoint": "https://api.example.com/users"},
+        "pagination": {"currentPage": 1, "totalPages": 20, "nextCursor": "abc123"},
+        "tableData": {"rows": [{"name": "Alice", "email": "alice@example.com"}]}
+      }
+    }
+  }
+
+  After setup, the client handles all page navigation autonomously.
+
+Pattern 2: Real-time streaming (subscribeSSE + bound components)
+
+  Create a surface with components bound to live data, then trigger subscribeSSE
+  on the root component's action to start the stream on load.
+
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "dashboard",
+      "components": [
+        {
+          "id": "root",
+          "component": "Column",
+          "children": ["status-badge", "uptime-meter", "incident-table"],
+          "action": {
+            "functionCall": {
+              "call": "subscribeSSE",
+              "args": {
+                "url": "https://api.example.com/metrics/stream",
+                "targetPath": "/liveMetrics"
+              }
+            }
+          }
+        },
+        {
+          "id": "status-badge",
+          "component": "Badge",
+          "text": {"path": "/liveMetrics/status"},
+          "variant": "success"
+        },
+        {
+          "id": "uptime-meter",
+          "component": "Meter",
+          "value": {"path": "/liveMetrics/uptime"},
+          "min": 0,
+          "max": 1,
+          "low": 0.9,
+          "high": 0.99
+        },
+        {
+          "id": "incident-table",
+          "component": "Table",
+          "columns": [
+            {"key": "time", "label": "Time"},
+            {"key": "severity", "label": "Severity"},
+            {"key": "message", "label": "Message"}
+          ],
+          "rows": {"path": "/liveMetrics/incidents"}
+        }
+      ]
+    }
+  }
+
+  The client opens the SSE connection and updates all bound components automatically.
+
+Pattern 3: Client-side routing (navigateTo + Tabs)
+
+  Use Tabs for top-level navigation and wire each tab change to navigateTo
+  so the URL updates and browser back/forward work.
+
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "app",
+      "components": [
+        {
+          "id": "root",
+          "component": "Column",
+          "children": ["nav-tabs"]
+        },
+        {
+          "id": "nav-tabs",
+          "component": "Tabs",
+          "tabItems": [
+            {"title": "Active", "child": "active-view"},
+            {"title": "Archived", "child": "archived-view"},
+            {"title": "Flagged", "child": "flagged-view"}
+          ],
+          "action": {
+            "functionCall": {
+              "call": "navigateTo",
+              "args": {
+                "path": {"path": "/navigation/currentPath"}
+              }
+            }
+          }
+        },
+        {
+          "id": "active-view",
+          "component": "Card",
+          "child": "active-table"
+        },
+        {
+          "id": "archived-view",
+          "component": "Card",
+          "child": "archived-table"
+        },
+        {
+          "id": "flagged-view",
+          "component": "Card",
+          "child": "flagged-table"
+        },
+        {
+          "id": "active-table",
+          "component": "Table",
+          "columns": [{"key": "name", "label": "Name"}, {"key": "status", "label": "Status"}],
+          "rows": {"path": "/views/active/rows"}
+        },
+        {
+          "id": "archived-table",
+          "component": "Table",
+          "columns": [{"key": "name", "label": "Name"}, {"key": "archivedAt", "label": "Archived"}],
+          "rows": {"path": "/views/archived/rows"}
+        },
+        {
+          "id": "flagged-table",
+          "component": "Table",
+          "columns": [{"key": "name", "label": "Name"}, {"key": "reason", "label": "Reason"}],
+          "rows": {"path": "/views/flagged/rows"}
+        }
+      ]
+    }
+  }
+
+Pattern 4: Form with toast feedback
+
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "settings",
+      "components": [
+        {
+          "id": "root",
+          "component": "Column",
+          "children": ["form-card", "save-btn"]
+        },
+        {
+          "id": "form-card",
+          "component": "Card",
+          "child": "form-fields"
+        },
+        {
+          "id": "form-fields",
+          "component": "Column",
+          "children": ["name-field", "email-field", "notify-switch"]
+        },
+        {
+          "id": "name-field",
+          "component": "TextField",
+          "label": "Name",
+          "value": {"path": "/form/name"},
+          "textFieldType": "text"
+        },
+        {
+          "id": "email-field",
+          "component": "TextField",
+          "label": "Email",
+          "value": {"path": "/form/email"},
+          "textFieldType": "email"
+        },
+        {
+          "id": "notify-switch",
+          "component": "Switch",
+          "label": "Enable notifications",
+          "value": {"path": "/form/notifications"}
+        },
+        {
+          "id": "save-btn",
+          "component": "Button",
+          "child": "save-text",
+          "variant": "primary",
+          "action": {
+            "event": {
+              "eventId": "save-settings",
+              "data": {
+                "name": {"path": "/form/name"},
+                "email": {"path": "/form/email"},
+                "notifications": {"path": "/form/notifications"}
+              }
+            }
+          }
+        },
+        {
+          "id": "save-text",
+          "component": "Text",
+          "text": "Save Settings"
+        }
+      ]
+    }
+  }
+
+Pattern 5: Loading states with Skeleton and Spinner
+
+  Show Skeleton placeholders while data loads, then replace with real components
+  via a second updateComponents message after the agent retrieves data.
+
+  First message (loading state):
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "report",
+      "components": [
+        {"id": "root", "component": "Column", "children": ["title-skel", "body-skel", "load-spin"]},
+        {"id": "title-skel", "component": "Skeleton", "variant": "text", "width": "60%", "height": "2rem"},
+        {"id": "body-skel", "component": "Skeleton", "variant": "rect", "width": "100%", "height": "12rem"},
+        {"id": "load-spin", "component": "Spinner", "size": "medium"}
+      ]
+    }
+  }
+
+  Second message (data ready -- replace components by reusing same IDs):
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "report",
+      "components": [
+        {"id": "root", "component": "Column", "children": ["title", "body"]},
+        {"id": "title", "component": "Text", "text": "Q1 Report", "variant": "h1"},
+        {"id": "body", "component": "Text", "text": {"path": "/report/content"}, "variant": "body"}
+      ]
+    }
+  }
+
+
+ANTI-PATTERNS
+-------------
+Do not do any of the following:
+
+1. Do not emit raw HTML in A2UI mode. All UI must be expressed as catalog components.
+   Wrong: {"component": "div", "innerHTML": "<b>Hello</b>"}
+   Right: {"id": "t1", "component": "Text", "text": "Hello", "variant": "body"}
+
+2. Do not use undefined component types. Only the 35 listed types are valid.
+   Wrong: {"component": "Chart"}
+   Wrong: {"component": "video"}
+
+3. Do not create circular child references. A component must not be its own ancestor.
+   Wrong: A references B, B references A.
+
+4. Do not use data paths that do not resolve to anything in the data model.
+   Every {"path": "/some/key"} must correspond to a value set via updateDataModel
+   or written by a registered function. Unresolvable paths render as empty.
+
+5. Do not inline child components. Always use string IDs and define children as
+   separate entries in the components array.
+
+6. Do not omit the "id" or "component" field on any component.
+
+7. Do not use version values other than "v0.9".
+
+8. Do not omit catalogId in createSurface messages.
+
+9. Do not send updateComponents or updateDataModel before createSurface for that surfaceId.
+
+10. Do not reference children IDs that were never defined in any updateComponents message.
+
+
+MESSAGE SEQUENCE
+----------------
+A valid A2UI session follows this order:
+
+  1. createSurface (once per surface)
+  2. updateComponents (one or more times)
+  3. updateDataModel (zero or more times, can also precede updateComponents)
+
+Multiple messages can be batched in a single DataPart as an array.
+
+Full minimal example:
+
+[
+  {
+    "version": "v0.9",
+    "createSurface": {
+      "surfaceId": "hello",
+      "catalogId": "https://a2ui-oat.dev/catalog/v1/oat-catalog.json"
+    }
+  },
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "hello",
+      "components": [
+        {"id": "root", "component": "Column", "children": ["greeting"]},
+        {"id": "greeting", "component": "Text", "text": "Hello, world!", "variant": "h1"}
+      ]
+    }
+  }
+]

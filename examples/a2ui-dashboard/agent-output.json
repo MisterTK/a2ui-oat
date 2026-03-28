@@ -1,0 +1,307 @@
+[
+  {
+    "version": "v0.9",
+    "createSurface": {
+      "surfaceId": "ops-dashboard",
+      "catalogId": "https://a2ui-oat.dev/catalog/v1/oat-catalog.json",
+      "theme": {
+        "primaryColor": "#3B82F6",
+        "backgroundColor": "#111827",
+        "textColor": "#F9FAFB",
+        "fontFamily": "system-ui, sans-serif",
+        "borderRadius": "6px",
+        "spacing": "1rem",
+        "mode": "dark"
+      },
+      "sendDataModel": true
+    }
+  },
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "ops-dashboard",
+      "components": [
+        {
+          "id": "root-grid",
+          "component": "Grid",
+          "columns": 12,
+          "gap": "1rem",
+          "children": ["header-row", "body-row", "footer-row"]
+        },
+        {
+          "id": "header-row",
+          "component": "Row",
+          "justify": "space-between",
+          "align": "center",
+          "children": ["header-title", "header-status"]
+        },
+        {
+          "id": "header-title",
+          "component": "Text",
+          "variant": "h1",
+          "text": "Operations Dashboard"
+        },
+        {
+          "id": "header-status",
+          "component": "Badge",
+          "text": { "path": "/metrics/statusLabel" },
+          "variant": "success"
+        },
+        {
+          "id": "body-row",
+          "component": "Row",
+          "children": ["sidebar-col", "main-col"]
+        },
+        {
+          "id": "sidebar-col",
+          "component": "Column",
+          "weight": 3,
+          "children": ["sidebar"]
+        },
+        {
+          "id": "sidebar",
+          "component": "Sidebar",
+          "position": "left",
+          "child": "nav-list"
+        },
+        {
+          "id": "nav-list",
+          "component": "List",
+          "direction": "vertical",
+          "children": ["nav-overview", "nav-incidents", "nav-metrics", "nav-settings"]
+        },
+        {
+          "id": "nav-overview",
+          "component": "Button",
+          "child": "nav-overview-text",
+          "variant": "primary",
+          "action": {
+            "functionCall": {
+              "call": "navigateTo",
+              "args": { "path": "/overview" }
+            }
+          }
+        },
+        {
+          "id": "nav-overview-text",
+          "component": "Text",
+          "variant": "p",
+          "text": "Overview"
+        },
+        {
+          "id": "nav-incidents",
+          "component": "Button",
+          "child": "nav-incidents-text",
+          "action": {
+            "functionCall": {
+              "call": "navigateTo",
+              "args": { "path": "/incidents" }
+            }
+          }
+        },
+        {
+          "id": "nav-incidents-text",
+          "component": "Text",
+          "variant": "p",
+          "text": "Incidents"
+        },
+        {
+          "id": "nav-metrics",
+          "component": "Button",
+          "child": "nav-metrics-text",
+          "action": {
+            "functionCall": {
+              "call": "navigateTo",
+              "args": { "path": "/metrics" }
+            }
+          }
+        },
+        {
+          "id": "nav-metrics-text",
+          "component": "Text",
+          "variant": "p",
+          "text": "Metrics"
+        },
+        {
+          "id": "nav-settings",
+          "component": "Button",
+          "child": "nav-settings-text",
+          "action": {
+            "functionCall": {
+              "call": "navigateTo",
+              "args": { "path": "/settings" }
+            }
+          }
+        },
+        {
+          "id": "nav-settings-text",
+          "component": "Text",
+          "variant": "p",
+          "text": "Settings"
+        },
+        {
+          "id": "main-col",
+          "component": "Column",
+          "weight": 9,
+          "children": ["metrics-row", "incidents-table", "warning-alert"]
+        },
+        {
+          "id": "metrics-row",
+          "component": "Row",
+          "justify": "space-between",
+          "children": ["card-uptime", "card-requests", "card-errors"]
+        },
+        {
+          "id": "card-uptime",
+          "component": "Card",
+          "child": "card-uptime-content"
+        },
+        {
+          "id": "card-uptime-content",
+          "component": "Column",
+          "children": ["uptime-label", "uptime-value", "uptime-progress"]
+        },
+        {
+          "id": "uptime-label",
+          "component": "Text",
+          "variant": "p",
+          "text": "Uptime"
+        },
+        {
+          "id": "uptime-value",
+          "component": "Text",
+          "variant": "h2",
+          "text": { "path": "/metrics/uptime" }
+        },
+        {
+          "id": "uptime-progress",
+          "component": "Progress",
+          "value": { "path": "/metrics/uptimeRaw" },
+          "max": 100
+        },
+        {
+          "id": "card-requests",
+          "component": "Card",
+          "child": "card-requests-content"
+        },
+        {
+          "id": "card-requests-content",
+          "component": "Column",
+          "children": ["requests-label", "requests-value", "requests-badge"]
+        },
+        {
+          "id": "requests-label",
+          "component": "Text",
+          "variant": "p",
+          "text": "Requests (24h)"
+        },
+        {
+          "id": "requests-value",
+          "component": "Text",
+          "variant": "h2",
+          "text": { "path": "/metrics/requests" }
+        },
+        {
+          "id": "requests-badge",
+          "component": "Badge",
+          "text": { "path": "/metrics/requestsTrend" },
+          "variant": "info"
+        },
+        {
+          "id": "card-errors",
+          "component": "Card",
+          "child": "card-errors-content"
+        },
+        {
+          "id": "card-errors-content",
+          "component": "Column",
+          "children": ["errors-label", "errors-value", "errors-badge"]
+        },
+        {
+          "id": "errors-label",
+          "component": "Text",
+          "variant": "p",
+          "text": "Errors (24h)"
+        },
+        {
+          "id": "errors-value",
+          "component": "Text",
+          "variant": "h2",
+          "text": { "path": "/metrics/errors" }
+        },
+        {
+          "id": "errors-badge",
+          "component": "Badge",
+          "text": { "path": "/metrics/errorsTrend" },
+          "variant": "error"
+        },
+        {
+          "id": "incidents-table",
+          "component": "Table",
+          "columns": [
+            { "key": "name", "label": "Name" },
+            { "key": "status", "label": "Status" },
+            { "key": "cpu", "label": "CPU %" },
+            { "key": "memory", "label": "Memory %" }
+          ],
+          "rows": { "path": "/tableData/rows" },
+          "sortable": true,
+          "striped": true
+        },
+        {
+          "id": "warning-alert",
+          "component": "Alert",
+          "text": { "path": "/alerts/warning" },
+          "variant": "warning"
+        },
+        {
+          "id": "footer-row",
+          "component": "Row",
+          "justify": "start",
+          "children": ["footer-breadcrumb"]
+        },
+        {
+          "id": "footer-breadcrumb",
+          "component": "Breadcrumb",
+          "items": [
+            { "label": "Home", "action": { "functionCall": { "call": "navigateTo", "args": { "path": "/" } } } },
+            { "label": "Dashboards", "action": { "functionCall": { "call": "navigateTo", "args": { "path": "/dashboards" } } } },
+            { "label": "Operations" }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "version": "v0.9",
+    "updateDataModel": {
+      "surfaceId": "ops-dashboard",
+      "data": {
+        "metrics": {
+          "statusLabel": "All Systems Operational",
+          "uptime": "99.97%",
+          "uptimeRaw": 99.97,
+          "requests": "1,284,503",
+          "requestsTrend": "+12.4%",
+          "errors": "342",
+          "errorsTrend": "-3.1%"
+        },
+        "tableData": {
+          "rows": [
+            { "name": "api-gateway-01", "status": "Healthy", "cpu": 42, "memory": 67 },
+            { "name": "api-gateway-02", "status": "Healthy", "cpu": 38, "memory": 61 },
+            { "name": "worker-pool-01", "status": "Warning", "cpu": 87, "memory": 82 },
+            { "name": "worker-pool-02", "status": "Healthy", "cpu": 23, "memory": 45 },
+            { "name": "cache-redis-01", "status": "Healthy", "cpu": 15, "memory": 72 },
+            { "name": "db-primary", "status": "Healthy", "cpu": 55, "memory": 78 },
+            { "name": "db-replica-01", "status": "Healthy", "cpu": 31, "memory": 54 },
+            { "name": "db-replica-02", "status": "Degraded", "cpu": 91, "memory": 93 }
+          ]
+        },
+        "alerts": {
+          "warning": "worker-pool-01 CPU usage at 87% -- approaching threshold. db-replica-02 is degraded with high resource utilization."
+        }
+      }
+    }
+  }
+]

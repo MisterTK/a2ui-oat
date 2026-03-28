@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A2A Multi-Agent Example -- a2ui-oat</title>
+
+  <!-- Oat CSS & JS via CDN -->
+  <link rel="stylesheet" href="https://unpkg.com/@nicedoc/oat@latest/oat.min.css">
+  <script src="https://unpkg.com/@nicedoc/oat@latest/oat.min.js" defer></script>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background: #f8f9fa;
+    }
+    h1 { margin-top: 0; }
+    .surfaces {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+    .surface-container {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1.5rem;
+      min-height: 200px;
+    }
+    .surface-container h3 {
+      margin-top: 0;
+      font-size: 0.85rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Status log at the bottom */
+    #log {
+      margin-top: 2rem;
+      background: #1e1e2e;
+      color: #cdd6f4;
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: monospace;
+      font-size: 0.85rem;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+    #log .step { color: #89b4fa; }
+    #log .ok   { color: #a6e3a1; }
+    #log .warn { color: #f9e2af; }
+    #log .err  { color: #f38ba8; }
+
+    /* Simplified A2UI component rendering */
+    .a2ui-progress { width: 100%; margin: 0.25rem 0; }
+    .a2ui-badge {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .a2ui-badge.success { background: #d4edda; color: #155724; }
+    .a2ui-badge.info    { background: #d1ecf1; color: #0c5460; }
+    .a2ui-alert {
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      margin: 0.5rem 0;
+      font-weight: 500;
+    }
+    .a2ui-alert.error   { background: #f8d7da; color: #721c24; }
+    .a2ui-alert.warning { background: #fff3cd; color: #856404; }
+    .a2ui-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.5rem 0;
+      font-size: 0.9rem;
+    }
+    .a2ui-table th, .a2ui-table td {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #eee;
+    }
+    .a2ui-table th { background: #f4f4f5; font-weight: 600; }
+    .a2ui-table tr.striped:nth-child(even) { background: #fafafa; }
+    .a2ui-pagination {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-top: 0.75rem;
+      font-size: 0.9rem;
+    }
+    .a2ui-pagination span { color: #666; }
+
+    @media (max-width: 768px) {
+      .surfaces { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>A2A Multi-Agent Example</h1>
+  <p>
+    Demonstrates A2A integration with catalog negotiation (Section 9).
+    Two agents create independent surfaces rendered side by side.
+  </p>
+
+  <div class="surfaces">
+    <div class="surface-container">
+      <h3>Surface: metrics-surface (Agent A)</h3>
+      <div id="surface-metrics"></div>
+    </div>
+    <div class="surface-container">
+      <h3>Surface: incidents-surface (Agent B)</h3>
+      <div id="surface-incidents"></div>
+    </div>
+  </div>
+
+  <div id="log"></div>
+
+  <script type="module">
+    const AGENTS_BASE = "http://localhost:3100";
+    const OAT_CATALOG_ID = "https://a2ui-oat.dev/catalog/v1/oat-catalog.json";
+
+    const logEl = document.getElementById("log");
+
+    function log(msg, cls = "step") {
+      const line = document.createElement("div");
+      line.className = cls;
+      line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // -----------------------------------------------------------------------
+    // Step 1: Discover agents (read AgentCards)
+    // -----------------------------------------------------------------------
+
+    async function discoverAgent(cardUrl) {
+      log(`Discovering agent at ${cardUrl} ...`);
+      const resp = await fetch(`${AGENTS_BASE}${cardUrl}`);
+      if (!resp.ok) throw new Error(`Discovery failed: ${resp.status}`);
+      const card = await resp.json();
+      log(`  Found: "${card.name}"`, "ok");
+
+      // Check A2UI extension
+      const a2uiExt = card.extensions?.find((e) =>
+        e.uri.includes("a2ui")
+      );
+      if (a2uiExt) {
+        const catalogs = a2uiExt.params?.supportedCatalogIds ?? [];
+        log(`  Supported catalogs: ${catalogs.join(", ")}`, "ok");
+        if (a2uiExt.params?.acceptsInlineCatalogs) {
+          log(`  Accepts inline catalogs: yes`, "ok");
+        }
+      }
+      return card;
+    }
+
+    // -----------------------------------------------------------------------
+    // Step 2: Send message with catalog negotiation (Section 9.2)
+    // -----------------------------------------------------------------------
+
+    async function sendMessage(agentUrl, card) {
+      log(`Sending message to "${card.name}" ...`);
+
+      // Build metadata with supportedCatalogIds
+      const metadata = {
+        "v0.9": {
+          supportedCatalogIds: [OAT_CATALOG_ID],
+        },
+      };
+
+      // If agent accepts inline catalogs, include a stub catalog (Section 9.4)
+      const a2uiExt = card.extensions?.find((e) => e.uri.includes("a2ui"));
+      if (a2uiExt?.params?.acceptsInlineCatalogs) {
+        log(`  Including inline catalog for "${card.name}" (Section 9.4)`, "warn");
+        metadata["v0.9"].inlineCatalogs = [
+          {
+            catalogId: OAT_CATALOG_ID,
+            description: "Oat Catalog with 35+ components (inline stub)",
+          },
+        ];
+      }
+
+      const resp = await fetch(`${AGENTS_BASE}${agentUrl}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ metadata, message: "Show me the dashboard" }),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json();
+        throw new Error(err.error || `Agent error: ${resp.status}`);
+      }
+
+      const dataPart = await resp.json();
+      log(`  Received DataPart (${dataPart.data?.length ?? 0} messages)`, "ok");
+      return dataPart;
+    }
+
+    // -----------------------------------------------------------------------
+    // Step 3: Render A2UI DataParts
+    //
+    // This is a simplified client-side renderer that demonstrates the
+    // concept. A production implementation would use @a2ui/web-lib +
+    // oat-renderer.js for full data binding and streaming support.
+    // -----------------------------------------------------------------------
+
+    /** Resolve a value that may be a literal or a data-model path reference. */
+    function resolve(val, data) {
+      if (val && typeof val === "object" && val.path) {
+        const parts = val.path.split("/").filter(Boolean);
+        let current = data;
+        for (const p of parts) {
+          if (current == null) return undefined;
+          current = current[p];
+        }
+        return current;
+      }
+      return val;
+    }
+
+    function renderComponent(comp, componentMap, data) {
+      /** Render children into a parent container element. */
+      function renderChildren(parent, childIds) {
+        for (const childId of childIds ?? []) {
+          const child = componentMap.get(childId);
+          if (child) parent.appendChild(renderComponent(child, componentMap, data));
+        }
+      }
+
+      switch (comp.component) {
+        case "Column": {
+          const el = document.createElement("div");
+          el.style.display = "flex";
+          el.style.flexDirection = "column";
+          el.style.gap = "0.5rem";
+          renderChildren(el, comp.children);
+          return el;
+        }
+        case "Row": {
+          const el = document.createElement("div");
+          el.style.display = "flex";
+          el.style.gap = "0.75rem";
+          el.style.alignItems = "center";
+          if (comp.justify) el.style.justifyContent = comp.justify;
+          renderChildren(el, comp.children);
+          return el;
+        }
+        case "Text": {
+          const tag = comp.variant === "body" ? "p" : comp.variant || "p";
+          const el = document.createElement(tag);
+          el.textContent = resolve(comp.text, data) ?? "";
+          return el;
+        }
+        case "Badge": {
+          const el = document.createElement("span");
+          el.className = `a2ui-badge ${comp.variant || ""}`;
+          el.textContent = resolve(comp.text, data) ?? "";
+          return el;
+        }
+        case "Progress": {
+          const el = document.createElement("progress");
+          el.className = "a2ui-progress";
+          el.value = resolve(comp.value, data) ?? 0;
+          el.max = comp.max ?? 100;
+          return el;
+        }
+        case "Meter": {
+          const el = document.createElement("meter");
+          el.className = "a2ui-progress";
+          el.value = resolve(comp.value, data) ?? 0;
+          el.min = comp.min ?? 0;
+          el.max = comp.max ?? 100;
+          if (comp.low != null) el.low = comp.low;
+          if (comp.high != null) el.high = comp.high;
+          return el;
+        }
+        case "Alert": {
+          const el = document.createElement("div");
+          el.className = `a2ui-alert ${comp.variant || ""}`;
+          el.setAttribute("role", "alert");
+          el.textContent = resolve(comp.text, data) ?? "";
+          return el;
+        }
+        case "Table": {
+          const table = document.createElement("table");
+          table.className = "a2ui-table";
+
+          const thead = document.createElement("thead");
+          const headerRow = document.createElement("tr");
+          const columns = comp.columns ?? [];
+          for (const col of columns) {
+            const th = document.createElement("th");
+            th.textContent = col.header;
+            headerRow.appendChild(th);
+          }
+          thead.appendChild(headerRow);
+          table.appendChild(thead);
+
+          const tbody = document.createElement("tbody");
+          const rows = resolve(comp.rows, data) ?? [];
+          for (const row of rows) {
+            const tr = document.createElement("tr");
+            if (comp.striped) tr.className = "striped";
+            for (const col of columns) {
+              const td = document.createElement("td");
+              td.textContent = row[col.field] ?? "";
+              tr.appendChild(td);
+            }
+            tbody.appendChild(tr);
+          }
+          table.appendChild(tbody);
+          return table;
+        }
+        case "Pagination": {
+          const el = document.createElement("nav");
+          el.className = "a2ui-pagination";
+          const current = resolve(comp.currentPage, data) ?? 1;
+          const total = resolve(comp.totalPages, data) ?? 1;
+          el.innerHTML = `<span>Page ${current} of ${total}</span>`;
+          return el;
+        }
+        default: {
+          const el = document.createElement("div");
+          el.textContent = `[Unknown component: ${comp.component}]`;
+          return el;
+        }
+      }
+    }
+
+    function renderDataPart(dataPart, containerEl) {
+      const messages = dataPart.data ?? [];
+      let data = {};
+      let components = [];
+
+      for (const msg of messages) {
+        if (msg.createSurface) {
+          log(`  Surface created: ${msg.createSurface.surfaceId} (catalog: ${msg.createSurface.catalogId})`);
+        }
+        if (msg.updateDataModel) {
+          data = { ...data, ...msg.updateDataModel.data };
+        }
+        if (msg.updateComponents) {
+          components = msg.updateComponents.components;
+        }
+      }
+
+      // Build a Map for O(1) child lookups during rendering
+      const componentMap = new Map(components.map((c) => [c.id, c]));
+
+      // Find root: the first component not referenced as a child of another
+      const childIds = new Set();
+      for (const comp of components) {
+        for (const cid of comp.children ?? []) childIds.add(cid);
+      }
+      const root = components.find((c) => !childIds.has(c.id));
+
+      if (root) {
+        containerEl.innerHTML = "";
+        containerEl.appendChild(renderComponent(root, componentMap, data));
+        log(`  Rendered ${components.length} components`, "ok");
+      } else {
+        containerEl.textContent = "No root component found";
+        log("  No root component found", "err");
+      }
+    }
+
+    // -----------------------------------------------------------------------
+    // Step 4: Orchestrate the full flow
+    // -----------------------------------------------------------------------
+
+    async function run() {
+      log("=== A2A Multi-Agent Demo ===");
+      log("Starting agent discovery and catalog negotiation...");
+
+      try {
+        // Discover both agents in parallel
+        const [cardA, cardB] = await Promise.all([
+          discoverAgent("/.well-known/agent-a.json"),
+          discoverAgent("/.well-known/agent-b.json"),
+        ]);
+
+        log("--- Catalog Negotiation ---");
+
+        // Send messages with catalog metadata (Section 9.2)
+        const [dataPartA, dataPartB] = await Promise.all([
+          sendMessage(cardA.url, cardA),
+          sendMessage(cardB.url, cardB),
+        ]);
+
+        log("--- Rendering Surfaces (Section 9.5: Isolated Ownership) ---");
+
+        // Each surface is rendered in its own container -- surface ownership
+        // isolation means Agent A's components cannot access Agent B's data
+        // model and vice versa (Section 9.5).
+        renderDataPart(dataPartA, document.getElementById("surface-metrics"));
+        renderDataPart(dataPartB, document.getElementById("surface-incidents"));
+
+        log("=== Demo Complete ===", "ok");
+      } catch (err) {
+        log(`Error: ${err.message}`, "err");
+        log(
+          "Make sure mock-agents.js is running: node mock-agents.js",
+          "warn"
+        );
+      }
+    }
+
+    run();
+  </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "navigateTo",
+  "description": "Client-side SPA routing via window.history. Navigates to an internal route without a full page reload, backed by tinyrouter.js.",
+  "backedBy": "tinyrouter.js",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "path": {
+        "type": "string",
+        "description": "The route path to navigate to (e.g., '/dashboard', '/users/:id')."
+      },
+      "params": {
+        "type": "object",
+        "description": "Optional key-value parameters to pass to the route.",
+        "additionalProperties": {
+          "type": "string"
+        }
+      }
+    },
+    "required": ["path"],
+    "additionalProperties": false
+  }
+}

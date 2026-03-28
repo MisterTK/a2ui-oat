@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "fetchAndAppend",
+  "description": "Infinite scroll support. Fetches the next page from a paginated API endpoint using a cursor and appends the results to the existing array at the specified data model path.",
+  "backedBy": "fetch API",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "The API endpoint URL to fetch the next page from."
+      },
+      "cursor": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "A JSON pointer path into the data model to resolve the cursor value dynamically."
+              }
+            },
+            "required": ["path"],
+            "additionalProperties": false
+          }
+        ],
+        "description": "The pagination cursor. Can be a literal string or a DynamicString referencing a data model path."
+      },
+      "targetPath": {
+        "type": "string",
+        "description": "The JSON pointer path in the data model where the fetched results will be appended to an existing array."
+      },
+      "method": {
+        "type": "string",
+        "default": "GET",
+        "description": "The HTTP method to use for the request.",
+        "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"]
+      }
+    },
+    "required": ["url", "cursor", "targetPath"],
+    "additionalProperties": false
+  }
+}

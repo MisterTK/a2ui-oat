@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "formatDate",
+  "description": "Locale-aware date formatting. Formats a date value using the browser's Intl.DateTimeFormat API, supporting dynamic values bound to the data model.",
+  "backedBy": "Intl.DateTimeFormat",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "value": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "A JSON pointer path into the data model to resolve the date value dynamically."
+              }
+            },
+            "required": ["path"],
+            "additionalProperties": false
+          }
+        ],
+        "description": "The date value to format. Can be a literal string (ISO 8601) or a DynamicString referencing a data model path."
+      },
+      "locale": {
+        "type": "string",
+        "description": "A BCP 47 language tag (e.g., 'en-US', 'de-DE'). If omitted, the browser's default locale is used."
+      },
+      "options": {
+        "type": "object",
+        "description": "Intl.DateTimeFormat options object (e.g., { dateStyle: 'long', timeStyle: 'short' })."
+      }
+    },
+    "required": ["value"],
+    "additionalProperties": false
+  }
+}

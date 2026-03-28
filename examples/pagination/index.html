@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>a2ui-oat: Client-Side Pagination Example</title>
+
+  <!-- Oat CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/@nicedoc/oat@latest/oat.min.css">
+  <style>
+    body { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+    nav.pagination { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 1rem; }
+    nav.pagination button { min-width: 5rem; }
+    .page-info { font-variant-numeric: tabular-nums; }
+    table { width: 100%; }
+    .status-active  { color: green; }
+    .status-pending { color: orange; }
+    .status-archived { color: gray; }
+    .status-error   { color: red; }
+    .loading { opacity: 0.5; pointer-events: none; }
+  </style>
+</head>
+<body>
+
+  <h1>Client-Side Pagination</h1>
+  <p>
+    Demonstrates the <strong>fetchPage</strong> registered function pattern from the
+    <a href="../../a2ui-oat-architecture.md">a2ui-oat architecture</a> (Section 6.4).
+    The agent creates the surface once; subsequent page navigation is handled entirely
+    by the client with zero agent involvement.
+  </p>
+  <hr>
+
+  <!-- Surface root -- components rendered here by the A2UI simulation below -->
+  <div id="surface"></div>
+
+  <!--
+    Embedded A2UI agent-output JSON.
+    In production this arrives via A2A / MCP / SSE transport.
+    Here it is inlined so the example is self-contained.
+  -->
+  <script type="application/json" id="agent-output">
+  {
+    "version": "v0.9",
+    "createSurface": {
+      "surfaceId": "pagination-demo",
+      "catalogId": "https://a2ui-oat.dev/catalog/v1/oat-catalog.json",
+      "theme": { "primaryColor": "#1A73E8", "mode": "light" },
+      "sendDataModel": true
+    },
+    "updateComponents": {
+      "surfaceId": "pagination-demo",
+      "components": [
+        {
+          "id": "root",
+          "component": "Column",
+          "children": ["data-table", "page-nav"]
+        },
+        {
+          "id": "data-table",
+          "component": "Table",
+          "columns": [
+            { "key": "id",        "label": "ID" },
+            { "key": "name",      "label": "Name" },
+            { "key": "status",    "label": "Status" },
+            { "key": "timestamp", "label": "Timestamp" }
+          ],
+          "rows": { "path": "/tableData/rows" },
+          "striped": true,
+          "sortable": false
+        },
+        {
+          "id": "page-nav",
+          "component": "Pagination",
+          "currentPage": { "path": "/pagination/currentPage" },
+          "totalPages":  { "path": "/pagination/totalPages" },
+          "action": {
+            "functionCall": {
+              "call": "fetchPage",
+              "args": {
+                "url": "http://localhost:3001/api/items",
+                "cursor": { "path": "/pagination/nextCursor" },
+                "targetPath": "/tableData/rows"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "updateDataModel": {
+      "surfaceId": "pagination-demo",
+      "data": {
+        "tableData": { "rows": [] },
+        "pagination": {
+          "currentPage": 1,
+          "totalPages": 1,
+          "nextCursor": "0",
+          "prevCursor": null
+        }
+      }
+    }
+  }
+  </script>
+
+  <script type="module">
+    // -----------------------------------------------------------------------
+    // Minimal A2UI simulation
+    //
+    // A real deployment uses @a2ui/web-lib for stream parsing, data binding,
+    // and surface lifecycle. This example inlines the essentials so it can
+    // run standalone without bundling.
+    // -----------------------------------------------------------------------
+
+    const API_BASE = "http://localhost:3001/api/items";
+    const LIMIT = 50;
+
+    // -- Data model (reactive-ish) ------------------------------------------
+
+    const dataModel = {
+      tableData: { rows: [] },
+      pagination: {
+        currentPage: 1,
+        totalPages: 1,
+        nextCursor: "0",
+        prevCursor: null,
+      },
+    };
+
+    // -- Registered function: fetchPage -------------------------------------
+
+    async function fetchPage(cursor) {
+      const url = `${API_BASE}?cursor=${encodeURIComponent(cursor)}&limit=${LIMIT}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`API error: ${res.status}`);
+      const json = await res.json();
+
+      // Write response into the data model
+      dataModel.tableData.rows = json.items;
+      dataModel.pagination.currentPage = json.currentPage;
+      dataModel.pagination.totalPages = json.totalPages;
+      dataModel.pagination.nextCursor = json.nextCursor;
+      dataModel.pagination.prevCursor = json.prevCursor;
+
+      // Re-render bound components
+      renderSurface();
+    }
+
+    // -- Render helpers -----------------------------------------------------
+
+    const surface = document.getElementById("surface");
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function renderTable(rows, columns) {
+      if (!rows.length) return "<p>Loading...</p>";
+      const thead = columns
+        .map((c) => `<th>${escapeHtml(c.label)}</th>`)
+        .join("");
+      const tbody = rows
+        .map(
+          (row) =>
+            `<tr>${columns
+              .map((c) => {
+                const val = row[c.key];
+                if (c.key === "status") {
+                  return `<td><span class="status-${escapeHtml(val)}">${escapeHtml(val)}</span></td>`;
+                }
+                if (c.key === "timestamp") {
+                  return `<td>${escapeHtml(new Date(val).toLocaleString())}</td>`;
+                }
+                return `<td>${escapeHtml(val)}</td>`;
+              })
+              .join("")}</tr>`
+        )
+        .join("");
+      return `<table class="striped"><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table>`;
+    }
+
+    function renderPagination(current, total) {
+      const prevDisabled = dataModel.pagination.prevCursor === null;
+      const nextDisabled = dataModel.pagination.nextCursor === null;
+      return `
+        <nav class="pagination">
+          <button id="btn-prev" ${prevDisabled ? "disabled" : ""}>&#8592; Previous</button>
+          <span class="page-info">Page ${current} of ${total}</span>
+          <button id="btn-next" ${nextDisabled ? "disabled" : ""}>Next &#8594;</button>
+        </nav>`;
+    }
+
+    const TABLE_COLUMNS = [
+      { key: "id", label: "ID" },
+      { key: "name", label: "Name" },
+      { key: "status", label: "Status" },
+      { key: "timestamp", label: "Timestamp" },
+    ];
+
+    function renderSurface() {
+      surface.innerHTML =
+        renderTable(dataModel.tableData.rows, TABLE_COLUMNS) +
+        renderPagination(
+          dataModel.pagination.currentPage,
+          dataModel.pagination.totalPages
+        );
+    }
+
+    // Event delegation: single listener handles all pagination clicks.
+    surface.addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+
+      let cursor = null;
+      if (btn.id === "btn-prev") cursor = dataModel.pagination.prevCursor;
+      if (btn.id === "btn-next") cursor = dataModel.pagination.nextCursor;
+      if (cursor === null) return;
+
+      surface.classList.add("loading");
+      fetchPage(cursor).finally(() => surface.classList.remove("loading"));
+    });
+
+    // -- Initial fetch on surface creation ----------------------------------
+
+    renderSurface();
+    fetchPage("0");
+  </script>
+</body>
+</html>
