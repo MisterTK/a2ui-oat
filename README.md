@@ -36,8 +36,8 @@ Include Oat CSS, `@a2ui/web-lib`, and the Oat Renderer. The agent emits A2UI JSO
 
 ```html
 <!-- Oat CSS + JS -->
-<link rel="stylesheet" href="https://unpkg.com/oat.css">
-<script src="https://unpkg.com/oat.css/oat.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/@knadh/oat/oat.min.css">
+<script src="https://unpkg.com/@knadh/oat/oat.min.js"></script>
 
 <!-- A2UI Protocol Engine -->
 <script src="https://unpkg.com/@a2ui/web-lib"></script>
@@ -58,8 +58,8 @@ Include Oat CSS, `@a2ui/web-lib`, and the Oat Renderer. The agent emits A2UI JSO
 Include only Oat CSS + JS. The agent emits semantic HTML directly. Oat styles it automatically.
 
 ```html
-<link rel="stylesheet" href="https://unpkg.com/oat.css">
-<script src="https://unpkg.com/oat.css/oat.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/@knadh/oat/oat.min.css">
+<script src="https://unpkg.com/@knadh/oat/oat.min.js"></script>
 
 <div id="agent-output"></div>
 

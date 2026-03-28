@@ -30,8 +30,8 @@ https://cdn.jsdelivr.net/gh/knadh/oat@latest/oat.min.js
 **CDN URLs (unpkg):**
 
 ```
-https://unpkg.com/oat.css/oat.min.css
-https://unpkg.com/oat.css/oat.min.js
+https://unpkg.com/@knadh/oat/oat.min.css
+https://unpkg.com/@knadh/oat/oat.min.js
 ```
 
 **Purpose in a2ui-oat:**
@@ -61,7 +61,7 @@ https://cdn.jsdelivr.net/gh/knadh/tinyrouter.js@latest/tinyrouter.min.js
 **CDN URLs (unpkg):**
 
 ```
-https://unpkg.com/tinyrouter.js/tinyrouter.min.js
+https://unpkg.com/@knadh/tinyrouter/tinyrouter.min.js
 ```
 
 **Purpose in a2ui-oat:**
@@ -90,7 +90,7 @@ https://cdn.jsdelivr.net/gh/knadh/floatype.js@latest/floatype.min.js
 **CDN URLs (unpkg):**
 
 ```
-https://unpkg.com/floatype.js/floatype.min.js
+https://unpkg.com/@knadh/floatype/floatype.min.js
 ```
 
 **Purpose in a2ui-oat:**
@@ -119,7 +119,7 @@ https://cdn.jsdelivr.net/gh/knadh/dragmove.js@latest/dragmove.min.js
 **CDN URLs (unpkg):**
 
 ```
-https://unpkg.com/dragmove.js/dragmove.min.js
+https://unpkg.com/@knadh/dragmove/dragmove.min.js
 ```
 
 **Purpose in a2ui-oat:**
@@ -147,7 +147,7 @@ https://cdn.jsdelivr.net/gh/knadh/indexed-cache@latest/indexed-cache.min.js
 **CDN URLs (unpkg):**
 
 ```
-https://unpkg.com/indexed-cache/indexed-cache.min.js
+https://unpkg.com/@knadh/indexed-cache/indexed-cache.min.js
 ```
 
 **Purpose in a2ui-oat:**
@@ -282,7 +282,7 @@ Replace `@latest` with a specific tag (e.g., `@v1.0.0`) or a commit SHA (e.g., `
 For unpkg, pin using an npm version:
 
 ```
-https://unpkg.com/oat.css@1.0.0/oat.min.css
+https://unpkg.com/@knadh/oat@0.5.1/oat.min.css
 ```
 
 ---
