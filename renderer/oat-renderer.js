@@ -26,7 +26,7 @@
  */
 
 /**
- * OatRenderer maps all 35 Oat Catalog component types to semantic HTML.
+ * OatRenderer maps all 37 Oat Catalog component types to semantic HTML.
  */
 
 const TEXT_VARIANT_TAGS = {
@@ -72,7 +72,7 @@ export class OatRenderer {
   // Internal registration
   // ---------------------------------------------------------------------------
 
-  /** Register all 35 component renderers. */
+  /** Register all 37 component renderers. */
   _registerAll() {
     // Layout
     this.renderers.set('Row', (c, ctx) => this._renderRow(c, ctx));
@@ -92,6 +92,8 @@ export class OatRenderer {
     this.renderers.set('Skeleton', (c, ctx) => this._renderSkeleton(c, ctx));
     this.renderers.set('Progress', (c, ctx) => this._renderProgress(c, ctx));
     this.renderers.set('Meter', (c, ctx) => this._renderMeter(c, ctx));
+    this.renderers.set('Video', (c, ctx) => this._renderVideo(c, ctx));
+    this.renderers.set('AudioPlayer', (c, ctx) => this._renderAudioPlayer(c, ctx));
 
     // Interactive
     this.renderers.set('Button', (c, ctx) => this._renderButton(c, ctx));
@@ -109,6 +111,7 @@ export class OatRenderer {
     this.renderers.set('Tabs', (c, ctx) => this._renderTabs(c, ctx));
     this.renderers.set('Accordion', (c, ctx) => this._renderAccordion(c, ctx));
     this.renderers.set('Tooltip', (c, ctx) => this._renderTooltip(c, ctx));
+    this.renderers.set('Dropdown', (c, ctx) => this._renderDropdown(c, ctx));
 
     // Data & Feedback
     this.renderers.set('Table', (c, ctx) => this._renderTable(c, ctx));
@@ -116,6 +119,9 @@ export class OatRenderer {
     this.renderers.set('Alert', (c, ctx) => this._renderAlert(c, ctx));
     this.renderers.set('Toast', (c, ctx) => this._renderToast(c, ctx));
     this.renderers.set('Breadcrumb', (c, ctx) => this._renderBreadcrumb(c, ctx));
+
+    // Escape Hatch
+    this.renderers.set('OatHTML', (c, ctx) => this._renderOatHTML(c, ctx));
   }
 
   // ---------------------------------------------------------------------------
@@ -419,6 +425,29 @@ export class OatRenderer {
     return el;
   }
 
+  /** @returns {HTMLElement} */
+  _renderVideo(c, ctx) {
+    const el = document.createElement('video');
+    this._bindValue(c.src, ctx, (val) => { if (val) el.src = val; });
+    this._bindValue(c.poster, ctx, (val) => { if (val) el.poster = val; });
+    if (c.controls !== false) el.controls = true;
+    if (c.autoplay) el.autoplay = true;
+    if (c.loop) el.loop = true;
+    if (c.muted) el.muted = true;
+    if (c.alt) el.setAttribute('aria-label', c.alt);
+    return el;
+  }
+
+  /** @returns {HTMLElement} */
+  _renderAudioPlayer(c, ctx) {
+    const el = document.createElement('audio');
+    this._bindValue(c.src, ctx, (val) => { if (val) el.src = val; });
+    if (c.controls !== false) el.controls = true;
+    if (c.autoplay) el.autoplay = true;
+    if (c.loop) el.loop = true;
+    return el;
+  }
+
   // ---------------------------------------------------------------------------
   // Interactive components
   // ---------------------------------------------------------------------------
@@ -687,6 +716,27 @@ export class OatRenderer {
     return el;
   }
 
+  /** @returns {HTMLElement} */
+  _renderDropdown(c, ctx) {
+    const el = document.createElement('oat-dropdown');
+    if (c.position) el.dataset.position = c.position;
+    this._renderSingleChild(el, c.child, ctx);
+    const menu = document.createElement('menu');
+    menu.slot = 'menu';
+    const items = c.items || [];
+    for (const item of items) {
+      const li = document.createElement('li');
+      const btn = document.createElement('button');
+      btn.textContent = item.label || '';
+      if (item.disabled) btn.disabled = true;
+      this._wireAction(btn, 'click', item.action, ctx);
+      li.appendChild(btn);
+      menu.appendChild(li);
+    }
+    el.appendChild(menu);
+    return el;
+  }
+
   // ---------------------------------------------------------------------------
   // Data & Feedback components
   // ---------------------------------------------------------------------------
@@ -840,5 +890,24 @@ export class OatRenderer {
 
     nav.appendChild(ol);
     return nav;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Escape Hatch
+  // ---------------------------------------------------------------------------
+
+  /** @returns {HTMLElement} */
+  _renderOatHTML(c, ctx) {
+    const el = document.createElement('div');
+    el.dataset.oathtml = '';
+    const shouldSanitize = c.sanitize !== false;
+    this._bindValue(c.html, ctx, (val) => {
+      if (shouldSanitize) {
+        el.textContent = val ?? '';
+      } else {
+        el.innerHTML = val ?? '';
+      }
+    });
+    return el;
   }
 }

@@ -3,7 +3,7 @@
   "catalogId": "https://a2ui-oat.dev/catalog/v1/oat-catalog.json",
   "version": "v0.9",
   "name": "Oat Catalog",
-  "description": "A lightweight A2UI catalog pairing Google's A2UI protocol with Kailash Nadh's Oat CSS library. Defines 35 semantic HTML components, 10 registered client-side functions, and theme properties mapped to Oat CSS custom properties.",
+  "description": "A lightweight A2UI catalog pairing Google's A2UI protocol with Kailash Nadh's Oat CSS library. Defines 37 semantic HTML components, 10 registered client-side functions, and theme properties mapped to Oat CSS custom properties.",
 
   "components": {
 
@@ -312,6 +312,66 @@
         }
       },
       "requiredProperties": ["value", "min", "max"]
+    },
+
+    "Video": {
+      "description": "Embedded video player rendered as a semantic video element.",
+      "htmlElement": "video",
+      "properties": {
+        "src": {
+          "type": "DynamicString",
+          "description": "Video source URL. Supports data binding."
+        },
+        "poster": {
+          "type": "DynamicString",
+          "description": "Poster image URL shown before playback. Supports data binding."
+        },
+        "controls": {
+          "type": "boolean",
+          "description": "Whether to display playback controls. Defaults to true."
+        },
+        "autoplay": {
+          "type": "boolean",
+          "description": "Whether to auto-play on load."
+        },
+        "loop": {
+          "type": "boolean",
+          "description": "Whether to loop playback."
+        },
+        "muted": {
+          "type": "boolean",
+          "description": "Whether to start muted. Required for autoplay in most browsers."
+        },
+        "alt": {
+          "type": "string",
+          "description": "Accessible description of the video content."
+        }
+      },
+      "requiredProperties": ["src"]
+    },
+
+    "AudioPlayer": {
+      "description": "Embedded audio player rendered as a semantic audio element.",
+      "htmlElement": "audio",
+      "properties": {
+        "src": {
+          "type": "DynamicString",
+          "description": "Audio source URL. Supports data binding."
+        },
+        "controls": {
+          "type": "boolean",
+          "description": "Whether to display playback controls. Defaults to true."
+        },
+        "autoplay": {
+          "type": "boolean",
+          "description": "Whether to auto-play on load."
+        },
+        "loop": {
+          "type": "boolean",
+          "description": "Whether to loop playback."
+        }
+      },
+      "requiredProperties": ["src"]
     },
 
     "Button": {
