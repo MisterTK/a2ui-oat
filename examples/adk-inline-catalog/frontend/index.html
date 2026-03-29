@@ -19,14 +19,8 @@
       --accent: #7dd3fc;
       --accent-hover: #38bdf8;
       --bg-gradient: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
-      --badge-success-bg: rgba(16, 185, 129, 0.15);
-      --badge-success-text: #34d399;
       --badge-warning-bg: rgba(245, 158, 11, 0.15);
       --badge-warning-text: #fbbf24;
-      --badge-error-bg: rgba(239, 68, 68, 0.15);
-      --badge-error-text: #f87171;
-      --badge-info-bg: rgba(59, 130, 246, 0.15);
-      --badge-info-text: #60a5fa;
       --badge-purple-bg: rgba(168, 85, 247, 0.15);
       --badge-purple-text: #c084fc;
     }
@@ -221,99 +215,41 @@
       .stats-row { flex-direction: column; }
     }
 
-    /* ---- A2UI Component Styles ---- */
-    h1, h2, h3, h4, h5, h6 { color: var(--text-primary); margin-bottom: 0.25rem; }
+    /* Semantic element overrides for dark glass theme */
+    .surface-container h1, .surface-container h2, .surface-container h3,
+    .surface-container h4, .surface-container h5, .surface-container h6 {
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
     .surface-container h1 { font-size: 1.3rem; }
     .surface-container h2 { font-size: 1.15rem; }
     .surface-container h3 { font-size: 1rem; }
-    p { color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.25rem; }
-
-    .a2ui-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-    .a2ui-row.space-between { justify-content: space-between; }
-    .a2ui-row.center { align-items: center; }
-    .a2ui-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.5rem; }
-    .a2ui-grid { display: flex; flex-direction: column; gap: 0.75rem; }
-    .a2ui-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem; }
-
-    .a2ui-badge { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
-    .a2ui-badge.success { background: var(--badge-success-bg); color: var(--badge-success-text); border: 1px solid rgba(16, 185, 129, 0.3); }
-    .a2ui-badge.info { background: var(--badge-info-bg); color: var(--badge-info-text); border: 1px solid rgba(59, 130, 246, 0.3); }
-    .a2ui-badge.warning { background: var(--badge-warning-bg); color: var(--badge-warning-text); border: 1px solid rgba(245, 158, 11, 0.3); }
-    .a2ui-badge.error { background: var(--badge-error-bg); color: var(--badge-error-text); border: 1px solid rgba(239, 68, 68, 0.3); }
-
-    .a2ui-progress { width: 100%; height: 8px; border-radius: 4px; appearance: none; -webkit-appearance: none; }
-    .a2ui-progress::-webkit-progress-bar { background: rgba(255,255,255,0.1); border-radius: 4px; }
-    .a2ui-progress::-webkit-progress-value { background: var(--accent); border-radius: 4px; }
-
-    .a2ui-alert { padding: 0.75rem 1rem; border-radius: 12px; margin: 0.25rem 0; font-weight: 500; font-size: 0.85rem; }
-    .a2ui-alert.error { background: var(--badge-error-bg); color: var(--badge-error-text); border: 1px solid rgba(239, 68, 68, 0.3); }
-    .a2ui-alert.warning { background: var(--badge-warning-bg); color: var(--badge-warning-text); border: 1px solid rgba(245, 158, 11, 0.3); }
-    .a2ui-alert.success { background: var(--badge-success-bg); color: var(--badge-success-text); border: 1px solid rgba(16, 185, 129, 0.3); }
-    .a2ui-alert.info { background: var(--badge-info-bg); color: var(--badge-info-text); border: 1px solid rgba(59, 130, 246, 0.3); }
-
-    .a2ui-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; overflow: hidden; }
-    .a2ui-table th, .a2ui-table td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid rgba(255, 255, 255, 0.04); color: var(--text-secondary); }
-    .a2ui-table th { background: rgba(255, 255, 255, 0.08); font-weight: 600; color: var(--text-primary); border-bottom: 1px solid var(--glass-border); }
-    .a2ui-table tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
-
-    .a2ui-divider { border: none; border-top: 1px solid var(--glass-border); margin: 0.5rem 0; }
-    .a2ui-list { list-style: none; padding: 0; }
-    .a2ui-list li { padding: 0.25rem 0; }
-    .a2ui-sidebar { min-width: 160px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem; }
-    .a2ui-pagination { display: flex; gap: 0.5rem; align-items: center; font-size: 0.85rem; color: var(--text-secondary); }
-    .a2ui-breadcrumb { display: flex; gap: 0.5rem; list-style: none; padding: 0; font-size: 0.85rem; }
-    .a2ui-breadcrumb li + li::before { content: "/"; margin-right: 0.5rem; color: var(--text-muted); }
-    .a2ui-breadcrumb a { color: var(--accent); text-decoration: none; }
-
-    .a2ui-accordion summary { cursor: pointer; padding: 0.5rem 0; color: var(--text-primary); font-weight: 500; }
-    .a2ui-accordion details { border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem; margin-bottom: 0.5rem; }
-
-    .a2ui-tabs { display: flex; flex-direction: column; }
-    .a2ui-tabs-header { display: flex; gap: 0; border-bottom: 1px solid var(--glass-border); }
-    .a2ui-tab-btn { padding: 0.5rem 1rem; background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.85rem; border-bottom: 2px solid transparent; }
-    .a2ui-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-    .a2ui-tab-panel { padding: 0.75rem 0; display: none; }
-    .a2ui-tab-panel.active { display: block; }
-
-    .a2ui-spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .a2ui-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--glass-hover); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: var(--text-primary); overflow: hidden; }
-    .a2ui-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .a2ui-meter { width: 100%; height: 8px; }
-    .a2ui-tooltip { position: relative; cursor: help; }
-    .a2ui-tooltip:hover::after { content: attr(data-tooltip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); color: var(--text-primary); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; white-space: nowrap; z-index: 100; }
-
-    /* Ensure all A2UI rendered content is light on dark */
-    #surface *, .agent-surface *, #surface-basic *, #surface-oat *,
-    .surface-container *, #metrics-surface *, #incidents-surface * {
-      color: var(--text-secondary, #a0aec0);
-    }
-    #surface h1, #surface h2, #surface h3, #surface h4,
-    .agent-surface h1, .agent-surface h2, .agent-surface h3, .agent-surface h4,
-    #surface-basic h1, #surface-basic h2, #surface-basic h3,
-    #surface-oat h1, #surface-oat h2, #surface-oat h3,
-    .surface-container h1, .surface-container h2, .surface-container h3 {
-      color: var(--text-primary, #ffffff);
-    }
-    table, .a2ui-table { border-collapse: collapse; width: 100%; }
-    table th, .a2ui-table th {
-      color: var(--text-secondary, #a0aec0) !important;
+    .surface-container p { color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.25rem; }
+    .surface-container table { border-collapse: collapse; width: 100%; }
+    .surface-container th {
+      color: var(--text-secondary) !important;
       background: rgba(255,255,255,0.05) !important;
       padding: 0.6rem 0.75rem;
-      border-bottom: 1px solid var(--glass-border, rgba(255,255,255,0.1));
+      border-bottom: 1px solid var(--glass-border);
       text-align: left;
       font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
     }
-    table td, .a2ui-table td {
-      color: var(--text-secondary, #a0aec0) !important;
+    .surface-container td {
+      color: var(--text-secondary) !important;
       padding: 0.6rem 0.75rem;
       border-bottom: 1px solid rgba(255,255,255,0.05);
     }
-    table tr:nth-child(even), .a2ui-table tr:nth-child(even) {
-      background: rgba(255,255,255,0.02);
+    .surface-container tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+
+    .loading-spinner {
+      width: 20px; height: 20px;
+      border: 2px solid rgba(255,255,255,0.1);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 2rem auto;
     }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -383,31 +319,14 @@
     </div>
   </div>
 
-<script>
-// ---------------------------------------------------------------------------
-// A2UI Component Renderer (same as other examples)
-// ---------------------------------------------------------------------------
+<script type="module">
+import { OatRenderer } from '../../../renderer/index.js';
 
-function resolvePath(pathStr, data) {
-  const parts = pathStr.replace(/^\//, '').split('/');
-  let cur = data;
-  for (const p of parts) {
-    if (cur == null) return undefined;
-    cur = cur[p];
-  }
-  return cur;
-}
+const renderer = new OatRenderer();
 
-function resolve(val, data) {
-  if (val && typeof val === 'object' && val.path) {
-    return resolvePath(val.path, data);
-  }
-  if (typeof val === 'string' && val.startsWith('/') && val.length > 1) {
-    const resolved = resolvePath(val, data);
-    if (resolved !== undefined) return resolved;
-  }
-  return val;
-}
+// ---------------------------------------------------------------------------
+// A2UI message processing helpers
+// ---------------------------------------------------------------------------
 
 function deepMerge(target, source) {
   const out = { ...target };
@@ -429,9 +348,7 @@ function normalizeComponent(c) {
     delete c.properties;
     Object.assign(c, props);
   }
-  // Ensure children is always an array
   if (c.children && !Array.isArray(c.children)) c.children = [c.children];
-  // LLMs sometimes put child components inline instead of by ID
   if (c.children && c.children.length > 0 && typeof c.children[0] === 'object') {
     const inlined = [];
     c.children = c.children.map(ch => {
@@ -441,6 +358,28 @@ function normalizeComponent(c) {
     c._inlined = inlined;
   }
   return c;
+}
+
+function createContext(components, dataModel) {
+  const ctx = {
+    getDataModel: () => dataModel,
+    setDataModel: (path, val) => {
+      const segs = path.replace(/^\//, '').split(/[/.]/);
+      let obj = dataModel;
+      for (let i = 0; i < segs.length - 1; i++) {
+        obj = obj[segs[i]] = obj[segs[i]] || {};
+      }
+      obj[segs[segs.length - 1]] = val;
+    },
+    subscribe: () => () => {},
+    renderChild: (id) => {
+      const comp = components.get(id);
+      return comp ? renderer.renderComponent(comp, ctx) : null;
+    },
+    dispatchAction: (action) => console.log('Action:', action),
+    getRegisteredFunction: () => null,
+  };
+  return ctx;
 }
 
 function renderA2UI(messages) {
@@ -476,110 +415,13 @@ function renderA2UI(messages) {
   const root = components.find(c => !childIds.has(c.id)) || components[0];
   const uniqueTypes = new Set(components.map(c => c.component));
 
+  const ctx = createContext(cMap, data);
   return {
-    el: renderComponent(root, cMap, data),
+    el: renderer.renderComponent(root, ctx),
     componentCount: components.length,
     uniqueTypes,
   };
 }
-
-function renderComponent(comp, cMap, data) {
-  if (!comp) return document.createTextNode('');
-
-  function renderChildren(el, ids) {
-    for (const id of (ids || [])) {
-      const child = cMap.get(id);
-      if (child) el.appendChild(renderComponent(child, cMap, data));
-    }
-  }
-  function renderChild(id) {
-    if (!id) return null;
-    const child = cMap.get(id);
-    return child ? renderComponent(child, cMap, data) : null;
-  }
-
-  switch (comp.component) {
-    case 'Grid': { const el = document.createElement('div'); el.className = 'a2ui-grid'; if (comp.gap) el.style.gap = comp.gap; renderChildren(el, comp.children); return el; }
-    case 'Row': { const el = document.createElement('div'); el.className = 'a2ui-row'; if (comp.justify === 'space-between') el.classList.add('space-between'); if (comp.align === 'center') el.classList.add('center'); if (comp.gap) el.style.gap = comp.gap; renderChildren(el, comp.children); return el; }
-    case 'Column': { const el = document.createElement('div'); el.className = 'a2ui-col'; if (comp.weight) el.style.flex = comp.weight; renderChildren(el, comp.children); return el; }
-    case 'Text': {
-      const variant = comp.variant || 'body';
-      const tagMap = { h1:'h1', h2:'h2', h3:'h3', h4:'h4', h5:'h5', h6:'h6', body:'p', paragraph:'p', p:'p', span:'span', small:'small', strong:'strong', em:'em' };
-      const el = document.createElement(tagMap[variant] || 'p');
-      el.textContent = resolve(comp.text, data) || '';
-      return el;
-    }
-    case 'Badge': { const el = document.createElement('span'); el.className = 'a2ui-badge ' + (comp.variant || ''); el.textContent = resolve(comp.text, data) || ''; return el; }
-    case 'Progress': { const el = document.createElement('progress'); el.className = 'a2ui-progress'; el.value = resolve(comp.value, data) ?? 0; el.max = comp.max ?? 100; return el; }
-    case 'Meter': { const el = document.createElement('meter'); el.className = 'a2ui-meter'; el.value = resolve(comp.value, data) ?? 0; el.min = comp.min ?? 0; el.max = comp.max ?? 100; return el; }
-    case 'Card': { const el = document.createElement('div'); el.className = 'a2ui-card'; const ch = renderChild(comp.child); if (ch) el.appendChild(ch); renderChildren(el, comp.children); return el; }
-    case 'Alert': { const el = document.createElement('div'); el.className = 'a2ui-alert ' + (comp.variant || ''); el.setAttribute('role', 'alert'); el.textContent = resolve(comp.text, data) || ''; return el; }
-    case 'Table': {
-      const table = document.createElement('table'); table.className = 'a2ui-table';
-      const columns = comp.columns || [];
-      if (columns.length) { const thead = document.createElement('thead'); const hr = document.createElement('tr'); for (const col of columns) { const th = document.createElement('th'); th.textContent = col.label || col.header || col.key || ''; hr.appendChild(th); } thead.appendChild(hr); table.appendChild(thead); }
-      const tbody = document.createElement('tbody');
-      const rows = resolve(comp.rows, data) || [];
-      for (const row of rows) { const tr = document.createElement('tr'); for (const col of columns) { const td = document.createElement('td'); const key = col.key || col.field; td.textContent = key ? (row[key] ?? '') : ''; tr.appendChild(td); } tbody.appendChild(tr); }
-      table.appendChild(tbody); return table;
-    }
-    case 'Divider': { const el = document.createElement('hr'); el.className = 'a2ui-divider'; return el; }
-    case 'List': { const el = document.createElement('ul'); el.className = 'a2ui-list'; for (const id of (comp.children || [])) { const li = document.createElement('li'); const child = cMap.get(id); if (child) li.appendChild(renderComponent(child, cMap, data)); el.appendChild(li); } return el; }
-    case 'Sidebar': { const el = document.createElement('div'); el.className = 'a2ui-sidebar'; const ch = renderChild(comp.child); if (ch) el.appendChild(ch); renderChildren(el, comp.children); return el; }
-    case 'Image': { const el = document.createElement('img'); el.src = resolve(comp.url, data) || ''; el.alt = comp.alt || ''; el.style.maxWidth = '100%'; return el; }
-    case 'Icon': { const el = document.createElement('span'); el.textContent = comp.name || ''; return el; }
-    case 'Spinner': { const el = document.createElement('div'); el.className = 'a2ui-spinner'; return el; }
-    case 'Avatar': { const el = document.createElement('div'); el.className = 'a2ui-avatar'; if (comp.url) { const img = document.createElement('img'); img.src = resolve(comp.url, data) || ''; el.appendChild(img); } else { el.textContent = resolve(comp.initials, data) || ''; } return el; }
-    case 'Button': { const el = document.createElement('button'); el.style.cssText = 'background:var(--accent);color:#000;border:none;padding:0.4rem 0.8rem;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.8rem;'; const ch = renderChild(comp.child); if (ch) el.appendChild(ch); else if (comp.label) el.textContent = comp.label; return el; }
-    case 'TextField': {
-      const wrapper = document.createElement('label'); wrapper.style.display = 'flex'; wrapper.style.flexDirection = 'column'; wrapper.style.gap = '0.25rem';
-      if (comp.label) { const lbl = document.createElement('span'); lbl.textContent = comp.label; lbl.style.fontSize = '0.8rem'; lbl.style.color = 'var(--text-muted)'; wrapper.appendChild(lbl); }
-      const input = document.createElement('input'); input.type = 'text'; input.style.cssText = 'background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:8px;padding:0.5rem;color:var(--text-primary);';
-      if (comp.placeholder) input.placeholder = comp.placeholder; input.value = resolve(comp.value, data) || ''; wrapper.appendChild(input); return wrapper;
-    }
-    case 'CheckBox': { const wrapper = document.createElement('label'); wrapper.style.cssText = 'display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;'; const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!resolve(comp.value, data); wrapper.appendChild(cb); if (comp.label) wrapper.append(comp.label); return wrapper; }
-    case 'Switch': { const el = document.createElement('div'); el.className = 'a2ui-switch' + (resolve(comp.value, data) ? ' on' : ''); el.addEventListener('click', () => el.classList.toggle('on')); return el; }
-    case 'Slider': { const el = document.createElement('input'); el.type = 'range'; el.min = comp.min ?? comp.minValue ?? 0; el.max = comp.max ?? comp.maxValue ?? 100; el.value = resolve(comp.value, data) ?? 50; el.style.width = '100%'; return el; }
-    case 'ChoicePicker': { const el = document.createElement('select'); el.style.cssText = 'background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:8px;padding:0.5rem;color:var(--text-primary);'; for (const opt of (comp.options || [])) { const o = document.createElement('option'); o.value = opt.value || opt.label; o.textContent = opt.label; el.appendChild(o); } return el; }
-    case 'Tabs': {
-      const el = document.createElement('div'); el.className = 'a2ui-tabs';
-      const header = document.createElement('div'); header.className = 'a2ui-tabs-header'; const panels = [];
-      const tabList = comp.tabs ?? comp.tabItems ?? [];
-      for (let i = 0; i < tabList.length; i++) {
-        const item = tabList[i];
-        const btn = document.createElement('button'); btn.className = 'a2ui-tab-btn' + (i === 0 ? ' active' : ''); btn.textContent = item.title || `Tab ${i+1}`;
-        btn.onclick = () => { header.querySelectorAll('.a2ui-tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); panels.forEach((p, j) => p.classList.toggle('active', j === i)); };
-        header.appendChild(btn);
-        const panel = document.createElement('div'); panel.className = 'a2ui-tab-panel' + (i === 0 ? ' active' : ''); const ch = renderChild(item.child); if (ch) panel.appendChild(ch); panels.push(panel);
-      }
-      el.appendChild(header); for (const p of panels) el.appendChild(p); return el;
-    }
-    case 'Accordion': { const el = document.createElement('div'); el.className = 'a2ui-accordion'; for (const item of (comp.items || [])) { const details = document.createElement('details'); const summary = document.createElement('summary'); summary.textContent = item.title || ''; details.appendChild(summary); const ch = renderChild(item.child); if (ch) details.appendChild(ch); el.appendChild(details); } return el; }
-    case 'Tooltip': { const el = document.createElement('span'); el.className = 'a2ui-tooltip'; el.dataset.tooltip = resolve(comp.text, data) || ''; const ch = renderChild(comp.child); if (ch) el.appendChild(ch); return el; }
-    case 'Breadcrumb': { const ol = document.createElement('ol'); ol.className = 'a2ui-breadcrumb'; for (const item of (comp.items || [])) { const li = document.createElement('li'); li.textContent = item.label || ''; ol.appendChild(li); } return ol; }
-    case 'Pagination': { const el = document.createElement('nav'); el.className = 'a2ui-pagination'; el.innerHTML = `<span>Page ${resolve(comp.currentPage, data) ?? 1} of ${resolve(comp.totalPages, data) ?? 1}</span>`; return el; }
-    case 'Toast': { const el = document.createElement('div'); el.className = 'a2ui-alert ' + (comp.variant || 'info'); el.textContent = resolve(comp.text, data) || ''; return el; }
-    case 'DateTimeInput': { const el = document.createElement('input'); el.type = 'date'; el.style.cssText = 'background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:8px;padding:0.5rem;color:var(--text-primary);'; return el; }
-    case 'Modal': { const el = document.createElement('div'); el.className = 'a2ui-card'; const ch = renderChild(comp.content ?? comp.contentChild); if (ch) el.appendChild(ch); return el; }
-    default: {
-      const el = document.createElement('div');
-      el.style.cssText = 'color:var(--text-muted);font-size:0.75rem;font-style:italic;';
-      // Gracefully handle unknown components: render children if available, otherwise show type + properties
-      if (comp.children && comp.children.length > 0) {
-        renderChildren(el, comp.children);
-      } else if (comp.child) {
-        const ch = renderChild(comp.child);
-        if (ch) el.appendChild(ch);
-      } else if (comp.text) {
-        el.textContent = String(resolve(comp.text, data) || '');
-      } else {
-        el.textContent = `[${comp.component || 'Unknown'}]`;
-      }
-      return el;
-    }
-  }
-}
-
 
 // ---------------------------------------------------------------------------
 // Comparison Logic
@@ -597,8 +439,8 @@ async function sendMessage() {
   loadingBar.classList.add('active');
   document.getElementById('hints').style.display = 'none';
 
-  document.getElementById('surface-basic').innerHTML = '<div class="a2ui-spinner" style="margin:2rem auto"></div>';
-  document.getElementById('surface-oat').innerHTML = '<div class="a2ui-spinner" style="margin:2rem auto"></div>';
+  document.getElementById('surface-basic').innerHTML = '<div class="loading-spinner"></div>';
+  document.getElementById('surface-oat').innerHTML = '<div class="loading-spinner"></div>';
 
   try {
     const resp = await fetch('/api/chat', {
@@ -608,7 +450,6 @@ async function sendMessage() {
     });
     const result = await resp.json();
 
-    // Render basic
     renderSurface('basic', result.basic);
     renderSurface('oat', result.oat);
 
@@ -673,6 +514,11 @@ async function resetSession() {
   document.getElementById('oat-meta').textContent = '35 components available';
   document.getElementById('hints').style.display = 'flex';
 }
+
+// Expose to inline event handlers
+window.sendMessage = sendMessage;
+window.sendHint = sendHint;
+window.resetSession = resetSession;
 </script>
 </body>
 </html>
