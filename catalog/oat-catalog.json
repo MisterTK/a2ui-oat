@@ -884,17 +884,21 @@
     },
 
     "Toast": {
-      "description": "A temporary notification rendered as an oat-toast web component. Automatically dismisses after a duration.",
-      "htmlElement": "oat-toast",
+      "description": "A temporary notification that appears in a toast container. Uses an <output> element with .toast class styled by Oat CSS. Automatically dismisses after a duration.",
+      "htmlElement": "output",
       "properties": {
+        "title": {
+          "type": "DynamicString",
+          "description": "Optional toast title rendered as .toast-title. Supports data binding."
+        },
         "text": {
           "type": "DynamicString",
-          "description": "Toast message text. Supports data binding."
+          "description": "Toast message text rendered as .toast-message. Supports data binding."
         },
         "variant": {
           "type": "string",
           "enum": ["info", "success", "warning", "error"],
-          "description": "Visual style variant."
+          "description": "Visual style variant set via data-variant attribute."
         },
         "duration": {
           "type": "number",
@@ -903,7 +907,7 @@
         "position": {
           "type": "string",
           "enum": ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right"],
-          "description": "Screen position where the toast appears."
+          "description": "Placement position for the toast container (data-placement attribute)."
         }
       },
       "requiredProperties": ["text"]
@@ -1072,7 +1076,7 @@
     },
 
     "showToast": {
-      "description": "Triggers a toast notification using the Oat Toast web component.",
+      "description": "Triggers a toast notification using Oat CSS toast styling.",
       "parameters": {
         "text": {
           "type": "DynamicString",
