@@ -762,20 +762,26 @@ export class OatRenderer {
 
   /** @returns {HTMLElement} */
   _renderDropdown(c, ctx) {
-    const el = document.createElement('oat-dropdown');
-    if (c.position) el.dataset.position = c.position;
+    const el = document.createElement('ot-dropdown');
+    const menuId = `dropdown-${c.id || Math.random().toString(36).slice(2, 8)}`;
+
     this._renderSingleChild(el, c.child, ctx);
+    const trigger = el.firstElementChild;
+    if (trigger) trigger.setAttribute('popovertarget', menuId);
+
     const menu = document.createElement('menu');
-    menu.slot = 'menu';
+    menu.setAttribute('popover', '');
+    menu.id = menuId;
+    if (c.position) menu.dataset.position = c.position;
+
     const items = c.items || [];
     for (const item of items) {
-      const li = document.createElement('li');
       const btn = document.createElement('button');
+      btn.setAttribute('role', 'menuitem');
       btn.textContent = item.label || '';
       if (item.disabled) btn.disabled = true;
       this._wireAction(btn, 'click', item.action, ctx);
-      li.appendChild(btn);
-      menu.appendChild(li);
+      menu.appendChild(btn);
     }
     el.appendChild(menu);
     return el;

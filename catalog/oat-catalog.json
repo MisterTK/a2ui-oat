@@ -765,7 +765,7 @@
 
     "Dropdown": {
       "description": "A dropdown menu rendered as an Oat dropdown web component. Displays a trigger element that reveals a list of actions or options.",
-      "htmlElement": "oat-dropdown",
+      "htmlElement": "ot-dropdown",
       "properties": {
         "child": {
           "type": "ComponentId",
