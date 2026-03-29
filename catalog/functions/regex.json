@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "regex",
+  "description": "Validates a value against a regular expression pattern. Returns true if the value matches.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "value": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "A JSON pointer path into the data model to resolve the value dynamically."
+              }
+            },
+            "required": ["path"],
+            "additionalProperties": false
+          }
+        ],
+        "description": "The value to test against the pattern. Can be a literal string or a dynamic reference."
+      },
+      "pattern": {
+        "type": "string",
+        "description": "The regular expression pattern string to match against."
+      }
+    },
+    "required": ["value", "pattern"],
+    "additionalProperties": false
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "email",
+  "description": "Validates that a value is a valid email address. Returns true if the value matches a standard email pattern.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "value": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "A JSON pointer path into the data model to resolve the value dynamically."
+              }
+            },
+            "required": ["path"],
+            "additionalProperties": false
+          }
+        ],
+        "description": "The value to validate as an email address. Can be a literal string or a dynamic reference."
+      }
+    },
+    "required": ["value"],
+    "additionalProperties": false
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "and",
+  "description": "Logical AND over an array of conditions. Returns true if every condition is truthy.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "conditions": {
+        "type": "array",
+        "items": {},
+        "description": "Array of values or expressions to evaluate. Each may be a literal or a dynamic reference."
+      }
+    },
+    "required": ["conditions"],
+    "additionalProperties": false
+  }
+}

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft-07/schema#",
-  "name": "formatNumber",
-  "description": "Locale-aware number formatting. Formats a numeric value using the browser's Intl.NumberFormat API, supporting dynamic values bound to the data model.",
+  "name": "formatCurrency",
+  "description": "Currency formatting via Intl.NumberFormat. Formats a numeric value as a currency string.",
   "backedBy": "Intl.NumberFormat",
   "parameters": {
     "type": "object",
@@ -14,7 +14,7 @@
             "properties": {
               "path": {
                 "type": "string",
-                "description": "A JSON pointer path into the data model to resolve the number value dynamically."
+                "description": "A JSON pointer path into the data model to resolve the value dynamically."
               }
             },
             "required": ["path"],
@@ -23,13 +23,13 @@
         ],
         "description": "The numeric value to format. Can be a literal number or a DynamicNumber referencing a data model path."
       },
+      "currency": {
+        "type": "string",
+        "description": "ISO 4217 currency code (e.g., 'USD', 'EUR', 'GBP'). Defaults to 'USD'."
+      },
       "locale": {
         "type": "string",
         "description": "A BCP 47 language tag (e.g., 'en-US', 'de-DE'). If omitted, the browser's default locale is used."
-      },
-      "options": {
-        "type": "object",
-        "description": "Intl.NumberFormat options object (e.g., { style: 'currency', currency: 'USD' })."
       },
       "targetPath": {
         "type": "string",
