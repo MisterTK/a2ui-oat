@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADK A2A Multi-Agent -- Oat Dashboard</title>
+  <style>
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-blur: blur(20px);
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      --glass-hover: rgba(255, 255, 255, 0.1);
+      --text-primary: #ffffff;
+      --text-secondary: #a0aec0;
+      --text-muted: #718096;
+      --accent: #7dd3fc;
+      --accent-hover: #38bdf8;
+      --bg-gradient: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
+      --badge-success-bg: rgba(16, 185, 129, 0.15);
+      --badge-success-text: #34d399;
+      --badge-warning-bg: rgba(245, 158, 11, 0.15);
+      --badge-warning-text: #fbbf24;
+      --badge-error-bg: rgba(239, 68, 68, 0.15);
+      --badge-error-text: #f87171;
+      --badge-info-bg: rgba(59, 130, 246, 0.15);
+      --badge-info-text: #60a5fa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-secondary);
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+    header h1 { font-size: 1.3rem; color: var(--text-primary); }
+    .tag {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      background: var(--badge-info-bg);
+      color: var(--badge-info-text);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      margin-left: 0.75rem;
+    }
+    header button {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      color: var(--text-secondary);
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    header button:hover { background: var(--glass-hover); color: var(--text-primary); }
+
+    .input-row {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .input-row input {
+      flex: 1;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 0.7rem 1rem;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      outline: none;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+    }
+    .input-row input::placeholder { color: var(--text-muted); }
+    .input-row input:focus { border-color: var(--accent); }
+    .input-row button {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      border: none;
+      border-radius: 12px;
+      padding: 0.7rem 1.25rem;
+      color: white;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .input-row button:hover { filter: brightness(1.1); }
+    .input-row button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .prompt-hints {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+    .prompt-hint {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 999px;
+      padding: 0.3rem 0.75rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .prompt-hint:hover { background: var(--glass-hover); color: var(--text-primary); }
+
+    .surfaces {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    .surface-container {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      min-height: 200px;
+      box-shadow: var(--glass-shadow);
+    }
+    .surface-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .surface-label .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .surface-text {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+      line-height: 1.5;
+    }
+    .surface-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 2rem 0;
+    }
+
+    #log {
+      margin-top: 1.5rem;
+      background: rgba(30, 30, 46, 0.8);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      color: #cdd6f4;
+      border-radius: 16px;
+      padding: 1rem;
+      font-family: monospace;
+      font-size: 0.8rem;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: var(--glass-shadow);
+    }
+    #log .step { color: #89b4fa; }
+    #log .ok   { color: #a6e3a1; }
+    #log .warn { color: #f9e2af; }
+    #log .err  { color: #f38ba8; }
+
+    .loading-bar {
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      background-size: 200% 100%;
+      animation: loadSlide 1.5s infinite;
+      border-radius: 2px;
+      margin-bottom: 1rem;
+      display: none;
+    }
+    .loading-bar.active { display: block; }
+    @keyframes loadSlide { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    @media (max-width: 768px) {
+      .surfaces { grid-template-columns: 1fr; }
+    }
+
+    /* ---- A2UI Component Styles (shared with single-agent example) ---- */
+    h1, h2, h3, h4, h5, h6 { color: var(--text-primary); margin-bottom: 0.25rem; }
+    .surface-container h1 { font-size: 1.3rem; }
+    .surface-container h2 { font-size: 1.15rem; }
+    .surface-container h3 { font-size: 1rem; }
+    p { color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.25rem; }
+
+    .a2ui-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .a2ui-row.space-between { justify-content: space-between; }
+    .a2ui-row.center { align-items: center; }
+    .a2ui-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+    .a2ui-grid { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .a2ui-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+    .a2ui-badge {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .a2ui-badge.success { background: var(--badge-success-bg); color: var(--badge-success-text); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .a2ui-badge.info { background: var(--badge-info-bg); color: var(--badge-info-text); border: 1px solid rgba(59, 130, 246, 0.3); }
+    .a2ui-badge.warning { background: var(--badge-warning-bg); color: var(--badge-warning-text); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .a2ui-badge.error { background: var(--badge-error-bg); color: var(--badge-error-text); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    .a2ui-progress { width: 100%; height: 8px; border-radius: 4px; appearance: none; -webkit-appearance: none; }
+    .a2ui-progress::-webkit-progress-bar { background: rgba(255,255,255,0.1); border-radius: 4px; }
+    .a2ui-progress::-webkit-progress-value { background: var(--accent); border-radius: 4px; }
+
+    .a2ui-alert { padding: 0.75rem 1rem; border-radius: 12px; margin: 0.25rem 0; font-weight: 500; font-size: 0.85rem; }
+    .a2ui-alert.error { background: var(--badge-error-bg); color: var(--badge-error-text); border: 1px solid rgba(239, 68, 68, 0.3); }
+    .a2ui-alert.warning { background: var(--badge-warning-bg); color: var(--badge-warning-text); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .a2ui-alert.success { background: var(--badge-success-bg); color: var(--badge-success-text); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .a2ui-alert.info { background: var(--badge-info-bg); color: var(--badge-info-text); border: 1px solid rgba(59, 130, 246, 0.3); }
+
+    .a2ui-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; overflow: hidden; }
+    .a2ui-table th, .a2ui-table td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid rgba(255, 255, 255, 0.04); color: var(--text-secondary); }
+    .a2ui-table th { background: rgba(255, 255, 255, 0.08); font-weight: 600; color: var(--text-primary); border-bottom: 1px solid var(--glass-border); }
+    .a2ui-table tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
+
+    .a2ui-divider { border: none; border-top: 1px solid var(--glass-border); margin: 0.5rem 0; }
+    .a2ui-list { list-style: none; padding: 0; }
+    .a2ui-list li { padding: 0.25rem 0; }
+    .a2ui-sidebar { min-width: 160px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem; }
+    .a2ui-pagination { display: flex; gap: 0.5rem; align-items: center; font-size: 0.85rem; color: var(--text-secondary); }
+    .a2ui-breadcrumb { display: flex; gap: 0.5rem; list-style: none; padding: 0; font-size: 0.85rem; }
+    .a2ui-breadcrumb li + li::before { content: "/"; margin-right: 0.5rem; color: var(--text-muted); }
+    .a2ui-breadcrumb a { color: var(--accent); text-decoration: none; }
+
+    .a2ui-accordion summary { cursor: pointer; padding: 0.5rem 0; color: var(--text-primary); font-weight: 500; }
+    .a2ui-accordion details { border-bottom: 1px solid var(--glass-border); padding-bottom: 0.5rem; margin-bottom: 0.5rem; }
+
+    .a2ui-tabs { display: flex; flex-direction: column; }
+    .a2ui-tabs-header { display: flex; gap: 0; border-bottom: 1px solid var(--glass-border); }
+    .a2ui-tab-btn { padding: 0.5rem 1rem; background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.85rem; border-bottom: 2px solid transparent; }
+    .a2ui-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .a2ui-tab-panel { padding: 0.75rem 0; display: none; }
+    .a2ui-tab-panel.active { display: block; }
+
+    .a2ui-spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .a2ui-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--glass-hover); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: var(--text-primary); overflow: hidden; }
+    .a2ui-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .a2ui-meter { width: 100%; height: 8px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div style="display:flex;align-items:center">
+      <h1>A2A Multi-Agent Dashboard</h1>
+      <span class="tag">Orchestrator + 2 Sub-agents</span>
+    </div>
+    <button onclick="resetSession()">Reset</button>
+  </header>
+
+  <div class="prompt-hints" id="hints">
+    <span class="prompt-hint" onclick="sendHint(this)">Show me the full dashboard</span>
+    <span class="prompt-hint" onclick="sendHint(this)">Show system metrics</span>
+    <span class="prompt-hint" onclick="sendHint(this)">Show active incidents</span>
+    <span class="prompt-hint" onclick="sendHint(this)">What is the current system status?</span>
+  </div>
+
+  <div class="input-row">
+    <input type="text" id="msg-input" placeholder="Ask about metrics, incidents, or request a full dashboard..."
+           onkeydown="if(event.key==='Enter') sendMessage()">
+    <button onclick="sendMessage()" id="send-btn">Send</button>
+  </div>
+
+  <div class="loading-bar" id="loading-bar"></div>
+
+  <div class="surfaces">
+    <div class="surface-container">
+      <div class="surface-label"><span class="dot"></span> Metrics Agent</div>
+      <div id="surface-metrics"><div class="surface-empty">Waiting for request...</div></div>
+    </div>
+    <div class="surface-container">
+      <div class="surface-label"><span class="dot" style="background:#f87171"></span> Incidents Agent</div>
+      <div id="surface-incidents"><div class="surface-empty">Waiting for request...</div></div>
+    </div>
+  </div>
+
+  <div id="log"></div>
+
+<script>
+// ---------------------------------------------------------------------------
+// A2UI Component Renderer (same rendering logic)
+// ---------------------------------------------------------------------------
+
+function resolve(val, data) {
+  if (val && typeof val === 'object' && val.path) {
+    const parts = val.path.replace(/^\//, '').split('/');
+    let cur = data;
+    for (const p of parts) {
+      if (cur == null) return undefined;
+      cur = cur[p];
+    }
+    return cur;
+  }
+  return val;
+}
+
+function deepMerge(target, source) {
+  const out = { ...target };
+  for (const key of Object.keys(source)) {
+    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])
+        && target[key] && typeof target[key] === 'object' && !Array.isArray(target[key])) {
+      out[key] = deepMerge(target[key], source[key]);
+    } else {
+      out[key] = source[key];
+    }
+  }
+  return out;
+}
+
+function normalizeComponent(c) {
+  if (!c.component && c.type) { c.component = c.type; }
+  return c;
+}
+
+function renderA2UI(messages) {
+  let data = {};
+  let components = [];
+  for (const msg of messages) {
+    if (msg.updateDataModel && msg.updateDataModel.data) data = deepMerge(data, msg.updateDataModel.data);
+    if (msg.updateComponents && msg.updateComponents.components) components = components.concat(msg.updateComponents.components.map(normalizeComponent));
+  }
+  if (components.length === 0) return null;
+
+  const cMap = new Map(components.map(c => [c.id, c]));
+  const childIds = new Set();
+  for (const c of components) {
+    for (const cid of (c.children || [])) childIds.add(cid);
+    if (c.child) childIds.add(c.child);
+    if (c.contentChild) childIds.add(c.contentChild);
+  }
+  const root = components.find(c => !childIds.has(c.id)) || components[0];
+  return renderComponent(root, cMap, data);
+}
+
+function renderComponent(comp, cMap, data) {
+  if (!comp) return document.createTextNode('');
+
+  function renderChildren(el, ids) {
+    for (const id of (ids || [])) {
+      const child = cMap.get(id);
+      if (child) el.appendChild(renderComponent(child, cMap, data));
+    }
+  }
+  function renderChild(id) {
+    if (!id) return null;
+    const child = cMap.get(id);
+    return child ? renderComponent(child, cMap, data) : null;
+  }
+
+  switch (comp.component) {
+    case 'Grid': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-grid';
+      if (comp.gap) el.style.gap = comp.gap;
+      renderChildren(el, comp.children);
+      return el;
+    }
+    case 'Row': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-row';
+      if (comp.justify === 'space-between') el.classList.add('space-between');
+      if (comp.align === 'center') el.classList.add('center');
+      if (comp.gap) el.style.gap = comp.gap;
+      renderChildren(el, comp.children);
+      return el;
+    }
+    case 'Column': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-col';
+      if (comp.weight) el.style.flex = comp.weight;
+      renderChildren(el, comp.children);
+      return el;
+    }
+    case 'Text': {
+      const variant = comp.variant || 'body';
+      const tagMap = { h1:'h1', h2:'h2', h3:'h3', h4:'h4', body:'p', paragraph:'p', p:'p' };
+      const el = document.createElement(tagMap[variant] || 'p');
+      el.textContent = resolve(comp.text, data) || '';
+      return el;
+    }
+    case 'Badge': {
+      const el = document.createElement('span');
+      el.className = 'a2ui-badge ' + (comp.variant || '');
+      el.textContent = resolve(comp.text, data) || '';
+      return el;
+    }
+    case 'Progress': {
+      const el = document.createElement('progress');
+      el.className = 'a2ui-progress';
+      el.value = resolve(comp.value, data) ?? 0;
+      el.max = comp.max ?? 100;
+      return el;
+    }
+    case 'Meter': {
+      const el = document.createElement('meter');
+      el.className = 'a2ui-meter';
+      el.value = resolve(comp.value, data) ?? 0;
+      el.min = comp.min ?? 0;
+      el.max = comp.max ?? 100;
+      return el;
+    }
+    case 'Card': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-card';
+      const ch = renderChild(comp.child);
+      if (ch) el.appendChild(ch);
+      renderChildren(el, comp.children);
+      return el;
+    }
+    case 'Alert': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-alert ' + (comp.variant || '');
+      el.setAttribute('role', 'alert');
+      el.textContent = resolve(comp.text, data) || '';
+      return el;
+    }
+    case 'Table': {
+      const table = document.createElement('table');
+      table.className = 'a2ui-table';
+      const columns = comp.columns || [];
+      if (columns.length) {
+        const thead = document.createElement('thead');
+        const hr = document.createElement('tr');
+        for (const col of columns) {
+          const th = document.createElement('th');
+          th.textContent = col.label || col.header || col.key || '';
+          hr.appendChild(th);
+        }
+        thead.appendChild(hr);
+        table.appendChild(thead);
+      }
+      const tbody = document.createElement('tbody');
+      const rows = resolve(comp.rows, data) || [];
+      for (const row of rows) {
+        const tr = document.createElement('tr');
+        for (const col of columns) {
+          const td = document.createElement('td');
+          const key = col.key || col.field;
+          td.textContent = key ? (row[key] ?? '') : '';
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
+      return table;
+    }
+    case 'Divider': { const el = document.createElement('hr'); el.className = 'a2ui-divider'; return el; }
+    case 'List': {
+      const el = document.createElement('ul');
+      el.className = 'a2ui-list';
+      for (const id of (comp.children || [])) {
+        const li = document.createElement('li');
+        const child = cMap.get(id);
+        if (child) li.appendChild(renderComponent(child, cMap, data));
+        el.appendChild(li);
+      }
+      return el;
+    }
+    case 'Sidebar': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-sidebar';
+      const ch = renderChild(comp.child);
+      if (ch) el.appendChild(ch);
+      renderChildren(el, comp.children);
+      return el;
+    }
+    case 'Image': { const el = document.createElement('img'); el.src = resolve(comp.url, data) || ''; el.alt = comp.alt || ''; el.style.maxWidth = '100%'; return el; }
+    case 'Icon': { const el = document.createElement('span'); el.textContent = comp.name || ''; return el; }
+    case 'Spinner': { const el = document.createElement('div'); el.className = 'a2ui-spinner'; return el; }
+    case 'Avatar': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-avatar';
+      if (comp.url) { const img = document.createElement('img'); img.src = resolve(comp.url, data) || ''; el.appendChild(img); }
+      else { el.textContent = resolve(comp.initials, data) || ''; }
+      return el;
+    }
+    case 'Button': {
+      const el = document.createElement('button');
+      el.style.cssText = 'background:var(--accent);color:#000;border:none;padding:0.4rem 0.8rem;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.8rem;';
+      const ch = renderChild(comp.child);
+      if (ch) el.appendChild(ch);
+      else if (comp.label) el.textContent = comp.label;
+      return el;
+    }
+    case 'Tabs': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-tabs';
+      const header = document.createElement('div');
+      header.className = 'a2ui-tabs-header';
+      const panels = [];
+      for (let i = 0; i < (comp.tabItems || []).length; i++) {
+        const item = comp.tabItems[i];
+        const btn = document.createElement('button');
+        btn.className = 'a2ui-tab-btn' + (i === 0 ? ' active' : '');
+        btn.textContent = item.title || `Tab ${i+1}`;
+        btn.onclick = () => {
+          header.querySelectorAll('.a2ui-tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          panels.forEach((p, j) => p.classList.toggle('active', j === i));
+        };
+        header.appendChild(btn);
+        const panel = document.createElement('div');
+        panel.className = 'a2ui-tab-panel' + (i === 0 ? ' active' : '');
+        const ch = renderChild(item.child);
+        if (ch) panel.appendChild(ch);
+        panels.push(panel);
+      }
+      el.appendChild(header);
+      for (const p of panels) el.appendChild(p);
+      return el;
+    }
+    case 'Accordion': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-accordion';
+      for (const item of (comp.items || [])) {
+        const details = document.createElement('details');
+        const summary = document.createElement('summary');
+        summary.textContent = item.title || '';
+        details.appendChild(summary);
+        const ch = renderChild(item.child);
+        if (ch) details.appendChild(ch);
+        el.appendChild(details);
+      }
+      return el;
+    }
+    case 'Breadcrumb': {
+      const ol = document.createElement('ol');
+      ol.className = 'a2ui-breadcrumb';
+      for (const item of (comp.items || [])) {
+        const li = document.createElement('li');
+        li.textContent = item.label || '';
+        ol.appendChild(li);
+      }
+      return ol;
+    }
+    case 'Pagination': {
+      const el = document.createElement('nav');
+      el.className = 'a2ui-pagination';
+      el.innerHTML = `<span>Page ${resolve(comp.currentPage, data) ?? 1} of ${resolve(comp.totalPages, data) ?? 1}</span>`;
+      return el;
+    }
+    case 'Toast': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-alert ' + (comp.variant || 'info');
+      el.textContent = resolve(comp.text, data) || '';
+      return el;
+    }
+    case 'Tooltip': {
+      const el = document.createElement('span');
+      el.title = resolve(comp.text, data) || '';
+      const ch = renderChild(comp.child);
+      if (ch) el.appendChild(ch);
+      return el;
+    }
+    default: {
+      const el = document.createElement('div');
+      el.style.cssText = 'color:var(--text-muted);font-size:0.75rem;font-style:italic;';
+      el.textContent = `[${comp.component}]`;
+      return el;
+    }
+  }
+}
+
+
+// ---------------------------------------------------------------------------
+// Chat / Orchestration Logic
+// ---------------------------------------------------------------------------
+
+const logEl = document.getElementById('log');
+const msgInput = document.getElementById('msg-input');
+const sendBtn = document.getElementById('send-btn');
+const loadingBar = document.getElementById('loading-bar');
+
+function log(msg, cls = 'step') {
+  const line = document.createElement('div');
+  line.className = cls;
+  line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  logEl.appendChild(line);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+async function sendMessage() {
+  const text = msgInput.value.trim();
+  if (!text) return;
+
+  msgInput.value = '';
+  sendBtn.disabled = true;
+  loadingBar.classList.add('active');
+  document.getElementById('hints').style.display = 'none';
+
+  log(`User: ${text}`);
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text }),
+    });
+    const result = await resp.json();
+
+    log(`Received responses from: ${result.agents.join(', ')}`, 'ok');
+
+    // Render each agent's surface
+    for (const [agentName, surfaceData] of Object.entries(result.surfaces || {})) {
+      let targetEl = null;
+
+      if (agentName.includes('metric')) {
+        targetEl = document.getElementById('surface-metrics');
+      } else if (agentName.includes('incident')) {
+        targetEl = document.getElementById('surface-incidents');
+      } else {
+        // Orchestrator text or unknown agent -- show in both if it has A2UI
+        if (surfaceData.a2ui && surfaceData.a2ui.length > 0) {
+          // Try to render in first available surface
+          targetEl = document.getElementById('surface-metrics');
+        } else {
+          log(`  ${agentName}: ${surfaceData.text || '(no content)'}`, 'warn');
+          continue;
+        }
+      }
+
+      if (targetEl) {
+        targetEl.innerHTML = '';
+
+        if (surfaceData.text) {
+          const textDiv = document.createElement('div');
+          textDiv.className = 'surface-text';
+          textDiv.textContent = surfaceData.text;
+          targetEl.appendChild(textDiv);
+        }
+
+        if (surfaceData.a2ui && surfaceData.a2ui.length > 0) {
+          const rendered = renderA2UI(surfaceData.a2ui);
+          if (rendered) {
+            targetEl.appendChild(rendered);
+            log(`  ${agentName}: rendered ${surfaceData.a2ui.length} A2UI messages`, 'ok');
+          } else {
+            targetEl.innerHTML += '<div class="surface-empty">No components rendered</div>';
+            log(`  ${agentName}: no renderable components`, 'warn');
+          }
+        } else if (!surfaceData.text) {
+          targetEl.innerHTML = '<div class="surface-empty">No A2UI data returned</div>';
+        }
+      }
+    }
+  } catch (err) {
+    log(`Error: ${err.message}`, 'err');
+  }
+
+  loadingBar.classList.remove('active');
+  sendBtn.disabled = false;
+  msgInput.focus();
+}
+
+function sendHint(el) {
+  msgInput.value = el.textContent;
+  sendMessage();
+}
+
+async function resetSession() {
+  await fetch('/api/reset', { method: 'POST' });
+  document.getElementById('surface-metrics').innerHTML = '<div class="surface-empty">Waiting for request...</div>';
+  document.getElementById('surface-incidents').innerHTML = '<div class="surface-empty">Waiting for request...</div>';
+  logEl.innerHTML = '';
+  document.getElementById('hints').style.display = 'flex';
+}
+</script>
+</body>
+</html>

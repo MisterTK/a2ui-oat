@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADK Single Agent -- Oat Dashboard</title>
+  <style>
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-blur: blur(20px);
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      --glass-hover: rgba(255, 255, 255, 0.1);
+      --text-primary: #ffffff;
+      --text-secondary: #a0aec0;
+      --text-muted: #718096;
+      --accent: #7dd3fc;
+      --accent-hover: #38bdf8;
+      --bg-gradient: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
+      --badge-success-bg: rgba(16, 185, 129, 0.15);
+      --badge-success-text: #34d399;
+      --badge-warning-bg: rgba(245, 158, 11, 0.15);
+      --badge-warning-text: #fbbf24;
+      --badge-error-bg: rgba(239, 68, 68, 0.15);
+      --badge-error-text: #f87171;
+      --badge-info-bg: rgba(59, 130, 246, 0.15);
+      --badge-info-text: #60a5fa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-secondary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+    }
+    header h1 {
+      font-size: 1.1rem;
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+    header .tag {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      background: var(--badge-info-bg);
+      color: var(--badge-info-text);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    header button {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      color: var(--text-secondary);
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    header button:hover {
+      background: var(--glass-hover);
+      color: var(--text-primary);
+    }
+
+    #chat-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .message {
+      max-width: 90%;
+    }
+    .message.user {
+      align-self: flex-end;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 16px 16px 4px 16px;
+      padding: 0.75rem 1rem;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+    }
+    .message.agent {
+      align-self: flex-start;
+      width: 100%;
+      max-width: 100%;
+    }
+    .agent-text {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+      line-height: 1.5;
+    }
+    .agent-surface {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: var(--glass-shadow);
+    }
+    .agent-raw-toggle {
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+    .agent-raw-toggle:hover { color: var(--accent); }
+    .agent-raw {
+      display: none;
+      margin-top: 0.5rem;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 1rem;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .loading {
+      align-self: flex-start;
+      display: flex;
+      gap: 6px;
+      padding: 0.75rem 1rem;
+    }
+    .loading span {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: bounce 1.4s infinite both;
+    }
+    .loading span:nth-child(2) { animation-delay: 0.16s; }
+    .loading span:nth-child(3) { animation-delay: 0.32s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    #input-area {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--glass-border);
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      display: flex;
+      gap: 0.75rem;
+    }
+    #input-area input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 0.7rem 1rem;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      outline: none;
+    }
+    #input-area input::placeholder { color: var(--text-muted); }
+    #input-area input:focus { border-color: var(--accent); }
+    #input-area button {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      border: none;
+      border-radius: 12px;
+      padding: 0.7rem 1.25rem;
+      color: white;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    #input-area button:hover { filter: brightness(1.1); }
+    #input-area button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .prompt-hints {
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .prompt-hint {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 999px;
+      padding: 0.3rem 0.75rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .prompt-hint:hover {
+      background: var(--glass-hover);
+      color: var(--text-primary);
+    }
+
+    /* ---- A2UI Component Rendering Styles ---- */
+    h1, h2, h3, h4, h5, h6 { color: var(--text-primary); margin-bottom: 0.25rem; }
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.25rem; }
+    h3 { font-size: 1.1rem; }
+    p { color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.25rem; }
+
+    .a2ui-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .a2ui-row.space-between { justify-content: space-between; }
+    .a2ui-row.center { align-items: center; }
+    .a2ui-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+    .a2ui-grid { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .a2ui-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 1rem;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+    }
+
+    .a2ui-badge {
+      display: inline-block;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .a2ui-badge.success { background: var(--badge-success-bg); color: var(--badge-success-text); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .a2ui-badge.info { background: var(--badge-info-bg); color: var(--badge-info-text); border: 1px solid rgba(59, 130, 246, 0.3); }
+    .a2ui-badge.warning { background: var(--badge-warning-bg); color: var(--badge-warning-text); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .a2ui-badge.error { background: var(--badge-error-bg); color: var(--badge-error-text); border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    .a2ui-progress {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .a2ui-progress::-webkit-progress-bar { background: rgba(255,255,255,0.1); border-radius: 4px; }
+    .a2ui-progress::-webkit-progress-value { background: var(--accent); border-radius: 4px; }
+
+    .a2ui-alert {
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      margin: 0.25rem 0;
+      font-weight: 500;
+      font-size: 0.85rem;
+    }
+    .a2ui-alert.error { background: var(--badge-error-bg); color: var(--badge-error-text); border: 1px solid rgba(239, 68, 68, 0.3); }
+    .a2ui-alert.warning { background: var(--badge-warning-bg); color: var(--badge-warning-text); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .a2ui-alert.success { background: var(--badge-success-bg); color: var(--badge-success-text); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .a2ui-alert.info { background: var(--badge-info-bg); color: var(--badge-info-text); border: 1px solid rgba(59, 130, 246, 0.3); }
+
+    .a2ui-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .a2ui-table th, .a2ui-table td {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-secondary);
+    }
+    .a2ui-table th {
+      background: rgba(255, 255, 255, 0.08);
+      font-weight: 600;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .a2ui-table tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
+
+    .a2ui-divider {
+      border: none;
+      border-top: 1px solid var(--glass-border);
+      margin: 0.5rem 0;
+    }
+
+    .a2ui-sidebar {
+      min-width: 160px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+    .a2ui-list { list-style: none; padding: 0; }
+    .a2ui-list li { padding: 0.25rem 0; }
+
+    .a2ui-meter {
+      width: 100%;
+      height: 8px;
+    }
+
+    .a2ui-accordion summary {
+      cursor: pointer;
+      padding: 0.5rem 0;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+    .a2ui-accordion details {
+      border-bottom: 1px solid var(--glass-border);
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .a2ui-breadcrumb {
+      display: flex;
+      gap: 0.5rem;
+      list-style: none;
+      padding: 0;
+      font-size: 0.85rem;
+    }
+    .a2ui-breadcrumb li + li::before {
+      content: "/";
+      margin-right: 0.5rem;
+      color: var(--text-muted);
+    }
+    .a2ui-breadcrumb a { color: var(--accent); text-decoration: none; }
+    .a2ui-breadcrumb a:hover { text-decoration: underline; }
+
+    .a2ui-spinner {
+      width: 24px; height: 24px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .a2ui-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--glass-hover);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 600; color: var(--text-primary);
+      overflow: hidden;
+    }
+    .a2ui-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .a2ui-skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+      height: 1rem;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    .a2ui-tabs { display: flex; flex-direction: column; }
+    .a2ui-tabs-header { display: flex; gap: 0; border-bottom: 1px solid var(--glass-border); }
+    .a2ui-tab-btn {
+      padding: 0.5rem 1rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+      border-bottom: 2px solid transparent;
+    }
+    .a2ui-tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .a2ui-tab-panel { padding: 0.75rem 0; display: none; }
+    .a2ui-tab-panel.active { display: block; }
+
+    .a2ui-tooltip { position: relative; cursor: help; }
+    .a2ui-tooltip:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.9);
+      color: var(--text-primary);
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      z-index: 100;
+    }
+
+    .a2ui-pagination {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .a2ui-switch {
+      position: relative;
+      width: 36px; height: 20px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .a2ui-switch.on { background: var(--accent); }
+    .a2ui-switch::after {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      background: white;
+      border-radius: 50%;
+      top: 2px; left: 2px;
+      transition: transform 0.2s;
+    }
+    .a2ui-switch.on::after { transform: translateX(16px); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div style="display:flex;align-items:center;gap:0.75rem">
+      <h1>ADK Dashboard Agent</h1>
+      <span class="tag">Gemini 2.0 Flash + Oat Catalog</span>
+    </div>
+    <button onclick="resetSession()">Reset Session</button>
+  </header>
+
+  <div class="prompt-hints" id="hints">
+    <span class="prompt-hint" onclick="sendHint(this)">Show me a system dashboard</span>
+    <span class="prompt-hint" onclick="sendHint(this)">Show CPU and memory metrics</span>
+    <span class="prompt-hint" onclick="sendHint(this)">Create an incident tracker table</span>
+    <span class="prompt-hint" onclick="sendHint(this)">Build a team overview dashboard</span>
+  </div>
+
+  <div id="chat-area"></div>
+
+  <div id="input-area">
+    <input type="text" id="msg-input" placeholder="Ask for a dashboard..." autocomplete="off"
+           onkeydown="if(event.key==='Enter' && !event.shiftKey) sendMessage()">
+    <button onclick="sendMessage()" id="send-btn">Send</button>
+  </div>
+
+<script>
+// ---------------------------------------------------------------------------
+// A2UI Component Renderer
+// ---------------------------------------------------------------------------
+
+function resolve(val, data) {
+  if (val && typeof val === 'object' && val.path) {
+    const parts = val.path.replace(/^\//, '').split('/');
+    let cur = data;
+    for (const p of parts) {
+      if (cur == null) return undefined;
+      cur = cur[p];
+    }
+    return cur;
+  }
+  return val;
+}
+
+function normalizeComponent(c) {
+  // LLMs sometimes use "type" instead of "component" for the component name
+  if (!c.component && c.type) { c.component = c.type; }
+  return c;
+}
+
+function renderA2UI(messages) {
+  let data = {};
+  let components = [];
+  let surfaceCreated = false;
+
+  for (const msg of messages) {
+    if (msg.createSurface) surfaceCreated = true;
+    if (msg.updateDataModel && msg.updateDataModel.data) {
+      data = deepMerge(data, msg.updateDataModel.data);
+    }
+    if (msg.updateComponents && msg.updateComponents.components) {
+      components = components.concat(msg.updateComponents.components.map(normalizeComponent));
+    }
+  }
+
+  if (components.length === 0) return null;
+
+  const cMap = new Map(components.map(c => [c.id, c]));
+  const childIds = new Set();
+  for (const c of components) {
+    for (const cid of (c.children || [])) childIds.add(cid);
+    if (c.child) childIds.add(c.child);
+    if (c.contentChild) childIds.add(c.contentChild);
+    if (c.entryPointChild) childIds.add(c.entryPointChild);
+  }
+  const root = components.find(c => !childIds.has(c.id)) || components[0];
+
+  return renderComponent(root, cMap, data);
+}
+
+function renderComponent(comp, cMap, data) {
+  if (!comp) return document.createTextNode('');
+
+  function renderChildren(el, ids) {
+    for (const id of (ids || [])) {
+      const child = cMap.get(id);
+      if (child) el.appendChild(renderComponent(child, cMap, data));
+    }
+  }
+
+  function renderChild(id) {
+    if (!id) return null;
+    const child = cMap.get(id);
+    return child ? renderComponent(child, cMap, data) : null;
+  }
+
+  switch (comp.component) {
+    case 'Grid': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-grid';
+      if (comp.gap) el.style.gap = comp.gap;
+      renderChildren(el, comp.children);
+      return el;
+    }
+    case 'Row': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-row';
+      if (comp.justify === 'space-between') el.classList.add('space-between');
+      if (comp.align === 'center') el.classList.add('center');
+      if (comp.gap) el.style.gap = comp.gap;
+      renderChildren(el, comp.children);
+      return el;
+    }
+    case 'Column': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-col';
+      if (comp.weight) el.style.flex = comp.weight;
+      if (comp.gap) el.style.gap = comp.gap;
+      renderChildren(el, comp.children);
+      return el;
+    }
+    case 'Text': {
+      const variant = comp.variant || 'body';
+      const tagMap = { h1:'h1', h2:'h2', h3:'h3', h4:'h4', h5:'h5', h6:'h6', body:'p', paragraph:'p', p:'p' };
+      const el = document.createElement(tagMap[variant] || 'p');
+      el.textContent = resolve(comp.text, data) || '';
+      return el;
+    }
+    case 'Badge': {
+      const el = document.createElement('span');
+      el.className = 'a2ui-badge ' + (comp.variant || '');
+      el.textContent = resolve(comp.text, data) || '';
+      return el;
+    }
+    case 'Progress': {
+      const el = document.createElement('progress');
+      el.className = 'a2ui-progress';
+      el.value = resolve(comp.value, data) ?? 0;
+      el.max = comp.max ?? 100;
+      return el;
+    }
+    case 'Meter': {
+      const el = document.createElement('meter');
+      el.className = 'a2ui-meter';
+      el.value = resolve(comp.value, data) ?? 0;
+      el.min = comp.min ?? 0;
+      el.max = comp.max ?? 100;
+      if (comp.low != null) el.low = comp.low;
+      if (comp.high != null) el.high = comp.high;
+      return el;
+    }
+    case 'Card': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-card';
+      const ch = renderChild(comp.child);
+      if (ch) el.appendChild(ch);
+      renderChildren(el, comp.children);
+      return el;
+    }
+    case 'Alert': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-alert ' + (comp.variant || '');
+      el.setAttribute('role', 'alert');
+      el.textContent = resolve(comp.text, data) || '';
+      return el;
+    }
+    case 'Table': {
+      const table = document.createElement('table');
+      table.className = 'a2ui-table';
+      const columns = comp.columns || [];
+      if (columns.length) {
+        const thead = document.createElement('thead');
+        const hr = document.createElement('tr');
+        for (const col of columns) {
+          const th = document.createElement('th');
+          th.textContent = col.label || col.header || col.key || '';
+          hr.appendChild(th);
+        }
+        thead.appendChild(hr);
+        table.appendChild(thead);
+      }
+      const tbody = document.createElement('tbody');
+      const rows = resolve(comp.rows, data) || [];
+      for (const row of rows) {
+        const tr = document.createElement('tr');
+        for (const col of columns) {
+          const td = document.createElement('td');
+          const key = col.key || col.field;
+          td.textContent = key ? (row[key] ?? '') : '';
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
+      return table;
+    }
+    case 'Divider': {
+      const el = document.createElement('hr');
+      el.className = 'a2ui-divider';
+      return el;
+    }
+    case 'List': {
+      const el = document.createElement('ul');
+      el.className = 'a2ui-list';
+      for (const id of (comp.children || [])) {
+        const li = document.createElement('li');
+        const child = cMap.get(id);
+        if (child) li.appendChild(renderComponent(child, cMap, data));
+        el.appendChild(li);
+      }
+      return el;
+    }
+    case 'Sidebar': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-sidebar';
+      const ch = renderChild(comp.child);
+      if (ch) el.appendChild(ch);
+      renderChildren(el, comp.children);
+      return el;
+    }
+    case 'Image': {
+      const el = document.createElement('img');
+      el.src = resolve(comp.url, data) || '';
+      el.alt = comp.alt || '';
+      el.style.maxWidth = '100%';
+      el.style.borderRadius = '8px';
+      return el;
+    }
+    case 'Icon': {
+      const el = document.createElement('span');
+      el.textContent = comp.name || '';
+      return el;
+    }
+    case 'Spinner': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-spinner';
+      return el;
+    }
+    case 'Skeleton': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-skeleton';
+      if (comp.width) el.style.width = comp.width;
+      if (comp.height) el.style.height = comp.height;
+      return el;
+    }
+    case 'Avatar': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-avatar';
+      if (comp.url) {
+        const img = document.createElement('img');
+        img.src = resolve(comp.url, data) || '';
+        img.alt = comp.alt || '';
+        el.appendChild(img);
+      } else {
+        el.textContent = resolve(comp.initials, data) || '';
+      }
+      return el;
+    }
+    case 'Button': {
+      const el = document.createElement('button');
+      el.style.cssText = 'background:var(--accent);color:#000;border:none;padding:0.5rem 1rem;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.85rem;';
+      const ch = renderChild(comp.child);
+      if (ch) el.appendChild(ch);
+      else if (comp.label) el.textContent = comp.label;
+      return el;
+    }
+    case 'TextField': {
+      const wrapper = document.createElement('label');
+      wrapper.style.display = 'flex';
+      wrapper.style.flexDirection = 'column';
+      wrapper.style.gap = '0.25rem';
+      if (comp.label) {
+        const lbl = document.createElement('span');
+        lbl.textContent = comp.label;
+        lbl.style.fontSize = '0.8rem';
+        lbl.style.color = 'var(--text-muted)';
+        wrapper.appendChild(lbl);
+      }
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.style.cssText = 'background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:8px;padding:0.5rem;color:var(--text-primary);';
+      if (comp.placeholder) input.placeholder = comp.placeholder;
+      input.value = resolve(comp.value, data) || '';
+      wrapper.appendChild(input);
+      return wrapper;
+    }
+    case 'CheckBox': {
+      const wrapper = document.createElement('label');
+      wrapper.style.cssText = 'display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;';
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = !!resolve(comp.value, data);
+      wrapper.appendChild(cb);
+      if (comp.label) wrapper.append(comp.label);
+      return wrapper;
+    }
+    case 'Switch': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-switch' + (resolve(comp.value, data) ? ' on' : '');
+      el.addEventListener('click', () => el.classList.toggle('on'));
+      return el;
+    }
+    case 'Slider': {
+      const el = document.createElement('input');
+      el.type = 'range';
+      el.min = comp.minValue ?? 0;
+      el.max = comp.maxValue ?? 100;
+      el.value = resolve(comp.value, data) ?? 50;
+      el.style.width = '100%';
+      return el;
+    }
+    case 'ChoicePicker': {
+      const el = document.createElement('select');
+      el.style.cssText = 'background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:8px;padding:0.5rem;color:var(--text-primary);';
+      for (const opt of (comp.options || [])) {
+        const o = document.createElement('option');
+        o.value = opt.value || opt.label;
+        o.textContent = opt.label;
+        el.appendChild(o);
+      }
+      return el;
+    }
+    case 'Tabs': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-tabs';
+      const header = document.createElement('div');
+      header.className = 'a2ui-tabs-header';
+      const panels = [];
+      for (let i = 0; i < (comp.tabItems || []).length; i++) {
+        const item = comp.tabItems[i];
+        const btn = document.createElement('button');
+        btn.className = 'a2ui-tab-btn' + (i === 0 ? ' active' : '');
+        btn.textContent = item.title || `Tab ${i+1}`;
+        btn.onclick = () => {
+          header.querySelectorAll('.a2ui-tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          panels.forEach((p, j) => p.classList.toggle('active', j === i));
+        };
+        header.appendChild(btn);
+        const panel = document.createElement('div');
+        panel.className = 'a2ui-tab-panel' + (i === 0 ? ' active' : '');
+        const ch = renderChild(item.child);
+        if (ch) panel.appendChild(ch);
+        panels.push(panel);
+      }
+      el.appendChild(header);
+      for (const p of panels) el.appendChild(p);
+      return el;
+    }
+    case 'Accordion': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-accordion';
+      for (const item of (comp.items || [])) {
+        const details = document.createElement('details');
+        const summary = document.createElement('summary');
+        summary.textContent = item.title || '';
+        details.appendChild(summary);
+        const ch = renderChild(item.child);
+        if (ch) details.appendChild(ch);
+        el.appendChild(details);
+      }
+      return el;
+    }
+    case 'Tooltip': {
+      const el = document.createElement('span');
+      el.className = 'a2ui-tooltip';
+      el.dataset.tooltip = resolve(comp.text, data) || '';
+      const ch = renderChild(comp.child);
+      if (ch) el.appendChild(ch);
+      return el;
+    }
+    case 'Breadcrumb': {
+      const ol = document.createElement('ol');
+      ol.className = 'a2ui-breadcrumb';
+      for (const item of (comp.items || [])) {
+        const li = document.createElement('li');
+        if (item.action) {
+          const a = document.createElement('a');
+          a.href = '#';
+          a.textContent = item.label || '';
+          li.appendChild(a);
+        } else {
+          li.textContent = item.label || '';
+        }
+        ol.appendChild(li);
+      }
+      return ol;
+    }
+    case 'Pagination': {
+      const el = document.createElement('nav');
+      el.className = 'a2ui-pagination';
+      const cur = resolve(comp.currentPage, data) ?? 1;
+      const total = resolve(comp.totalPages, data) ?? 1;
+      el.innerHTML = `<span>Page ${cur} of ${total}</span>`;
+      return el;
+    }
+    case 'Toast': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-alert ' + (comp.variant || 'info');
+      el.textContent = resolve(comp.text, data) || '';
+      return el;
+    }
+    case 'DateTimeInput': {
+      const el = document.createElement('input');
+      el.type = comp.enableDate && comp.enableTime ? 'datetime-local' : comp.enableTime ? 'time' : 'date';
+      el.style.cssText = 'background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:8px;padding:0.5rem;color:var(--text-primary);';
+      return el;
+    }
+    case 'Autocomplete': {
+      const el = document.createElement('input');
+      el.type = 'text';
+      el.placeholder = comp.placeholder || 'Search...';
+      el.style.cssText = 'background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:8px;padding:0.5rem;color:var(--text-primary);width:100%;';
+      return el;
+    }
+    case 'Modal': {
+      const el = document.createElement('div');
+      el.className = 'a2ui-card';
+      el.style.border = '2px solid var(--accent)';
+      const ch = renderChild(comp.contentChild);
+      if (ch) el.appendChild(ch);
+      return el;
+    }
+    default: {
+      const el = document.createElement('div');
+      el.style.cssText = 'color:var(--text-muted);font-size:0.75rem;font-style:italic;';
+      el.textContent = `[${comp.component}]`;
+      return el;
+    }
+  }
+}
+
+function deepMerge(target, source) {
+  const out = { ...target };
+  for (const key of Object.keys(source)) {
+    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])
+        && target[key] && typeof target[key] === 'object' && !Array.isArray(target[key])) {
+      out[key] = deepMerge(target[key], source[key]);
+    } else {
+      out[key] = source[key];
+    }
+  }
+  return out;
+}
+
+
+// ---------------------------------------------------------------------------
+// Chat Logic
+// ---------------------------------------------------------------------------
+
+const chatArea = document.getElementById('chat-area');
+const msgInput = document.getElementById('msg-input');
+const sendBtn = document.getElementById('send-btn');
+const hints = document.getElementById('hints');
+
+function addUserMessage(text) {
+  const div = document.createElement('div');
+  div.className = 'message user';
+  div.textContent = text;
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function addLoading() {
+  const div = document.createElement('div');
+  div.className = 'loading';
+  div.id = 'loading-indicator';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function removeLoading() {
+  const el = document.getElementById('loading-indicator');
+  if (el) el.remove();
+}
+
+function addAgentResponse(text, a2uiMessages, raw) {
+  const wrap = document.createElement('div');
+  wrap.className = 'message agent';
+
+  if (text) {
+    const textEl = document.createElement('div');
+    textEl.className = 'agent-text';
+    textEl.textContent = text;
+    wrap.appendChild(textEl);
+  }
+
+  if (a2uiMessages && a2uiMessages.length > 0) {
+    const surface = document.createElement('div');
+    surface.className = 'agent-surface';
+    const rendered = renderA2UI(a2uiMessages);
+    if (rendered) surface.appendChild(rendered);
+    else surface.textContent = 'No components rendered';
+    wrap.appendChild(surface);
+  }
+
+  // Raw toggle
+  if (raw) {
+    const toggleId = 'raw-' + Date.now();
+    const toggle = document.createElement('div');
+    toggle.className = 'agent-raw-toggle';
+    toggle.textContent = 'Show raw response';
+    toggle.onclick = () => {
+      const rawEl = document.getElementById(toggleId);
+      if (rawEl.style.display === 'none') {
+        rawEl.style.display = 'block';
+        toggle.textContent = 'Hide raw response';
+      } else {
+        rawEl.style.display = 'none';
+        toggle.textContent = 'Show raw response';
+      }
+    };
+    wrap.appendChild(toggle);
+
+    const rawEl = document.createElement('pre');
+    rawEl.className = 'agent-raw';
+    rawEl.id = toggleId;
+    rawEl.textContent = raw;
+    wrap.appendChild(rawEl);
+  }
+
+  chatArea.appendChild(wrap);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+async function sendMessage() {
+  const text = msgInput.value.trim();
+  if (!text) return;
+
+  msgInput.value = '';
+  sendBtn.disabled = true;
+  hints.style.display = 'none';
+
+  addUserMessage(text);
+  addLoading();
+
+  try {
+    const resp = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text }),
+    });
+    const result = await resp.json();
+    removeLoading();
+
+    if (result.error) {
+      addAgentResponse('Error: ' + result.error, [], null);
+    } else {
+      addAgentResponse(result.text, result.a2ui, result.raw);
+    }
+  } catch (err) {
+    removeLoading();
+    addAgentResponse('Failed to reach server: ' + err.message, [], null);
+  }
+
+  sendBtn.disabled = false;
+  msgInput.focus();
+}
+
+function sendHint(el) {
+  msgInput.value = el.textContent;
+  sendMessage();
+}
+
+async function resetSession() {
+  await fetch('/api/reset', { method: 'POST' });
+  chatArea.innerHTML = '';
+  hints.style.display = 'flex';
+}
+</script>
+</body>
+</html>
