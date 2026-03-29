@@ -9,3 +9,5 @@ dist/
 .vscode/
 a2ui-oat-architecture.md
 docs/
+.claude/
+CLAUDE.md
