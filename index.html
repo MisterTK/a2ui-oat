@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>a2ui-oat -- Live Demos</title>
+  <link rel="stylesheet" href="https://unpkg.com/@knadh/oat/oat.min.css">
+  <style>
+    :root {
+      --color-primary: #3B82F6;
+      --color-bg: #111827;
+      --color-text: #F9FAFB;
+      --font-family: system-ui, sans-serif;
+      --border-radius: 6px;
+      --spacing: 1rem;
+    }
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-family);
+      margin: 0;
+      padding: 2rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 { margin: 0 0 0.5rem 0; }
+    .subtitle { color: #9CA3AF; margin: 0 0 2rem 0; }
+    .demo-card {
+      background: #1F2937;
+      border: 1px solid #374151;
+      border-radius: var(--border-radius);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .demo-card h2 { margin: 0 0 0.5rem 0; font-size: 1.25rem; }
+    .demo-card p { color: #9CA3AF; margin: 0 0 1rem 0; font-size: 0.875rem; }
+    .demo-card a {
+      display: inline-block;
+      background: var(--color-primary);
+      color: #fff;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: var(--border-radius);
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    .demo-card a:hover { opacity: 0.9; }
+    .tag {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+    .tag.a2ui { background: #1E3A5F; color: #93C5FD; }
+    .tag.components { background: #065F46; color: #6EE7B7; }
+    .links {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid #374151;
+      font-size: 0.875rem;
+      color: #9CA3AF;
+    }
+    .links a { color: var(--color-primary); text-decoration: none; }
+    .links a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <h1>a2ui-oat</h1>
+  <p class="subtitle">A lightweight A2UI renderer and catalog for agent-driven web interfaces. 37 components, 22 registered functions, ~13KB footprint, zero framework dependencies.</p>
+
+  <div class="demo-card">
+    <h2>Operations Dashboard <span class="tag a2ui">A2UI Mode</span> <span class="tag components">15 components</span></h2>
+    <p>Full A2UI Mode example: an agent emits structured JSON against the Oat Catalog schema. The renderer converts it to semantic HTML with data binding, theme support, and live data model updates.</p>
+    <a href="examples/a2ui-dashboard/index.html">View Demo</a>
+  </div>
+
+  <div class="demo-card">
+    <h2>Component Gallery <span class="tag a2ui">A2UI Mode</span> <span class="tag components">37 components</span></h2>
+    <p>Static showcase of every component in the Oat Catalog rendered through the A2UI simulation layer. Demonstrates layout, display, interactive, container, and data/feedback components.</p>
+    <a href="examples/component-gallery/index.html">View Demo</a>
+  </div>
+
+  <div class="demo-card">
+    <h2>Function Demo <span class="tag a2ui">A2UI Mode</span> <span class="tag components">22 functions</span></h2>
+    <p>Interactive test page for all 22 registered functions: data fetching, navigation, formatting, validation, and logic operations.</p>
+    <a href="examples/function-demo/index.html">View Demo</a>
+  </div>
+
+  <div class="links">
+    <p>
+      <a href="https://github.com/MisterTK/a2ui-oat">GitHub</a> &middot;
+      <a href="https://github.com/MisterTK/a2ui-oat/blob/main/catalog/oat-catalog.json">Catalog Schema</a> &middot;
+      <a href="https://github.com/MisterTK/a2ui-oat/blob/main/docs/architecture.md">Architecture</a> &middot;
+      <a href="https://a2ui.org/specification/v0.9-a2ui/">A2UI Spec</a> &middot;
+      <a href="https://oat.ink/">Oat CSS</a>
+    </p>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A2UI-Oat Component Gallery</title>
+
+  <!-- Oat CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/@knadh/oat/oat.min.css">
+
+  <style>
+    :root {
+      --color-primary: #3B82F6;
+      --color-bg: #0f172a;
+      --color-surface: #1e293b;
+      --color-border: #334155;
+      --color-text: #f1f5f9;
+      --color-muted: #94a3b8;
+      --font-family: system-ui, -apple-system, sans-serif;
+      --border-radius: 6px;
+      --spacing: 1rem;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-family);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+
+    /* Page layout */
+    .page-header {
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .page-header h1 {
+      margin: 0 0 0.5rem;
+      font-size: 2rem;
+      color: var(--color-text);
+    }
+
+    .page-header p {
+      margin: 0;
+      color: var(--color-muted);
+    }
+
+    .page-nav {
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      padding: 0.75rem 2rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .page-nav a {
+      color: var(--color-primary);
+      text-decoration: none;
+      font-size: 0.875rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+
+    .page-nav a:hover {
+      background: rgba(59, 130, 246, 0.15);
+    }
+
+    .page-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* Section styles */
+    .section {
+      margin-bottom: 3rem;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-text);
+      margin: 0 0 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid var(--color-primary);
+    }
+
+    /* Component card */
+    .component-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .component-card-header {
+      background: rgba(59, 130, 246, 0.08);
+      border-bottom: 1px solid var(--color-border);
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .component-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--color-primary);
+    }
+
+    .component-type-badge {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.15);
+      color: var(--color-muted);
+    }
+
+    .component-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    @media (max-width: 768px) {
+      .component-body { grid-template-columns: 1fr; }
+    }
+
+    .component-preview {
+      padding: 1.5rem;
+      border-right: 1px solid var(--color-border);
+      display: flex;
+      align-items: flex-start;
+      min-height: 80px;
+    }
+
+    .component-preview > * { max-width: 100%; }
+
+    .component-code {
+      padding: 1rem;
+      background: #0d1117;
+      overflow: auto;
+    }
+
+    .component-code pre {
+      margin: 0;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 0.72rem;
+      line-height: 1.5;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .component-code .key { color: #7dd3fc; }
+    .component-code .string { color: #86efac; }
+    .component-code .number { color: #fbbf24; }
+    .component-code .bool { color: #f9a8d4; }
+
+    /* Dark overrides for rendered components inside preview area */
+    .component-preview article,
+    .component-preview section,
+    .component-preview aside {
+      background: #1e3a5f;
+      border: 1px solid #1d4ed8;
+      border-radius: var(--border-radius);
+      padding: 0.75rem;
+      margin: 0;
+    }
+
+    .component-preview table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .component-preview th,
+    .component-preview td {
+      text-align: left;
+      padding: 0.4rem 0.6rem;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 0.85rem;
+    }
+
+    .component-preview th {
+      color: var(--color-muted);
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+
+    .component-preview .row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .component-preview .col-1,
+    .component-preview .col-2,
+    .component-preview .col-3 {
+      flex: 1;
+      min-width: 60px;
+      padding: 0.5rem;
+      background: rgba(59, 130, 246, 0.1);
+      border-radius: 4px;
+      font-size: 0.8rem;
+      color: var(--color-muted);
+      text-align: center;
+    }
+
+    .component-preview progress {
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      appearance: none;
+    }
+
+    .component-preview progress::-webkit-progress-bar {
+      background: var(--color-border);
+      border-radius: 4px;
+    }
+
+    .component-preview progress::-webkit-progress-value {
+      background: var(--color-primary);
+      border-radius: 4px;
+    }
+
+    .component-preview [role="alert"] {
+      padding: 0.75rem 1rem;
+      border-radius: var(--border-radius);
+      font-size: 0.875rem;
+    }
+
+    .component-preview [data-variant="warning"] {
+      background: rgba(120, 53, 15, 0.5);
+      color: #fcd34d;
+      border: 1px solid #92400e;
+    }
+
+    .component-preview [data-variant="error"] {
+      background: rgba(127, 29, 29, 0.5);
+      color: #fca5a5;
+      border: 1px solid #991b1b;
+    }
+
+    .component-preview [data-variant="success"] {
+      background: rgba(6, 95, 70, 0.5);
+      color: #6ee7b7;
+      border: 1px solid #047857;
+    }
+
+    .component-preview [data-variant="info"] {
+      background: rgba(30, 58, 95, 0.5);
+      color: #93c5fd;
+      border: 1px solid #1d4ed8;
+    }
+
+    .component-preview [data-badge] {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .component-preview [data-badge].success { background: #065f46; color: #6ee7b7; }
+    .component-preview [data-badge].info    { background: #1e3a5f; color: #93c5fd; }
+    .component-preview [data-badge].error   { background: #7f1d1d; color: #fca5a5; }
+    .component-preview [data-badge].warning { background: #78350f; color: #fcd34d; }
+
+    .component-preview .avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+
+    .component-preview .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--color-border);
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .component-preview .skeleton {
+      background: linear-gradient(90deg, var(--color-border) 25%, rgba(255,255,255,0.05) 50%, var(--color-border) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .component-preview .toast {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      padding: 0.75rem 1rem;
+      border-radius: var(--border-radius);
+      font-size: 0.875rem;
+    }
+
+    .component-preview nav[aria-label="breadcrumb"] ol {
+      list-style: none;
+      display: flex;
+      gap: 0.5rem;
+      padding: 0;
+      margin: 0;
+      font-size: 0.875rem;
+      color: var(--color-muted);
+    }
+
+    .component-preview nav[aria-label="breadcrumb"] li + li::before {
+      content: "/";
+      margin-right: 0.5rem;
+      color: var(--color-border);
+    }
+
+    .component-preview nav[aria-label="breadcrumb"] a {
+      color: var(--color-primary);
+      text-decoration: none;
+    }
+
+    .component-preview nav[aria-label="pagination"] {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .component-preview nav[aria-label="pagination"] button {
+      padding: 0.25rem 0.6rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .component-preview [aria-current="page"] {
+      background: var(--color-primary) !important;
+      color: #fff !important;
+    }
+
+    .component-preview .accordion .details-wrapper {
+      margin-bottom: 0.25rem;
+    }
+
+    .component-preview [data-tooltip] {
+      position: relative;
+      cursor: help;
+      text-decoration: underline dotted;
+    }
+
+    .component-preview input[type="range"] {
+      width: 100%;
+      accent-color: var(--color-primary);
+    }
+
+    .component-preview fieldset {
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius);
+      padding: 0.75rem;
+    }
+
+    .component-preview legend {
+      color: var(--color-muted);
+      font-size: 0.875rem;
+    }
+
+    .component-preview select {
+      background: var(--color-surface);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      padding: 0.35rem 0.6rem;
+    }
+
+    .component-preview .autocomplete-wrapper input {
+      background: var(--color-surface);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      padding: 0.35rem 0.6rem;
+      width: 100%;
+    }
+
+    .component-preview meter {
+      width: 100%;
+      height: 12px;
+    }
+
+    .component-preview video,
+    .component-preview audio {
+      max-width: 100%;
+    }
+
+    .component-preview oat-tabs {
+      display: block;
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius);
+      overflow: hidden;
+    }
+
+    .component-preview oat-dropdown {
+      display: inline-block;
+      position: relative;
+    }
+
+    .component-preview [data-oathtml] {
+      padding: 0.5rem;
+      border: 1px dashed var(--color-border);
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    .component-preview label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-size: 0.875rem;
+      color: var(--color-muted);
+    }
+
+    .component-preview label input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    .component-preview label textarea {
+      background: var(--color-surface);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      padding: 0.35rem 0.6rem;
+      font-size: 0.875rem;
+    }
+
+    .component-preview label input[type="checkbox"] {
+      accent-color: var(--color-primary);
+    }
+
+    .component-preview p { margin: 0; }
+    .component-preview h1 { margin: 0; font-size: 1.75rem; }
+    .component-preview h2 { margin: 0; font-size: 1.5rem; }
+    .component-preview h3 { margin: 0; font-size: 1.25rem; }
+    .component-preview h4 { margin: 0; font-size: 1.1rem; }
+    .component-preview h5 { margin: 0; font-size: 1rem; }
+    .component-preview h6 { margin: 0; font-size: 0.9rem; }
+    .component-preview small { font-size: 0.8rem; color: var(--color-muted); }
+    .component-preview strong { font-weight: 700; }
+    .component-preview em { font-style: italic; }
+    .component-preview span { font-size: 0.9rem; }
+    .component-preview hr { border-color: var(--color-border); margin: 0.5rem 0; }
+    .component-preview .icon { font-size: 1.25rem; }
+
+    .component-preview ul,
+    .component-preview ol {
+      margin: 0;
+      padding-left: 1.5rem;
+    }
+
+    .status-ok { color: #4ade80; }
+    .render-error { color: #f87171; font-style: italic; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>A2UI-Oat Component Gallery</h1>
+  <p>All 37 catalog components rendered via OatRenderer — open this file directly in a browser.</p>
+</div>
+
+<nav class="page-nav" aria-label="sections">
+  <a href="#layout">Layout (5)</a>
+  <a href="#display">Display (12)</a>
+  <a href="#interactive">Interactive (8)</a>
+  <a href="#container">Container (5)</a>
+  <a href="#feedback">Data/Feedback (5)</a>
+  <a href="#special">Special (2)</a>
+</nav>
+
+<div class="page-content">
+  <div id="gallery"></div>
+</div>
+
+<script type="module">
+import { OatRenderer } from '../../renderer/index.js';
+
+// ---------------------------------------------------------------------------
+// Minimal render context — no @a2ui/web-lib needed
+// ---------------------------------------------------------------------------
+
+function makeContext(componentMap, dataModel = {}) {
+  const subscriptions = new Map();
+
+  return {
+    getDataModel: () => dataModel,
+    setDataModel: (path, value) => {
+      const parts = path.replace(/^\//, '').split('/');
+      let cur = dataModel;
+      for (let i = 0; i < parts.length - 1; i++) {
+        if (!cur[parts[i]]) cur[parts[i]] = {};
+        cur = cur[parts[i]];
+      }
+      cur[parts[parts.length - 1]] = value;
+      const subs = subscriptions.get(path) || [];
+      subs.forEach(fn => fn(value));
+    },
+    subscribe: (path, fn) => {
+      const subs = subscriptions.get(path) || [];
+      subs.push(fn);
+      subscriptions.set(path, subs);
+      return () => {
+        const idx = subs.indexOf(fn);
+        if (idx >= 0) subs.splice(idx, 1);
+      };
+    },
+    renderChild: (id) => {
+      const child = componentMap[id];
+      if (!child) return null;
+      return renderer.renderComponent(child, makeContext(componentMap, dataModel));
+    },
+    dispatchAction: (action) => {
+      if (action?.functionCall) {
+        console.log('[A2UI] functionCall:', action.functionCall.call, action.functionCall.args);
+      }
+    },
+    getRegisteredFunction: () => null,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Convenience: render a single component definition (no children needed)
+// ---------------------------------------------------------------------------
+const renderer = new OatRenderer();
+
+function render(componentDef, extraComponents = {}, data = {}) {
+  const map = { [componentDef.id]: componentDef, ...extraComponents };
+  const ctx = makeContext(map, data);
+  try {
+    return renderer.renderComponent(componentDef, ctx);
+  } catch (e) {
+    const err = document.createElement('span');
+    err.className = 'render-error';
+    err.textContent = 'Render error: ' + e.message;
+    return err;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Gallery builder helpers
+// ---------------------------------------------------------------------------
+
+function syntaxHighlight(json) {
+  const escaped = JSON.stringify(json, null, 2)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  return escaped
+    .replace(/"([^"]+)":/g, '<span class="key">"$1"</span>:')
+    .replace(/: "([^"]*)"/g, ': <span class="string">"$1"</span>')
+    .replace(/: (\d+\.?\d*)/g, ': <span class="number">$1</span>')
+    .replace(/: (true|false)/g, ': <span class="bool">$1</span>');
+}
+
+function componentCard(name, typeBadge, componentDef, extraComponents, data) {
+  const card = document.createElement('div');
+  card.className = 'component-card';
+
+  const header = document.createElement('div');
+  header.className = 'component-card-header';
+  header.innerHTML = `<span class="component-name">${name}</span><span class="component-type-badge">${typeBadge}</span>`;
+  card.appendChild(header);
+
+  const body = document.createElement('div');
+  body.className = 'component-body';
+
+  const preview = document.createElement('div');
+  preview.className = 'component-preview';
+  const rendered = render(componentDef, extraComponents, data);
+  preview.appendChild(rendered);
+
+  const codePane = document.createElement('div');
+  codePane.className = 'component-code';
+  const pre = document.createElement('pre');
+  pre.innerHTML = syntaxHighlight(componentDef);
+  codePane.appendChild(pre);
+
+  body.appendChild(preview);
+  body.appendChild(codePane);
+  card.appendChild(body);
+  return card;
+}
+
+function section(id, title, cards) {
+  const sec = document.createElement('div');
+  sec.className = 'section';
+  sec.id = id;
+  const h2 = document.createElement('h2');
+  h2.className = 'section-title';
+  h2.textContent = title;
+  sec.appendChild(h2);
+  cards.forEach(c => sec.appendChild(c));
+  return sec;
+}
+
+// ---------------------------------------------------------------------------
+// Component definitions — all 37 catalog components
+// ---------------------------------------------------------------------------
+
+const gallery = document.getElementById('gallery');
+
+// ── LAYOUT (5) ──────────────────────────────────────────────────────────────
+
+const layoutCards = [
+  componentCard('Row', 'layout', {
+    id: 'demo', component: 'Row', justify: 'flex-start', align: 'center',
+    children: ['lrt1', 'lrt2', 'lrt3']
+  }, {
+    lrt1: { id: 'lrt1', component: 'Text', variant: 'span', text: 'Item 1' },
+    lrt2: { id: 'lrt2', component: 'Text', variant: 'span', text: 'Item 2' },
+    lrt3: { id: 'lrt3', component: 'Text', variant: 'span', text: 'Item 3' },
+  }),
+
+  componentCard('Column', 'layout', {
+    id: 'demo', component: 'Column', weight: 2, children: ['ctxt']
+  }, {
+    ctxt: { id: 'ctxt', component: 'Text', variant: 'p', text: 'Weight-2 column content' }
+  }),
+
+  componentCard('Grid', 'layout', {
+    id: 'demo', component: 'Grid', gap: '0.75rem', children: ['gc1', 'gc2']
+  }, {
+    gc1: { id: 'gc1', component: 'Column', weight: 1, children: ['gct1'] },
+    gc2: { id: 'gc2', component: 'Column', weight: 1, children: ['gct2'] },
+    gct1: { id: 'gct1', component: 'Text', variant: 'span', text: 'Column A' },
+    gct2: { id: 'gct2', component: 'Text', variant: 'span', text: 'Column B' },
+  }),
+
+  componentCard('List', 'layout', {
+    id: 'demo', component: 'List', ordered: false,
+    children: ['li1', 'li2', 'li3']
+  }, {
+    li1: { id: 'li1', component: 'Text', variant: 'span', text: 'Apples' },
+    li2: { id: 'li2', component: 'Text', variant: 'span', text: 'Bananas' },
+    li3: { id: 'li3', component: 'Text', variant: 'span', text: 'Cherries' },
+  }),
+
+  componentCard('Sidebar', 'layout', {
+    id: 'demo', component: 'Sidebar', position: 'left', child: 'sbchild'
+  }, {
+    sbchild: { id: 'sbchild', component: 'Text', variant: 'p', text: 'Sidebar navigation content' }
+  }),
+];
+
+gallery.appendChild(section('layout', 'Layout (5)', layoutCards));
+
+// ── DISPLAY (12) ────────────────────────────────────────────────────────────
+
+const displayCards = [
+  componentCard('Text', 'display', {
+    id: 'demo', component: 'Text', variant: 'h3', text: 'Hello, A2UI World!'
+  }, {}),
+
+  componentCard('Image', 'display', {
+    id: 'demo', component: 'Image',
+    url: 'https://picsum.photos/seed/oat/120/60',
+    alt: 'Sample landscape',
+    fit: 'cover'
+  }, {}),
+
+  componentCard('Icon', 'display', {
+    id: 'demo', component: 'Icon', name: 'star', label: 'Star icon', size: 'lg'
+  }, {}),
+
+  componentCard('Divider', 'display', {
+    id: 'demo', component: 'Divider', axis: 'horizontal'
+  }, {}),
+
+  componentCard('Badge', 'display', {
+    id: 'demo', component: 'Badge', text: 'Production', variant: 'success'
+  }, {}),
+
+  componentCard('Avatar', 'display', {
+    id: 'demo', component: 'Avatar', initials: 'TK', size: 'md'
+  }, {}),
+
+  componentCard('Spinner', 'display', {
+    id: 'demo', component: 'Spinner', size: 'md'
+  }, {}),
+
+  componentCard('Skeleton', 'display', {
+    id: 'demo', component: 'Skeleton', width: '200px', height: '20px', variant: 'text'
+  }, {}),
+
+  componentCard('Progress', 'display', {
+    id: 'demo', component: 'Progress', value: 72, max: 100
+  }, {}),
+
+  componentCard('Meter', 'display', {
+    id: 'demo', component: 'Meter', value: 65, min: 0, max: 100, low: 30, high: 80
+  }, {}),
+
+  componentCard('Video', 'display', {
+    id: 'demo', component: 'Video',
+    src: 'https://www.w3schools.com/html/mov_bbb.mp4',
+    controls: true,
+    alt: 'Big Buck Bunny clip'
+  }, {}),
+
+  componentCard('AudioPlayer', 'display', {
+    id: 'demo', component: 'AudioPlayer',
+    src: 'https://www.w3schools.com/html/horse.ogg',
+    controls: true
+  }, {}),
+];
+
+gallery.appendChild(section('display', 'Display (12)', displayCards));
+
+// ── INTERACTIVE (8) ─────────────────────────────────────────────────────────
+
+const interactiveCards = [
+  componentCard('Button', 'interactive', {
+    id: 'demo', component: 'Button', variant: 'primary', child: 'btntext',
+    action: { functionCall: { call: 'navigateTo', args: { url: '/home' } } }
+  }, {
+    btntext: { id: 'btntext', component: 'Text', variant: 'span', text: 'Click Me' }
+  }),
+
+  componentCard('TextField', 'interactive', {
+    id: 'demo', component: 'TextField',
+    label: 'Email address',
+    variant: 'email',
+    placeholder: 'you@example.com',
+    value: ''
+  }, {}),
+
+  componentCard('CheckBox', 'interactive', {
+    id: 'demo', component: 'CheckBox',
+    label: 'Accept terms and conditions',
+    value: true
+  }, {}),
+
+  componentCard('Switch', 'interactive', {
+    id: 'demo', component: 'Switch',
+    label: 'Enable dark mode',
+    value: false
+  }, {}),
+
+  componentCard('Slider', 'interactive', {
+    id: 'demo', component: 'Slider',
+    label: 'Volume',
+    min: 0, max: 100, step: 5, value: 40
+  }, {}),
+
+  componentCard('DateTimeInput', 'interactive', {
+    id: 'demo', component: 'DateTimeInput',
+    enableDate: true, enableTime: false,
+    value: '2026-03-29'
+  }, {}),
+
+  componentCard('ChoicePicker', 'interactive', {
+    id: 'demo', component: 'ChoicePicker',
+    label: 'Preferred region',
+    options: [
+      { label: 'North America', value: 'na' },
+      { label: 'Europe', value: 'eu' },
+      { label: 'Asia Pacific', value: 'ap' }
+    ],
+    selections: ['na'],
+    maxSelections: 1
+  }, {}),
+
+  componentCard('Autocomplete', 'interactive', {
+    id: 'demo', component: 'Autocomplete',
+    placeholder: 'Search components…',
+    value: '',
+    source: '/api/autocomplete',
+    minChars: 2
+  }, {}),
+];
+
+gallery.appendChild(section('interactive', 'Interactive (8)', interactiveCards));
+
+// ── CONTAINER (5) ───────────────────────────────────────────────────────────
+
+const containerCards = [
+  componentCard('Card', 'container', {
+    id: 'demo', component: 'Card',
+    title: 'System Status',
+    child: 'cardcontent'
+  }, {
+    cardcontent: { id: 'cardcontent', component: 'Text', variant: 'p', text: 'All systems operational.' }
+  }),
+
+  componentCard('Modal', 'container', {
+    id: 'demo', component: 'Modal',
+    dismissible: true,
+    trigger: 'modalbtn',
+    content: 'modalcontent'
+  }, {
+    modalbtn: { id: 'modalbtn', component: 'Button', variant: 'primary', child: 'modalbtntext' },
+    modalbtntext: { id: 'modalbtntext', component: 'Text', variant: 'span', text: 'Open Modal' },
+    modalcontent: { id: 'modalcontent', component: 'Text', variant: 'p', text: 'Modal dialog content appears here.' }
+  }),
+
+  componentCard('Tabs', 'container', {
+    id: 'demo', component: 'Tabs',
+    activeTab: 0,
+    tabs: [
+      { title: 'Overview', child: 'tab1content' },
+      { title: 'Details', child: 'tab2content' },
+      { title: 'Settings', child: 'tab3content' }
+    ]
+  }, {
+    tab1content: { id: 'tab1content', component: 'Text', variant: 'p', text: 'Overview content.' },
+    tab2content: { id: 'tab2content', component: 'Text', variant: 'p', text: 'Details content.' },
+    tab3content: { id: 'tab3content', component: 'Text', variant: 'p', text: 'Settings content.' },
+  }),
+
+  componentCard('Accordion', 'container', {
+    id: 'demo', component: 'Accordion',
+    grouped: false,
+    items: [
+      { title: 'What is A2UI?', child: 'acc1' },
+      { title: 'What is Oat CSS?', child: 'acc2' }
+    ]
+  }, {
+    acc1: { id: 'acc1', component: 'Text', variant: 'p', text: 'A2UI is an agentic UI protocol by Google.' },
+    acc2: { id: 'acc2', component: 'Text', variant: 'p', text: 'Oat is a classless semantic CSS framework.' },
+  }),
+
+  componentCard('Tooltip', 'container', {
+    id: 'demo', component: 'Tooltip',
+    text: 'This tooltip provides additional context.',
+    position: 'top',
+    child: 'tooltipchild'
+  }, {
+    tooltipchild: { id: 'tooltipchild', component: 'Text', variant: 'span', text: 'Hover over me' }
+  }),
+];
+
+gallery.appendChild(section('container', 'Container (5)', containerCards));
+
+// ── DATA/FEEDBACK (5) ───────────────────────────────────────────────────────
+
+const feedbackCards = [
+  componentCard('Table', 'data', {
+    id: 'demo', component: 'Table',
+    striped: true,
+    columns: [
+      { key: 'name', label: 'Service' },
+      { key: 'status', label: 'Status' },
+      { key: 'latency', label: 'Latency (ms)' }
+    ],
+    rows: [
+      { name: 'API Gateway', status: 'Healthy', latency: 42 },
+      { name: 'Auth Service', status: 'Healthy', latency: 18 },
+      { name: 'Worker Pool', status: 'Warning', latency: 310 }
+    ]
+  }, {}),
+
+  componentCard('Pagination', 'data', {
+    id: 'demo', component: 'Pagination',
+    currentPage: 2,
+    totalPages: 5
+  }, {}),
+
+  componentCard('Alert', 'feedback', {
+    id: 'demo', component: 'Alert',
+    variant: 'warning',
+    text: 'Worker pool latency is elevated (310ms). Investigate immediately.'
+  }, {}),
+
+  componentCard('Toast', 'feedback', {
+    id: 'demo', component: 'Toast',
+    variant: 'success',
+    text: 'Deployment completed successfully.',
+    position: 'top-right'
+  }, {}),
+
+  componentCard('Breadcrumb', 'feedback', {
+    id: 'demo', component: 'Breadcrumb',
+    items: [
+      { label: 'Home', action: { functionCall: { call: 'navigateTo', args: { url: '/' } } } },
+      { label: 'Services', action: { functionCall: { call: 'navigateTo', args: { url: '/services' } } } },
+      { label: 'API Gateway' }
+    ]
+  }, {}),
+];
+
+gallery.appendChild(section('feedback', 'Data / Feedback (5)', feedbackCards));
+
+// ── SPECIAL (2) ─────────────────────────────────────────────────────────────
+
+const specialCards = [
+  componentCard('Dropdown', 'special', {
+    id: 'demo', component: 'Dropdown',
+    position: 'bottom',
+    child: 'dropbtn',
+    items: [
+      { label: 'Edit', action: { functionCall: { call: 'navigateTo', args: { url: '/edit' } } } },
+      { label: 'Duplicate' },
+      { label: 'Delete', disabled: true }
+    ]
+  }, {
+    dropbtn: { id: 'dropbtn', component: 'Button', variant: 'secondary', child: 'dropbtntext' },
+    dropbtntext: { id: 'dropbtntext', component: 'Text', variant: 'span', text: 'Actions' },
+  }),
+
+  componentCard('OatHTML', 'special', {
+    id: 'demo', component: 'OatHTML',
+    sanitize: false,
+    html: '<strong>Bold</strong> and <em>italic</em> rendered via OatHTML escape hatch.'
+  }, {}),
+];
+
+gallery.appendChild(section('special', 'Special (2)', specialCards));
+
+// ---------------------------------------------------------------------------
+// Summary counter
+// ---------------------------------------------------------------------------
+
+const errors = document.querySelectorAll('.render-error').length;
+const total = 37;
+
+const summary = document.createElement('p');
+summary.style.cssText = 'text-align:center; color: var(--color-muted); font-size:0.875rem; margin-top:2rem;';
+summary.innerHTML = errors === 0
+  ? `<span class="status-ok">✓ All ${total} components rendered successfully.</span>`
+  : `<span class="render-error">${errors} component(s) had render errors. Check the browser console.</span>`;
+document.querySelector('.page-content').appendChild(summary);
+
+console.log(`[A2UI Gallery] ${total - errors}/${total} components rendered without errors.`);
+</script>
+</body>
+</html>

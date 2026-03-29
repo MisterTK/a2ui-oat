@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A2UI-Oat Function Demo — All 22 Registered Functions</title>
+
+  <!-- Oat CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/@knadh/oat/oat.min.css">
+
+  <style>
+    :root {
+      --color-primary: #3B82F6;
+      --color-bg: #0f172a;
+      --color-surface: #1e293b;
+      --color-border: #334155;
+      --color-text: #f1f5f9;
+      --color-muted: #94a3b8;
+      --color-success: #22c55e;
+      --color-warning: #f59e0b;
+      --color-error: #ef4444;
+      --font-family: system-ui, sans-serif;
+      --font-mono: ui-monospace, 'Cascadia Code', monospace;
+      --border-radius: 6px;
+      --spacing: 1rem;
+    }
+
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-family);
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+    h2 { font-size: 1.25rem; margin: 2rem 0 0.75rem; color: var(--color-primary); border-bottom: 1px solid var(--color-border); padding-bottom: 0.4rem; }
+
+    .subtitle { color: var(--color-muted); margin-bottom: 2rem; font-size: 0.95rem; }
+
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .fn-name {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--color-primary);
+      background: rgba(59, 130, 246, 0.12);
+      padding: 0.15em 0.5em;
+      border-radius: 4px;
+    }
+
+    .fn-desc { color: var(--color-muted); font-size: 0.875rem; }
+
+    .demo-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: flex-start;
+      margin-bottom: 0.5rem;
+    }
+
+    input, select {
+      background: #0f172a;
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      color: var(--color-text);
+      padding: 0.35rem 0.6rem;
+      font-size: 0.875rem;
+      font-family: inherit;
+      min-width: 160px;
+    }
+
+    input:focus, select:focus {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 1px;
+    }
+
+    button {
+      background: var(--color-primary);
+      border: none;
+      border-radius: 4px;
+      color: #fff;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.875rem;
+      padding: 0.4rem 0.9rem;
+      transition: opacity 0.15s;
+    }
+
+    button:hover { opacity: 0.85; }
+
+    output {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      background: #0f172a;
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      padding: 0.5rem 0.75rem;
+      margin-top: 0.5rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      min-height: 1.8rem;
+      color: #e2e8f0;
+    }
+
+    output.pass { border-color: var(--color-success); color: var(--color-success); }
+    output.fail { border-color: var(--color-error); color: var(--color-error); }
+    output.neutral { border-color: var(--color-border); color: #e2e8f0; }
+
+    .server-note {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 4px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.82rem;
+      color: var(--color-warning);
+      margin-top: 0.5rem;
+    }
+
+    .signature {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--color-muted);
+      background: #0f172a;
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      padding: 0.5rem 0.75rem;
+      margin-top: 0.5rem;
+      white-space: pre-wrap;
+    }
+
+    label { font-size: 0.8rem; color: var(--color-muted); }
+
+    .section-tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.1em 0.5em;
+      border-radius: 3px;
+      margin-bottom: 0.25rem;
+    }
+
+    .tag-formatting { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+    .tag-validation  { background: rgba(34, 197, 94, 0.2);  color: #4ade80; }
+    .tag-logic       { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+    .tag-action      { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+
+    .toc { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 2rem; }
+    .toc a { font-size: 0.8rem; color: var(--color-muted); text-decoration: none; padding: 0.2em 0.5em; border: 1px solid var(--color-border); border-radius: 3px; }
+    .toc a:hover { color: var(--color-text); border-color: var(--color-primary); }
+  </style>
+</head>
+<body>
+
+<h1>A2UI-Oat Function Demo</h1>
+<p class="subtitle">Live validation of all 22 registered functions. Import path: <code>../../renderer/index.js</code></p>
+
+<nav class="toc" aria-label="Function index">
+  <a href="#formatting">Formatting (5)</a>
+  <a href="#validation">Validation (5)</a>
+  <a href="#logic">Logic (3)</a>
+  <a href="#actions">Actions (9)</a>
+</nav>
+
+<section id="formatting">
+  <h2>Formatting</h2>
+  <div class="grid-2">
+
+    <!-- formatDate -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-formatting">formatting</span>
+        <span class="fn-name">formatDate</span>
+      </div>
+      <p class="fn-desc">Locale-aware date formatting via Intl.DateTimeFormat.</p>
+      <div class="demo-row">
+        <div>
+          <label>ISO date</label><br>
+          <input id="fd-value" type="text" value="2025-06-15T10:30:00Z" placeholder="ISO date string">
+        </div>
+        <div>
+          <label>Locale</label><br>
+          <input id="fd-locale" type="text" value="en-US" placeholder="e.g. en-US">
+        </div>
+        <div>
+          <label>Style</label><br>
+          <select id="fd-style">
+            <option value="full">full</option>
+            <option value="long">long</option>
+            <option value="medium" selected>medium</option>
+            <option value="short">short</option>
+          </select>
+        </div>
+      </div>
+      <button onclick="demoFormatDate()">Run</button>
+      <output id="fd-out" class="neutral">—</output>
+    </div>
+
+    <!-- formatNumber -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-formatting">formatting</span>
+        <span class="fn-name">formatNumber</span>
+      </div>
+      <p class="fn-desc">Locale-aware number formatting via Intl.NumberFormat.</p>
+      <div class="demo-row">
+        <div>
+          <label>Number</label><br>
+          <input id="fn-value" type="number" value="1234567.89">
+        </div>
+        <div>
+          <label>Locale</label><br>
+          <input id="fn-locale" type="text" value="en-US" placeholder="e.g. de-DE">
+        </div>
+        <div>
+          <label>Max decimals</label><br>
+          <input id="fn-decimals" type="number" value="2" min="0" max="6">
+        </div>
+      </div>
+      <button onclick="demoFormatNumber()">Run</button>
+      <output id="fn-out" class="neutral">—</output>
+    </div>
+
+    <!-- formatCurrency -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-formatting">formatting</span>
+        <span class="fn-name">formatCurrency</span>
+      </div>
+      <p class="fn-desc">Currency formatting via Intl.NumberFormat with ISO 4217 codes.</p>
+      <div class="demo-row">
+        <div>
+          <label>Amount</label><br>
+          <input id="fc-value" type="number" value="9999.50">
+        </div>
+        <div>
+          <label>Currency</label><br>
+          <select id="fc-currency">
+            <option>USD</option>
+            <option>EUR</option>
+            <option>GBP</option>
+            <option>JPY</option>
+          </select>
+        </div>
+        <div>
+          <label>Locale</label><br>
+          <input id="fc-locale" type="text" value="en-US">
+        </div>
+      </div>
+      <button onclick="demoFormatCurrency()">Run</button>
+      <output id="fc-out" class="neutral">—</output>
+    </div>
+
+    <!-- formatString -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-formatting">formatting</span>
+        <span class="fn-name">formatString</span>
+      </div>
+      <p class="fn-desc">Interpolates <code>${/path}</code> references from a data model.</p>
+      <div class="demo-row">
+        <div style="flex:1">
+          <label>Template</label><br>
+          <input id="fs-template" type="text" value="Hello, ${/user/name}! You have ${/inbox/count} messages." style="width:100%">
+        </div>
+      </div>
+      <p class="fn-desc" style="margin:0.25rem 0">Data model: <code>{ user: { name: "Alice" }, inbox: { count: 7 } }</code></p>
+      <button onclick="demoFormatString()">Run</button>
+      <output id="fs-out" class="neutral">—</output>
+    </div>
+
+    <!-- pluralize -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-formatting">formatting</span>
+        <span class="fn-name">pluralize</span>
+      </div>
+      <p class="fn-desc">Returns singular or plural form based on count.</p>
+      <div class="demo-row">
+        <div>
+          <label>Count</label><br>
+          <input id="pl-count" type="number" value="1">
+        </div>
+        <div>
+          <label>Singular</label><br>
+          <input id="pl-singular" type="text" value="item">
+        </div>
+        <div>
+          <label>Plural (optional)</label><br>
+          <input id="pl-plural" type="text" placeholder="defaults to singular + s">
+        </div>
+      </div>
+      <button onclick="demoPluralize()">Run</button>
+      <output id="pl-out" class="neutral">—</output>
+    </div>
+
+  </div>
+</section>
+
+<section id="validation">
+  <h2>Validation</h2>
+  <div class="grid-2">
+
+    <!-- required -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-validation">validation</span>
+        <span class="fn-name">required</span>
+      </div>
+      <p class="fn-desc">Returns <code>true</code> if value is non-null and non-empty.</p>
+      <div class="demo-row">
+        <div>
+          <label>Value</label><br>
+          <input id="req-value" type="text" value="hello">
+        </div>
+      </div>
+      <button onclick="demoRequired()">Validate</button>
+      <output id="req-out" class="neutral">—</output>
+    </div>
+
+    <!-- regex -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-validation">validation</span>
+        <span class="fn-name">regex</span>
+      </div>
+      <p class="fn-desc">Validates value against a regular expression pattern.</p>
+      <div class="demo-row">
+        <div>
+          <label>Value</label><br>
+          <input id="rx-value" type="text" value="+1-555-867-5309">
+        </div>
+        <div>
+          <label>Pattern</label><br>
+          <input id="rx-pattern" type="text" value="^\+?[\d\s\-]{7,15}$">
+        </div>
+      </div>
+      <button onclick="demoRegex()">Validate</button>
+      <output id="rx-out" class="neutral">—</output>
+    </div>
+
+    <!-- length -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-validation">validation</span>
+        <span class="fn-name">length</span>
+      </div>
+      <p class="fn-desc">Validates that string length falls within min/max bounds.</p>
+      <div class="demo-row">
+        <div>
+          <label>Value</label><br>
+          <input id="len-value" type="text" value="hello world">
+        </div>
+        <div>
+          <label>Min</label><br>
+          <input id="len-min" type="number" value="3">
+        </div>
+        <div>
+          <label>Max</label><br>
+          <input id="len-max" type="number" value="20">
+        </div>
+      </div>
+      <button onclick="demoLength()">Validate</button>
+      <output id="len-out" class="neutral">—</output>
+    </div>
+
+    <!-- numeric -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-validation">validation</span>
+        <span class="fn-name">numeric</span>
+      </div>
+      <p class="fn-desc">Returns <code>true</code> if value is a valid number.</p>
+      <div class="demo-row">
+        <div>
+          <label>Value</label><br>
+          <input id="num-value" type="text" value="42.5">
+        </div>
+      </div>
+      <button onclick="demoNumeric()">Validate</button>
+      <output id="num-out" class="neutral">—</output>
+    </div>
+
+    <!-- email -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-validation">validation</span>
+        <span class="fn-name">email</span>
+      </div>
+      <p class="fn-desc">Validates email address format using <code>/^[^\s@]+@[^\s@]+\.[^\s@]+$/</code>.</p>
+      <div class="demo-row">
+        <div>
+          <label>Email</label><br>
+          <input id="em-value" type="text" value="user@example.com">
+        </div>
+      </div>
+      <button onclick="demoEmail()">Validate</button>
+      <output id="em-out" class="neutral">—</output>
+    </div>
+
+  </div>
+</section>
+
+<section id="logic">
+  <h2>Logic</h2>
+  <div class="grid-2">
+
+    <!-- and -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-logic">logic</span>
+        <span class="fn-name">and</span>
+      </div>
+      <p class="fn-desc">Returns <code>true</code> if ALL conditions are truthy.</p>
+      <div class="demo-row">
+        <div>
+          <label>Condition A</label><br>
+          <select id="and-a">
+            <option value="true">true</option>
+            <option value="false">false</option>
+            <option value="">empty string</option>
+            <option value="0">0</option>
+            <option value="hello">hello</option>
+          </select>
+        </div>
+        <div>
+          <label>Condition B</label><br>
+          <select id="and-b">
+            <option value="true">true</option>
+            <option value="false">false</option>
+            <option value="">empty string</option>
+            <option value="0">0</option>
+            <option value="hello">hello</option>
+          </select>
+        </div>
+        <div>
+          <label>Condition C</label><br>
+          <select id="and-c">
+            <option value="true">true</option>
+            <option value="false">false</option>
+            <option value="">empty string</option>
+            <option value="0">0</option>
+            <option value="hello">hello</option>
+          </select>
+        </div>
+      </div>
+      <button onclick="demoAnd()">Evaluate</button>
+      <output id="and-out" class="neutral">—</output>
+    </div>
+
+    <!-- or -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-logic">logic</span>
+        <span class="fn-name">or</span>
+      </div>
+      <p class="fn-desc">Returns <code>true</code> if ANY condition is truthy.</p>
+      <div class="demo-row">
+        <div>
+          <label>Condition A</label><br>
+          <select id="or-a">
+            <option value="false">false</option>
+            <option value="true">true</option>
+            <option value="">empty string</option>
+            <option value="0">0</option>
+            <option value="hello">hello</option>
+          </select>
+        </div>
+        <div>
+          <label>Condition B</label><br>
+          <select id="or-b">
+            <option value="false">false</option>
+            <option value="true">true</option>
+            <option value="">empty string</option>
+            <option value="0">0</option>
+            <option value="hello">hello</option>
+          </select>
+        </div>
+        <div>
+          <label>Condition C</label><br>
+          <select id="or-c">
+            <option value="true">true</option>
+            <option value="false">false</option>
+            <option value="">empty string</option>
+            <option value="0">0</option>
+            <option value="hello">hello</option>
+          </select>
+        </div>
+      </div>
+      <button onclick="demoOr()">Evaluate</button>
+      <output id="or-out" class="neutral">—</output>
+    </div>
+
+    <!-- not -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-logic">logic</span>
+        <span class="fn-name">not</span>
+      </div>
+      <p class="fn-desc">Returns the logical NOT of a value.</p>
+      <div class="demo-row">
+        <div>
+          <label>Value</label><br>
+          <select id="not-value">
+            <option value="true">true</option>
+            <option value="false">false</option>
+            <option value="">empty string</option>
+            <option value="0">0</option>
+            <option value="hello">hello</option>
+          </select>
+        </div>
+      </div>
+      <button onclick="demoNot()">Evaluate</button>
+      <output id="not-out" class="neutral">—</output>
+    </div>
+
+  </div>
+</section>
+
+<section id="actions">
+  <h2>Actions</h2>
+  <div class="grid-2">
+
+    <!-- navigateTo -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-action">action</span>
+        <span class="fn-name">navigateTo</span>
+      </div>
+      <p class="fn-desc">SPA navigation via History API (pushState + popstate event).</p>
+      <div class="demo-row">
+        <div>
+          <label>Path</label><br>
+          <input id="nav-path" type="text" value="/demo/page">
+        </div>
+      </div>
+      <button onclick="demoNavigateTo()">Navigate</button>
+      <output id="nav-out" class="neutral">—</output>
+    </div>
+
+    <!-- openUrl -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-action">action</span>
+        <span class="fn-name">openUrl</span>
+      </div>
+      <p class="fn-desc">Opens a URL in a new browser tab.</p>
+      <div class="demo-row">
+        <div>
+          <label>URL</label><br>
+          <input id="ou-url" type="text" value="https://a2ui.org">
+        </div>
+      </div>
+      <button onclick="demoOpenUrl()">Open URL</button>
+      <output id="ou-out" class="neutral">—</output>
+    </div>
+
+    <!-- showToast -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-action">action</span>
+        <span class="fn-name">showToast</span>
+      </div>
+      <p class="fn-desc">Displays a toast notification using Oat data-attributes.</p>
+      <div class="demo-row">
+        <div>
+          <label>Message</label><br>
+          <input id="st-text" type="text" value="Operation successful!">
+        </div>
+        <div>
+          <label>Variant</label><br>
+          <select id="st-variant">
+            <option value="success">success</option>
+            <option value="info">info</option>
+            <option value="warning">warning</option>
+            <option value="error">error</option>
+          </select>
+        </div>
+        <div>
+          <label>Position</label><br>
+          <select id="st-position">
+            <option value="top-right">top-right</option>
+            <option value="top-center">top-center</option>
+            <option value="top-left">top-left</option>
+            <option value="bottom-right">bottom-right</option>
+          </select>
+        </div>
+      </div>
+      <button onclick="demoShowToast()">Show Toast</button>
+      <output id="st-out" class="neutral">—</output>
+    </div>
+
+    <!-- debounce -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-action">action</span>
+        <span class="fn-name">debounce</span>
+      </div>
+      <p class="fn-desc">Delays dispatching a <code>targetAction</code> until a quiet period expires (default 300 ms). Used in A2UI context with <code>dispatchAction</code>. Type below to see the timer in action.</p>
+      <div class="signature">debounce({ targetAction, delayMs }, context)
+→ Clears any pending timer for the same action key,
+  then schedules context.dispatchAction(targetAction)
+  after delayMs ms.</div>
+      <div class="demo-row">
+        <div>
+          <label>Type here (simulated debounce, 500 ms)</label><br>
+          <input id="db-input" type="text" placeholder="start typing…">
+        </div>
+      </div>
+      <output id="db-out" class="neutral">Waiting for input…</output>
+    </div>
+
+    <!-- fetchPage — server required -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-action">action</span>
+        <span class="fn-name">fetchPage</span>
+      </div>
+      <p class="fn-desc">Loads a paginated data page from a server endpoint.</p>
+      <div class="signature">fetchPage({ url, page, pageSize, targetPath }, context)
+→ Fetches url?page=N&amp;pageSize=N and writes response
+  into the data model at targetPath.</div>
+      <div class="server-note">Demo requires a running server. See <code>examples/pagination/</code> for a full live example.</div>
+    </div>
+
+    <!-- fetchAndAppend — server required -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-action">action</span>
+        <span class="fn-name">fetchAndAppend</span>
+      </div>
+      <p class="fn-desc">Fetches the next page and appends items to an existing list (infinite scroll).</p>
+      <div class="signature">fetchAndAppend({ url, page, pageSize, targetPath }, context)
+→ Appends fetched items to data model array at targetPath
+  rather than replacing the list.</div>
+      <div class="server-note">Demo requires a running server. See <code>examples/pagination/</code> for a full live example.</div>
+    </div>
+
+    <!-- subscribeSSE — server required -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-action">action</span>
+        <span class="fn-name">subscribeSSE</span>
+      </div>
+      <p class="fn-desc">Opens a Server-Sent Events stream and writes events to the data model.</p>
+      <div class="signature">subscribeSSE({ url, targetPath, eventTypes }, context)
+→ Creates an EventSource connection; writes each
+  received event to targetPath in the data model.</div>
+      <div class="server-note">Demo requires a running SSE server. See <code>examples/realtime-streaming/</code> for a full live example.</div>
+    </div>
+
+    <!-- subscribeWebSocket — server required -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag tag-action">action</span>
+        <span class="fn-name">subscribeWebSocket</span>
+      </div>
+      <p class="fn-desc">Establishes a WebSocket connection and streams messages to the data model.</p>
+      <div class="signature">subscribeWebSocket({ url, targetPath, protocols }, context)
+→ Creates a WebSocket; on each message, writes parsed
+  JSON (or raw text) to targetPath in the data model.</div>
+      <div class="server-note">Demo requires a running WebSocket server. Provide a <code>ws://</code> URL and a targetPath.</div>
+    </div>
+
+  </div>
+</section>
+
+<script type="module">
+  import {
+    formatDate, formatNumber, formatCurrency, formatString, pluralize,
+    required, regex, length, numeric, email,
+    and, or, not,
+    navigateTo, openUrl, showToast, debounce,
+  } from '../../renderer/index.js';
+
+  // Minimal context objects for direct calls (no @a2ui/web-lib needed).
+  const mockModel = { user: { name: 'Alice' }, inbox: { count: 7 } };
+  const BASE_CTX = { resolveDynamic: (v) => v, getDataModel: () => ({}), setDataModel: () => {} };
+  const MODEL_CTX = { resolveDynamic: (v) => v, getDataModel: () => mockModel, setDataModel: () => {} };
+
+  function setOutput(id, text, kind = 'neutral') {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = kind;
+  }
+
+  function boolOutput(id, result, detail = '') {
+    setOutput(id, `${result}${detail ? '  (' + detail + ')' : ''}`, result ? 'pass' : 'fail');
+  }
+
+  function val(id) { return document.getElementById(id).value; }
+
+  function runFormatDemo(outId, fn) {
+    try {
+      setOutput(outId, fn(), 'neutral');
+    } catch (e) {
+      setOutput(outId, 'Error: ' + e.message, 'fail');
+    }
+  }
+
+  window.demoFormatDate = function () {
+    runFormatDemo('fd-out', () => formatDate(
+      { value: val('fd-value'), locale: val('fd-locale'), options: { dateStyle: val('fd-style') } },
+      BASE_CTX
+    ));
+  };
+
+  window.demoFormatNumber = function () {
+    runFormatDemo('fn-out', () => formatNumber(
+      { value: Number(val('fn-value')), locale: val('fn-locale'), options: { maximumFractionDigits: Number(val('fn-decimals')) } },
+      BASE_CTX
+    ));
+  };
+
+  window.demoFormatCurrency = function () {
+    runFormatDemo('fc-out', () => formatCurrency(
+      { value: Number(val('fc-value')), currency: val('fc-currency'), locale: val('fc-locale') },
+      BASE_CTX
+    ));
+  };
+
+  window.demoFormatString = function () {
+    runFormatDemo('fs-out', () => formatString(
+      { template: val('fs-template') },
+      MODEL_CTX
+    ));
+  };
+
+  window.demoPluralize = function () {
+    const count = Number(val('pl-count'));
+    const result = pluralize(
+      { count, singular: val('pl-singular'), plural: val('pl-plural') || undefined },
+      BASE_CTX
+    );
+    setOutput('pl-out', `${count} ${result}`, 'neutral');
+  };
+
+  window.demoRequired = function () {
+    const v = val('req-value');
+    const result = required({ value: v }, BASE_CTX);
+    boolOutput('req-out', result, result ? 'value is present' : 'value is empty or null');
+  };
+
+  window.demoRegex = function () {
+    const result = regex({ value: val('rx-value'), pattern: val('rx-pattern') }, BASE_CTX);
+    boolOutput('rx-out', result, result ? 'matches pattern' : 'does not match');
+  };
+
+  window.demoLength = function () {
+    const v = val('len-value');
+    const min = Number(val('len-min'));
+    const max = Number(val('len-max'));
+    const result = length({ value: v, min, max }, BASE_CTX);
+    boolOutput('len-out', result, `length ${v.length}, range [${min}, ${max}]`);
+  };
+
+  window.demoNumeric = function () {
+    const v = val('num-value');
+    const result = numeric({ value: v }, BASE_CTX);
+    boolOutput('num-out', result, result ? `Number(value) = ${Number(v)}` : 'not a valid number');
+  };
+
+  window.demoEmail = function () {
+    const result = email({ value: val('em-value') }, BASE_CTX);
+    boolOutput('em-out', result, result ? 'valid email' : 'invalid format');
+  };
+
+  function coerce(str) {
+    if (str === 'true')  return true;
+    if (str === 'false') return false;
+    if (str === '0')     return 0;
+    return str;
+  }
+
+  window.demoAnd = function () {
+    const conditions = [coerce(val('and-a')), coerce(val('and-b')), coerce(val('and-c'))];
+    boolOutput('and-out', and({ conditions }, BASE_CTX), conditions.map(String).join(' AND '));
+  };
+
+  window.demoOr = function () {
+    const conditions = [coerce(val('or-a')), coerce(val('or-b')), coerce(val('or-c'))];
+    boolOutput('or-out', or({ conditions }, BASE_CTX), conditions.map(String).join(' OR '));
+  };
+
+  window.demoNot = function () {
+    const v = coerce(val('not-value'));
+    boolOutput('not-out', not({ value: v }, BASE_CTX), `NOT ${v}`);
+  };
+
+  window.demoNavigateTo = function () {
+    try {
+      navigateTo({ path: val('nav-path') }, BASE_CTX);
+      setOutput('nav-out', `pushState → ${window.location.pathname + window.location.search}`, 'neutral');
+    } catch (e) {
+      setOutput('nav-out', 'Error: ' + e.message, 'fail');
+    }
+  };
+
+  window.demoOpenUrl = function () {
+    try {
+      const url = val('ou-url');
+      openUrl({ url }, BASE_CTX);
+      setOutput('ou-out', `Opened: ${url}`, 'neutral');
+    } catch (e) {
+      setOutput('ou-out', 'Error: ' + e.message, 'fail');
+    }
+  };
+
+  window.demoShowToast = function () {
+    try {
+      const text = val('st-text');
+      const variant = val('st-variant');
+      const position = val('st-position');
+      showToast({ text, variant, position, duration: 4000 }, BASE_CTX);
+      setOutput('st-out', `Toast displayed (variant: ${variant}, position: ${position})`, 'neutral');
+    } catch (e) {
+      setOutput('st-out', 'Error: ' + e.message, 'fail');
+    }
+  };
+
+  // debounce() requires context.dispatchAction; wiring a mock dispatcher mirrors
+  // the @a2ui/web-lib contract so the call signature is identical to production.
+  let lastText = '';
+  const mockDispatch = (action) => {
+    setOutput('db-out', `Dispatched action: ${JSON.stringify(action)}\nFinal value: "${lastText}"`, 'neutral');
+  };
+  const debounceCtx = { resolveDynamic: (v) => v, dispatchAction: mockDispatch };
+
+  document.getElementById('db-input').addEventListener('input', (e) => {
+    lastText = e.target.value;
+    setOutput('db-out', 'Typing… (will dispatch in 500 ms)', 'neutral');
+    debounce(
+      { targetAction: { functionName: 'search', args: { query: lastText } }, delayMs: 500 },
+      debounceCtx
+    );
+  });
+
+  // Run all formatting demos immediately (script is at end of body, DOM is ready).
+  demoFormatDate();
+  demoFormatNumber();
+  demoFormatCurrency();
+  demoFormatString();
+  demoPluralize();
+</script>
+
+</body>
+</html>

@@ -231,6 +231,10 @@
           "type": "DynamicString",
           "description": "Avatar image URL. Supports data binding."
         },
+        "alt": {
+          "type": "string",
+          "description": "Alternative text for the avatar image."
+        },
         "size": {
           "type": "string",
           "enum": ["small", "medium", "large"],

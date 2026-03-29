@@ -4,6 +4,9 @@
   "description": "A lightweight A2UI renderer and catalog for agent-driven web interfaces, built on Oat CSS",
   "license": "MIT",
   "type": "module",
+  "scripts": {
+    "validate": "node scripts/validate-catalog.js"
+  },
   "main": "renderer/index.js",
   "exports": {
     ".": "./renderer/index.js",
@@ -28,6 +31,7 @@
     "catalog/",
     "renderer/",
     "direct/",
-    "shared/"
+    "shared/",
+    "docs/"
   ]
 }
