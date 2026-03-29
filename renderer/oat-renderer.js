@@ -305,7 +305,7 @@ export class OatRenderer {
 
   /** @returns {HTMLElement} */
   _renderList(c, ctx) {
-    const tag = (c.ordered || c.direction === 'ordered') ? 'ol' : 'ul';
+    const tag = c.ordered ? 'ol' : 'ul';
     const el = document.createElement(tag);
     if (c.direction === 'horizontal') el.style.display = 'flex';
     if (Array.isArray(c.children)) {
