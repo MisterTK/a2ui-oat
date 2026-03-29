@@ -103,20 +103,28 @@ async def chat(request: Request):
                 if part.text:
                     response_text += part.text
 
-    # Parse A2UI JSON from the response
+    # With structured output (response_mime_type=application/json), the
+    # response is pure JSON -- no <a2ui-json> tags to parse.
     a2ui_data = []
     plain_text = ""
 
     try:
-        parts = parse_response(response_text)
-        for part in parts:
-            if part.text:
-                plain_text += part.text + "\n"
-            if part.a2ui_json:
-                a2ui_data.extend(part.a2ui_json)
-    except ValueError:
-        # No A2UI tags found -- return raw text
-        plain_text = response_text
+        parsed = json.loads(response_text)
+        if isinstance(parsed, list):
+            a2ui_data = parsed
+        elif isinstance(parsed, dict):
+            a2ui_data = [parsed]
+    except json.JSONDecodeError:
+        # Fallback: try the A2UI tag parser for non-JSON responses
+        try:
+            parts = parse_response(response_text)
+            for part in parts:
+                if part.text:
+                    plain_text += part.text + "\n"
+                if part.a2ui_json:
+                    a2ui_data.extend(part.a2ui_json)
+        except ValueError:
+            plain_text = response_text
 
     return JSONResponse({
         "text": plain_text.strip(),

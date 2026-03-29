@@ -1,5 +1,6 @@
 """
 Metrics Agent -- generates metric dashboards using the Oat Catalog.
+Uses structured JSON output for reliable A2UI generation.
 """
 
 import os
@@ -20,16 +21,15 @@ schema_manager = A2uiSchemaManager(
 _instruction = schema_manager.generate_system_prompt(
     role_description=(
         'You are a metrics agent that generates system metric dashboards. '
-        'You specialize in CPU, memory, disk, and network metrics visualization. '
-        'Always respond with A2UI JSON to render metric dashboards.'
+        'You specialize in CPU, memory, disk, and network metrics visualization.'
     ),
     workflow_description=(
         'When asked for metrics or status, create a dashboard with metric cards, '
-        'progress bars, and badges. Use realistic mock data. Always wrap your '
-        'A2UI JSON in <a2ui-json> and </a2ui-json> tags. The JSON should be a '
-        'list of A2UI messages. Include createSurface, updateComponents, and '
-        'updateDataModel messages. Use data binding with {"path": "/some/path"} '
-        'for values in the data model.'
+        'progress bars, and badges. Use realistic mock data. Return a JSON array '
+        'of A2UI messages. Include createSurface, updateComponents, and '
+        'updateDataModel messages. '
+        'IMPORTANT: Component properties go at the TOP LEVEL (NOT nested under '
+        '"properties"). Use "component" (not "type"). Children are arrays of string IDs.'
     ),
     ui_description=(
         'Use Card for metric containers, Text for labels and values, Progress '
@@ -52,5 +52,6 @@ metrics_agent = LlmAgent(
     instruction=instruction,
     generate_content_config=types.GenerateContentConfig(
         thinking_config=types.ThinkingConfig(thinking_level='MEDIUM'),
+        response_mime_type='application/json',
     ),
 )

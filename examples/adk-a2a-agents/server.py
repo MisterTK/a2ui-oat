@@ -100,20 +100,27 @@ async def chat(request: Request):
                 if part.text:
                     agent_responses[author] += part.text
 
-    # Parse A2UI from each agent's response
+    # Parse A2UI from each agent's response (structured JSON output)
     surfaces = {}
     for agent_name, response_text in agent_responses.items():
         a2ui_data = []
         plain_text = ""
         try:
-            parts = parse_response(response_text)
-            for part in parts:
-                if part.text:
-                    plain_text += part.text + "\n"
-                if part.a2ui_json:
-                    a2ui_data.extend(part.a2ui_json)
-        except ValueError:
-            plain_text = response_text
+            parsed = json.loads(response_text)
+            if isinstance(parsed, list):
+                a2ui_data = parsed
+            elif isinstance(parsed, dict):
+                a2ui_data = [parsed]
+        except json.JSONDecodeError:
+            try:
+                parts = parse_response(response_text)
+                for part in parts:
+                    if part.text:
+                        plain_text += part.text + "\n"
+                    if part.a2ui_json:
+                        a2ui_data.extend(part.a2ui_json)
+            except ValueError:
+                plain_text = response_text
 
         if a2ui_data or plain_text.strip():
             surfaces[agent_name] = {

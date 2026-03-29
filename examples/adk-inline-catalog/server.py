@@ -89,14 +89,21 @@ async def run_agent(runner, session_service, sessions, app_name, message):
     a2ui_data = []
     plain_text = ""
     try:
-        parts = parse_response(response_text)
-        for part in parts:
-            if part.text:
-                plain_text += part.text + "\n"
-            if part.a2ui_json:
-                a2ui_data.extend(part.a2ui_json)
-    except ValueError:
-        plain_text = response_text
+        parsed = json.loads(response_text)
+        if isinstance(parsed, list):
+            a2ui_data = parsed
+        elif isinstance(parsed, dict):
+            a2ui_data = [parsed]
+    except json.JSONDecodeError:
+        try:
+            parts = parse_response(response_text)
+            for part in parts:
+                if part.text:
+                    plain_text += part.text + "\n"
+                if part.a2ui_json:
+                    a2ui_data.extend(part.a2ui_json)
+        except ValueError:
+            plain_text = response_text
 
     return {"text": plain_text.strip(), "a2ui": a2ui_data, "raw": response_text}
 

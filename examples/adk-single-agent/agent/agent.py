@@ -1,8 +1,7 @@
 """
 ADK Single Agent -- Dashboard Agent using the Oat Catalog.
 
-This agent receives the full Oat Catalog (35 components) via its system prompt
-and generates rich A2UI JSON dashboards in response to user requests.
+Uses Gemini 3 Flash with structured JSON output to guarantee valid A2UI JSON.
 """
 
 import os
@@ -29,16 +28,17 @@ schema_manager = A2uiSchemaManager(
 _instruction = schema_manager.generate_system_prompt(
     role_description=(
         'You are a dashboard agent that presents system metrics and information '
-        'using rich UI components. You always respond with A2UI JSON to render '
-        'beautiful, interactive dashboards.'
+        'using rich UI components.'
     ),
     workflow_description=(
         'When the user asks about system status, metrics, or any data, create a '
-        'dashboard UI with appropriate components. Always wrap your A2UI JSON in '
-        '<a2ui-json> and </a2ui-json> tags. The JSON should be a list of A2UI '
-        'messages (createSurface, updateComponents, updateDataModel). Use '
-        'realistic mock data. Include a createSurface message first, then '
-        'updateComponents with a component tree, then updateDataModel with data.'
+        'dashboard UI with appropriate components. Return a JSON array of A2UI '
+        'messages. Each message has "version": "v0.9" and one of: createSurface, '
+        'updateComponents, or updateDataModel. Always include all three message '
+        'types. Use realistic mock data. '
+        'IMPORTANT: Component properties go at the TOP LEVEL of each component '
+        'object (NOT nested under a "properties" key). Use "component" (not "type") '
+        'for the component name. Children must be arrays of string IDs.'
     ),
     ui_description=(
         'Use Card for containers, Text for headings and content, Progress for '
@@ -50,8 +50,6 @@ _instruction = schema_manager.generate_system_prompt(
 )
 
 
-# Use a callable to bypass ADK's state injection, which would otherwise
-# try to interpret curly braces in the JSON schema as template variables.
 def instruction(_ctx):
     return _instruction
 
@@ -63,5 +61,6 @@ root_agent = LlmAgent(
     instruction=instruction,
     generate_content_config=types.GenerateContentConfig(
         thinking_config=types.ThinkingConfig(thinking_level='MEDIUM'),
+        response_mime_type='application/json',
     ),
 )

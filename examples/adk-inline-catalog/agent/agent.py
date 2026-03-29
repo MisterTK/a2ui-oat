@@ -1,10 +1,6 @@
 """
 Inline Catalog Agent -- demonstrates dynamic catalog injection.
-
-This module provides a factory function that creates an ADK agent
-with either the Basic Catalog (18 components) or the full Oat Catalog
-(35 components), showing that the same agent can use different catalogs
-at creation time.
+Uses structured JSON output for reliable A2UI generation.
 """
 
 import os
@@ -18,7 +14,6 @@ _OAT_CATALOG_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..', '..', '..', 'catalog', 'oat-catalog.json')
 )
 
-# The basic catalog ships with the a2ui package
 import a2ui
 _BASIC_CATALOG_PATH = os.path.join(
     os.path.dirname(a2ui.__file__), 'assets', '0.9', 'basic_catalog.json'
@@ -26,16 +21,7 @@ _BASIC_CATALOG_PATH = os.path.join(
 
 
 def create_agent(mode: str = 'oat') -> LlmAgent:
-    """
-    Create an agent with the specified catalog mode.
-
-    Args:
-        mode: 'basic' for Basic Catalog (18 components) or
-              'oat' for Oat Catalog (35 components).
-
-    Returns:
-        Configured LlmAgent with the appropriate catalog in its system prompt.
-    """
+    """Create an agent with Basic or Oat catalog."""
     if mode == 'basic':
         catalog_path = _BASIC_CATALOG_PATH
         catalog_name = 'basic_catalog'
@@ -53,16 +39,15 @@ def create_agent(mode: str = 'oat') -> LlmAgent:
     _instruction = schema_manager.generate_system_prompt(
         role_description=(
             f'You are a dashboard agent using the {catalog_name} ({component_count} components). '
-            'You generate rich dashboard UIs. Always respond with A2UI JSON.'
+            'You generate rich dashboard UIs.'
         ),
         workflow_description=(
-            'When the user asks for a dashboard or data display, create a UI using '
-            'the components available in your catalog. Always wrap your A2UI JSON in '
-            '<a2ui-json> and </a2ui-json> tags. The JSON should be a list of A2UI '
-            'messages. Include createSurface, updateComponents, and updateDataModel. '
-            'Use data binding with {"path": "/some/path"} for dynamic values. '
-            'Use realistic mock data. Make the dashboard visually rich with multiple '
-            'component types.'
+            'Create a UI using the components available in your catalog. '
+            'Return a JSON array of A2UI messages. Include createSurface, '
+            'updateComponents, and updateDataModel. Use realistic mock data. '
+            'Make the dashboard visually rich with multiple component types. '
+            'IMPORTANT: Component properties go at the TOP LEVEL (NOT nested under '
+            '"properties"). Use "component" (not "type"). Children are arrays of string IDs.'
         ),
         ui_description=(
             'Use all available component types to create a rich dashboard. '
@@ -72,8 +57,6 @@ def create_agent(mode: str = 'oat') -> LlmAgent:
         include_schema=True,
     )
 
-    # Use a callable to bypass ADK's state injection, which would otherwise
-    # try to interpret curly braces in the JSON schema as template variables.
     def instruction_fn(_ctx):
         return _instruction
 
@@ -84,5 +67,6 @@ def create_agent(mode: str = 'oat') -> LlmAgent:
         instruction=instruction_fn,
         generate_content_config=types.GenerateContentConfig(
             thinking_config=types.ThinkingConfig(thinking_level='MEDIUM'),
+            response_mime_type='application/json',
         ),
     )
