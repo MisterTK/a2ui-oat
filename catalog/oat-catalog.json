@@ -101,8 +101,8 @@
     },
 
     "Sidebar": {
-      "description": "Side navigation panel rendered as an aside element. Supports collapsible behavior and left/right positioning.",
-      "htmlElement": "aside",
+      "description": "Side navigation panel. Renders a div[data-sidebar-layout] wrapper containing an aside[data-sidebar]. Collapsible sidebars work with Oat CSS toggle mechanism (data-sidebar-toggle buttons). Left positioning is the default; right positioning adds data-sidebar-position=\"right\".",
+      "htmlElement": "div",
       "properties": {
         "child": {
           "type": "ComponentId",
