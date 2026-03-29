@@ -685,8 +685,8 @@
     },
 
     "Tabs": {
-      "description": "A tabbed interface rendered as an oat-tabs web component. Each tab has a title and a child component.",
-      "htmlElement": "oat-tabs",
+      "description": "A tabbed interface rendered as an ot-tabs web component with ARIA tablist pattern. Each tab has a title and a child component.",
+      "htmlElement": "ot-tabs",
       "properties": {
         "tabs": {
           "type": "array",
