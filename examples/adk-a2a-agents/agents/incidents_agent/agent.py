@@ -52,7 +52,7 @@ incidents_agent = LlmAgent(
     description='Generates incident tracking tables with severity badges and status.',
     instruction=instruction,
     generate_content_config=types.GenerateContentConfig(
-        thinking_config=types.ThinkingConfig(thinking_level='MEDIUM'),
+        thinking_config=types.ThinkingConfig(thinking_level=types.ThinkingLevel.MEDIUM),
         response_mime_type='application/json',
     ),
 )

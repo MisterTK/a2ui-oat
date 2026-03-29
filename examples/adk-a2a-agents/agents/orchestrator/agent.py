@@ -15,7 +15,7 @@ root_agent = LlmAgent(
     name='orchestrator',
     description='Routes requests to metrics or incidents sub-agents.',
     generate_content_config=types.GenerateContentConfig(
-        thinking_config=types.ThinkingConfig(thinking_level='MEDIUM'),
+        thinking_config=types.ThinkingConfig(thinking_level=types.ThinkingLevel.MEDIUM),
     ),
     instruction=(
         'You are an orchestrator that delegates to specialized sub-agents. '

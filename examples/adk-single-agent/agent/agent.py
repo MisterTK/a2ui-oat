@@ -60,7 +60,7 @@ root_agent = LlmAgent(
     description='An agent that generates rich dashboard UIs using the Oat Catalog.',
     instruction=instruction,
     generate_content_config=types.GenerateContentConfig(
-        thinking_config=types.ThinkingConfig(thinking_level='MEDIUM'),
+        thinking_config=types.ThinkingConfig(thinking_level=types.ThinkingLevel.MEDIUM),
         response_mime_type='application/json',
     ),
 )

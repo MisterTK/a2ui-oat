@@ -51,7 +51,7 @@ metrics_agent = LlmAgent(
     description='Generates system metric dashboards with CPU, memory, disk, and network data.',
     instruction=instruction,
     generate_content_config=types.GenerateContentConfig(
-        thinking_config=types.ThinkingConfig(thinking_level='MEDIUM'),
+        thinking_config=types.ThinkingConfig(thinking_level=types.ThinkingLevel.MEDIUM),
         response_mime_type='application/json',
     ),
 )

@@ -66,7 +66,7 @@ def create_agent(mode: str = 'oat') -> LlmAgent:
         description=f'Dashboard agent using {catalog_name} ({component_count} components).',
         instruction=instruction_fn,
         generate_content_config=types.GenerateContentConfig(
-            thinking_config=types.ThinkingConfig(thinking_level='MEDIUM'),
+            thinking_config=types.ThinkingConfig(thinking_level=types.ThinkingLevel.MEDIUM),
             response_mime_type='application/json',
         ),
     )
