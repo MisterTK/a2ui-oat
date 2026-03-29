@@ -313,7 +313,7 @@ Send components to a surface with updateComponents:
         "id": "content",
         "component": "Text",
         "text": {"path": "/content/body"},
-        "variant": "body"
+        "variant": "p"
       }
     ]
   }
@@ -631,7 +631,7 @@ Pattern 5: Loading states with Skeleton and Spinner
       "components": [
         {"id": "root", "component": "Column", "children": ["title", "body"]},
         {"id": "title", "component": "Text", "text": "Q1 Report", "variant": "h1"},
-        {"id": "body", "component": "Text", "text": {"path": "/report/content"}, "variant": "body"}
+        {"id": "body", "component": "Text", "text": {"path": "/report/content"}, "variant": "p"}
       ]
     }
   }
@@ -643,7 +643,7 @@ Do not do any of the following:
 
 1. Do not emit raw HTML in A2UI mode. All UI must be expressed as catalog components.
    Wrong: {"component": "div", "innerHTML": "<b>Hello</b>"}
-   Right: {"id": "t1", "component": "Text", "text": "Hello", "variant": "body"}
+   Right: {"id": "t1", "component": "Text", "text": "Hello", "variant": "p"}
 
 2. Do not use undefined component types. Only the 37 listed types are valid.
    Wrong: {"component": "Chart"}
