@@ -25,7 +25,7 @@
             "additionalProperties": false
           }
         ],
-        "description": "The pagination cursor. Can be a literal string or a DynamicString referencing a data model path."
+        "description": "Optional pagination cursor. Can be a literal string or a DynamicString referencing a data model path. If omitted, the request is made without a cursor parameter (first page)."
       },
       "targetPath": {
         "type": "string",
@@ -38,7 +38,7 @@
         "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"]
       }
     },
-    "required": ["url", "cursor", "targetPath"],
+    "required": ["url", "targetPath"],
     "additionalProperties": false
   }
 }

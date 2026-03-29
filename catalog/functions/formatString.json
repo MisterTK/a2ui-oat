@@ -1,7 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft-07/schema#",
   "name": "formatString",
-  "description": "String interpolation with ${/path} syntax. Replaces path references in a template string with values from the data model.",
+  "description": "String interpolation with ${/path} syntax. Replaces ${/data/model/path} placeholders in a template string with values resolved from the data model. For example, the template 'Hello, ${/user/name}!' resolves the value at /user/name in the data model and substitutes it in place. Non-path expressions (without a leading '/') are left unchanged.",
+  "backedBy": "vanilla JS",
   "parameters": {
     "type": "object",
     "properties": {

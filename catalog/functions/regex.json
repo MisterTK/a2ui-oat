@@ -25,6 +25,10 @@
       "pattern": {
         "type": "string",
         "description": "The regular expression pattern string to match against."
+      },
+      "flags": {
+        "type": "string",
+        "description": "Optional regex flags (e.g., 'i' for case-insensitive, 'g' for global, 'm' for multiline). Combines flags supported by JavaScript's RegExp."
       }
     },
     "required": ["value", "pattern"],

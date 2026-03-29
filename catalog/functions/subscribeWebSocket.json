@@ -16,7 +16,9 @@
       },
       "messageParser": {
         "type": "string",
-        "description": "An optional parser identifier for incoming messages (e.g., 'json'). If omitted, messages are written as raw strings."
+        "enum": ["json", "text"],
+        "default": "json",
+        "description": "Parser to apply to incoming WebSocket messages. 'json' (default) parses each message as JSON. 'text' writes the raw string value."
       }
     },
     "required": ["url", "targetPath"],

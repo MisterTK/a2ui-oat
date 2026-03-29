@@ -7,8 +7,25 @@
     "properties": {
       "conditions": {
         "type": "array",
-        "items": {},
-        "description": "Array of values or expressions to evaluate. Each may be a literal or a dynamic reference."
+        "items": {
+          "oneOf": [
+            { "type": "boolean" },
+            { "type": "number" },
+            { "type": "string" },
+            {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "description": "A JSON pointer path into the data model to resolve a value dynamically."
+                }
+              },
+              "required": ["path"],
+              "additionalProperties": false
+            }
+          ]
+        },
+        "description": "Array of conditions to evaluate. Each condition may be a boolean literal, a truthy/falsy value (number, string), or a DynamicString referencing a data model path. All conditions are coerced to boolean via Boolean()."
       }
     },
     "required": ["conditions"],

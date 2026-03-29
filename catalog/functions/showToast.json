@@ -13,7 +13,8 @@
       "variant": {
         "type": "string",
         "enum": ["success", "warning", "error", "info"],
-        "description": "The visual variant of the toast indicating severity or intent."
+        "default": "info",
+        "description": "The visual variant of the toast indicating severity or intent. Defaults to 'info'."
       },
       "duration": {
         "type": "number",
@@ -22,10 +23,12 @@
       },
       "position": {
         "type": "string",
-        "description": "Optional screen position for the toast (e.g., 'top-right', 'bottom-center')."
+        "enum": ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right"],
+        "default": "top-right",
+        "description": "Screen position for the toast container. Defaults to 'top-right'."
       }
     },
-    "required": ["text", "variant"],
+    "required": ["text"],
     "additionalProperties": false
   }
 }
