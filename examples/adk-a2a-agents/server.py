@@ -14,6 +14,7 @@ import sys
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 
 # Load environment variables
@@ -34,6 +35,9 @@ from agents.incidents_agent import incidents_agent
 # --------------------------------------------------------------------------
 
 app = FastAPI(title="ADK A2A Multi-Agent - Oat Dashboard")
+
+_RENDERER_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'renderer'))
+app.mount("/renderer", StaticFiles(directory=_RENDERER_DIR), name="renderer")
 
 metrics_session_service = InMemorySessionService()
 metrics_runner = Runner(

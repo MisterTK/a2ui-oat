@@ -15,6 +15,7 @@ import asyncio
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 
 # Load environment variables
@@ -37,6 +38,9 @@ from a2ui.core.parser.parser import parse_response
 # --------------------------------------------------------------------------
 
 app = FastAPI(title="ADK Inline Catalog Comparison")
+
+_RENDERER_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'renderer'))
+app.mount("/renderer", StaticFiles(directory=_RENDERER_DIR), name="renderer")
 
 # Basic Catalog agent
 basic_agent = create_agent('basic')

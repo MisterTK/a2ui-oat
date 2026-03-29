@@ -15,6 +15,7 @@ import asyncio
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 
 # Load environment variables from .env at project root
@@ -37,6 +38,10 @@ from a2ui.core.parser.parser import parse_response
 # --------------------------------------------------------------------------
 
 app = FastAPI(title="ADK Single Agent - Oat Dashboard")
+
+# Serve renderer/ from the repo root so the frontend can import OatRenderer
+_RENDERER_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'renderer'))
+app.mount("/renderer", StaticFiles(directory=_RENDERER_DIR), name="renderer")
 
 session_service = InMemorySessionService()
 runner = Runner(
