@@ -1,14 +1,14 @@
 """
 Server for the ADK A2A Multi-Agent example.
 
-Runs a FastAPI server with an orchestrator that delegates to two
-sub-agents (metrics + incidents). Each sub-agent generates its own
-A2UI surface, rendered side-by-side in the frontend.
+Runs both sub-agents (metrics + incidents) in parallel and returns
+their A2UI surfaces side-by-side. Each agent generates its own
+A2UI JSON independently using structured output.
 """
 
+import asyncio
 import json
 import os
-import re
 import sys
 
 from dotenv import load_dotenv
@@ -25,38 +25,73 @@ from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai.types import Content, Part
 
-# Import the orchestrator (which includes sub-agents)
-from agents.orchestrator import root_agent
-
-# Import A2UI parser
-from a2ui.core.parser.parser import parse_response
+# Import the sub-agents directly (not the orchestrator)
+from agents.metrics_agent import metrics_agent
+from agents.incidents_agent import incidents_agent
 
 # --------------------------------------------------------------------------
-# Setup
+# Setup -- one runner per agent
 # --------------------------------------------------------------------------
 
 app = FastAPI(title="ADK A2A Multi-Agent - Oat Dashboard")
 
-session_service = InMemorySessionService()
-runner = Runner(
-    agent=root_agent,
-    app_name="a2a_dashboard",
-    session_service=session_service,
+metrics_session_service = InMemorySessionService()
+metrics_runner = Runner(
+    agent=metrics_agent,
+    app_name="metrics",
+    session_service=metrics_session_service,
 )
 
-_sessions: dict[str, str] = {}
+incidents_session_service = InMemorySessionService()
+incidents_runner = Runner(
+    agent=incidents_agent,
+    app_name="incidents",
+    session_service=incidents_session_service,
+)
 
-APP_NAME = "a2a_dashboard"
+_metrics_sessions: dict[str, str] = {}
+_incidents_sessions: dict[str, str] = {}
+
 USER_ID = "web_user"
 
 
-async def get_or_create_session() -> str:
-    if USER_ID not in _sessions:
-        session = await session_service.create_session(
-            app_name=APP_NAME, user_id=USER_ID,
+async def get_or_create_session(service, sessions, app_name) -> str:
+    if USER_ID not in sessions:
+        session = await service.create_session(
+            app_name=app_name, user_id=USER_ID,
         )
-        _sessions[USER_ID] = session.id
-    return _sessions[USER_ID]
+        sessions[USER_ID] = session.id
+    return sessions[USER_ID]
+
+
+async def run_agent(runner, session_service, sessions, app_name, message):
+    """Run a single agent and return parsed A2UI data."""
+    session_id = await get_or_create_session(
+        session_service, sessions, app_name,
+    )
+    content = Content(role="user", parts=[Part(text=message)])
+    response_text = ""
+
+    async for event in runner.run_async(
+        user_id=USER_ID, session_id=session_id, new_message=content,
+    ):
+        if event.content and event.content.parts:
+            for part in event.content.parts:
+                if part.text:
+                    response_text += part.text
+
+    a2ui_data = []
+    plain_text = ""
+    try:
+        parsed = json.loads(response_text)
+        if isinstance(parsed, list):
+            a2ui_data = parsed
+        elif isinstance(parsed, dict):
+            a2ui_data = [parsed]
+    except json.JSONDecodeError:
+        plain_text = response_text
+
+    return {"text": plain_text.strip(), "a2ui": a2ui_data}
 
 
 # --------------------------------------------------------------------------
@@ -72,101 +107,53 @@ async def serve_frontend():
 
 @app.post("/api/chat")
 async def chat(request: Request):
-    """
-    Run the orchestrator agent. It will delegate to sub-agents.
-    We collect all events and group A2UI responses by which agent
-    authored them.
-    """
+    """Run both agents in parallel with the same prompt."""
     body = await request.json()
     user_message = body.get("message", "").strip()
     if not user_message:
         return JSONResponse({"error": "Empty message"}, status_code=400)
 
-    session_id = await get_or_create_session()
-    content = Content(role="user", parts=[Part(text=user_message)])
+    # Run both agents in parallel
+    metrics_task = asyncio.create_task(
+        run_agent(
+            metrics_runner, metrics_session_service,
+            _metrics_sessions, "metrics",
+            f"Show system metrics for: {user_message}",
+        )
+    )
+    incidents_task = asyncio.create_task(
+        run_agent(
+            incidents_runner, incidents_session_service,
+            _incidents_sessions, "incidents",
+            f"Show incidents related to: {user_message}",
+        )
+    )
 
-    # Collect events grouped by author
-    agent_responses: dict[str, str] = {}
+    metrics_result, incidents_result = await asyncio.gather(
+        metrics_task, incidents_task, return_exceptions=True,
+    )
 
-    async for event in runner.run_async(
-        user_id=USER_ID,
-        session_id=session_id,
-        new_message=content,
-    ):
-        if event.content and event.content.parts:
-            author = event.author or "orchestrator"
-            if author not in agent_responses:
-                agent_responses[author] = ""
-            for part in event.content.parts:
-                if part.text:
-                    agent_responses[author] += part.text
-
-    # Parse A2UI from each agent's response (structured JSON output)
     surfaces = {}
+    if isinstance(metrics_result, dict):
+        surfaces["metrics_agent"] = metrics_result
+    else:
+        surfaces["metrics_agent"] = {"text": f"Error: {metrics_result}", "a2ui": []}
 
-    def _parse_agent_text(response_text: str) -> tuple[str, list]:
-        """Parse response text into (plain_text, a2ui_data)."""
-        a2ui_data = []
-        plain_text = ""
-        try:
-            parsed = json.loads(response_text)
-            if isinstance(parsed, list):
-                a2ui_data = parsed
-            elif isinstance(parsed, dict):
-                a2ui_data = [parsed]
-        except json.JSONDecodeError:
-            try:
-                parts = parse_response(response_text)
-                for part in parts:
-                    if part.text:
-                        plain_text += part.text + "\n"
-                    if part.a2ui_json:
-                        a2ui_data.extend(part.a2ui_json)
-            except ValueError:
-                plain_text = response_text
-        return plain_text, a2ui_data
-
-    for agent_name, response_text in agent_responses.items():
-        plain_text, a2ui_data = _parse_agent_text(response_text)
-
-        if a2ui_data or plain_text.strip():
-            surfaces[agent_name] = {
-                "text": plain_text.strip(),
-                "a2ui": a2ui_data,
-            }
-
-    # If only the orchestrator responded (sub-agent responses were not
-    # captured as separate events), try to extract JSON blocks from the
-    # orchestrator's text and assign them to the appropriate agents.
-    if len(surfaces) == 1 and "orchestrator" in surfaces:
-        orch_text = agent_responses.get("orchestrator", "")
-        # Try splitting on multiple JSON arrays in the response
-        json_blocks = re.findall(r'\[[\s\S]*?\](?=\s*\[|\s*$)', orch_text)
-        if len(json_blocks) >= 2:
-            # Attempt to assign first block to metrics, second to incidents
-            for i, block in enumerate(json_blocks):
-                try:
-                    parsed = json.loads(block)
-                    if not isinstance(parsed, list):
-                        continue
-                    agent_key = "metrics_agent" if i == 0 else "incidents_agent"
-                    surfaces[agent_key] = {"text": "", "a2ui": parsed}
-                except json.JSONDecodeError:
-                    pass
-            if len(surfaces) > 1:
-                # Remove the orchestrator entry since we split it
-                surfaces.pop("orchestrator", None)
+    if isinstance(incidents_result, dict):
+        surfaces["incidents_agent"] = incidents_result
+    else:
+        surfaces["incidents_agent"] = {"text": f"Error: {incidents_result}", "a2ui": []}
 
     return JSONResponse({
         "surfaces": surfaces,
-        "agents": list(agent_responses.keys()),
+        "agents": ["metrics_agent", "incidents_agent"],
     })
 
 
 @app.post("/api/reset")
 async def reset_session():
-    if USER_ID in _sessions:
-        del _sessions[USER_ID]
+    _metrics_sessions.clear()
+    _incidents_sessions.clear()
     return JSONResponse({"status": "ok"})
 
 

@@ -343,15 +343,23 @@
 // A2UI Component Renderer (same rendering logic)
 // ---------------------------------------------------------------------------
 
+function resolvePath(pathStr, data) {
+  const parts = pathStr.replace(/^\//, '').split('/');
+  let cur = data;
+  for (const p of parts) {
+    if (cur == null) return undefined;
+    cur = cur[p];
+  }
+  return cur;
+}
+
 function resolve(val, data) {
   if (val && typeof val === 'object' && val.path) {
-    const parts = val.path.replace(/^\//, '').split('/');
-    let cur = data;
-    for (const p of parts) {
-      if (cur == null) return undefined;
-      cur = cur[p];
-    }
-    return cur;
+    return resolvePath(val.path, data);
+  }
+  if (typeof val === 'string' && val.startsWith('/') && val.length > 1) {
+    const resolved = resolvePath(val, data);
+    if (resolved !== undefined) return resolved;
   }
   return val;
 }
@@ -393,7 +401,12 @@ function renderA2UI(messages) {
   let components = [];
   for (const msg of messages) {
     if (msg.updateDataModel) {
-      const modelData = msg.updateDataModel.data || msg.updateDataModel.value || {};
+      const dm = msg.updateDataModel;
+      let modelData = dm.data || dm.value || {};
+      if (dm.path && dm.path !== '/' && dm.value) {
+        const key = dm.path.replace(/^\//, '');
+        modelData = { [key]: dm.value };
+      }
       data = deepMerge(data, modelData);
     }
     if (msg.updateComponents && msg.updateComponents.components) {
