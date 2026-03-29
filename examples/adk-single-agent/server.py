@@ -58,24 +58,30 @@ USER_ID = "web_user"
 
 DOMAIN_CONTEXTS = {
     "sre": (
-        "Platform: SRE operations. Audience: on-call engineers. "
-        "Design for instant visibility into system health, service reliability, "
-        "incident status, infrastructure metrics, and alert triage."
+        "DOMAIN: SRE Operations. AUDIENCE: On-call engineers. "
+        "VOCABULARY: services, uptime, latency, error rate, incidents, alerts, SLOs, deployments, infrastructure. "
+        "Design for instant visibility into system health, incident triage, infrastructure metrics, and alert management."
     ),
     "retail": (
-        "Platform: Retail management. Audience: store managers and merchants. "
-        "Design for visibility into inventory levels, sales performance, "
-        "order fulfillment, product trends, and customer analytics."
+        "DOMAIN: Retail Management. AUDIENCE: Store managers and merchandise buyers. "
+        "VOCABULARY: SKUs, inventory, stock levels, reorder points, sell-through rate, units sold, "
+        "markdowns, categories, suppliers, shrinkage, fulfillment, returns. "
+        "Design for visibility into inventory health, sales performance, order fulfillment, "
+        "and product trends. Use retail terminology — not IT or infrastructure terminology."
     ),
     "healthcare": (
-        "Platform: Healthcare operations. Audience: clinical staff and administrators. "
-        "Design for visibility into patient appointments, care team workloads, "
-        "department capacity, clinical metrics, and resource utilization."
+        "DOMAIN: Healthcare Operations. AUDIENCE: Clinical staff, schedulers, and department administrators. "
+        "VOCABULARY: patients, appointments, clinicians, rooms, wait times, no-shows, "
+        "care teams, diagnoses, procedures, departments, bed capacity, census. "
+        "Design for visibility into patient scheduling, care team workloads, and department capacity. "
+        "Use clinical terminology — not IT or infrastructure terminology."
     ),
     "sales": (
-        "Platform: Sales CRM. Audience: sales reps and managers. "
-        "Design for visibility into pipeline health, lead status, "
-        "revenue forecasts, deal activity, and team performance."
+        "DOMAIN: Sales CRM. AUDIENCE: Sales reps and sales managers. "
+        "VOCABULARY: leads, prospects, opportunities, deals, pipeline stages, win rate, "
+        "quota attainment, ARR, MRR, ACV, forecast, close date, accounts, activities. "
+        "Design for visibility into sales pipeline, lead conversion, revenue forecasts, "
+        "and rep performance. Use sales/CRM terminology — not IT or infrastructure terminology."
     ),
 }
 
