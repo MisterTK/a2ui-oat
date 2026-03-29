@@ -32,6 +32,7 @@
 const TEXT_VARIANT_TAGS = {
   h1: 'h1', h2: 'h2', h3: 'h3', h4: 'h4', h5: 'h5', h6: 'h6',
   body: 'p', paragraph: 'p',
+  span: 'span', small: 'small', strong: 'strong', em: 'em',
 };
 
 const TEXT_FIELD_TYPES = {
@@ -442,13 +443,14 @@ export class OatRenderer {
       wrapper.appendChild(labelText);
     }
 
-    const isMultiline = c.textFieldType === 'multiline';
+    const tfVariant = c.variant ?? c.textFieldType;
+    const isMultiline = tfVariant === 'multiline';
     const el = isMultiline
       ? document.createElement('textarea')
       : document.createElement('input');
 
     if (!isMultiline) {
-      el.type = TEXT_FIELD_TYPES[c.textFieldType] || 'text';
+      el.type = TEXT_FIELD_TYPES[tfVariant] || 'text';
     }
 
     if (c.placeholder) el.placeholder = c.placeholder;
@@ -492,8 +494,8 @@ export class OatRenderer {
   _renderSlider(c, ctx) {
     const el = document.createElement('input');
     el.type = 'range';
-    this._setAttr(el, 'min', c.minValue);
-    this._setAttr(el, 'max', c.maxValue);
+    this._setAttr(el, 'min', c.min ?? c.minValue);
+    this._setAttr(el, 'max', c.max ?? c.maxValue);
     if (c.step) this._setAttr(el, 'step', c.step);
 
     this._bindValue(c.value, ctx, (val) => { if (val != null) el.value = val; });
@@ -624,17 +626,19 @@ export class OatRenderer {
   _renderModal(c, ctx) {
     const dialog = document.createElement('dialog');
 
-    this._renderSingleChild(dialog, c.contentChild, ctx);
+    const content = c.content ?? c.contentChild;
+    this._renderSingleChild(dialog, content, ctx);
 
-    if (c.entryPointChild) {
+    const trigger = c.trigger ?? c.entryPointChild;
+    if (trigger) {
       const wrapper = document.createElement('div');
-      const trigger = ctx.renderChild(c.entryPointChild);
-      if (trigger) {
-        trigger.addEventListener('click', (e) => {
+      const triggerEl = ctx.renderChild(trigger);
+      if (triggerEl) {
+        triggerEl.addEventListener('click', (e) => {
           e.preventDefault();
           dialog.showModal();
         });
-        wrapper.appendChild(trigger);
+        wrapper.appendChild(triggerEl);
       }
       wrapper.appendChild(dialog);
       return wrapper;
@@ -646,7 +650,8 @@ export class OatRenderer {
   /** @returns {HTMLElement} */
   _renderTabs(c, ctx) {
     const el = document.createElement('oat-tabs');
-    const items = c.tabItems || [];
+    const tabs = c.tabs ?? c.tabItems;
+    const items = tabs || [];
 
     for (const item of items) {
       const panel = document.createElement('div');

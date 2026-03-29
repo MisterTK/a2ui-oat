@@ -99,7 +99,7 @@ Interactive components:
 
   TextField
     required: label (string)
-    optional: value (string or data binding), textFieldType ("text"|"email"|"password"|"number"|"tel"|"url"|"textarea"), placeholder (string), action (action object for onChange)
+    optional: value (string or data binding), variant ("text"|"email"|"password"|"number"|"tel"|"url"|"textarea"), placeholder (string), action (action object for onChange)
 
   CheckBox
     required: label (string)
@@ -111,7 +111,7 @@ Interactive components:
 
   Slider
     required: value (number or data binding)
-    optional: minValue (number), maxValue (number), step (number), action (action object)
+    optional: min (number), max (number), step (number), action (action object)
 
   DateTimeInput
     optional: value (string or data binding), enableDate (boolean), enableTime (boolean), action (action object)
@@ -130,10 +130,10 @@ Container components:
     required: child (string ID)
 
   Modal
-    required: entryPointChild (string ID), contentChild (string ID)
+    required: trigger (string ID), content (string ID)
 
   Tabs
-    required: tabItems (array of {title: string, child: string ID})
+    required: tabs (array of {title: string, child: string ID})
     optional: action (action object for tab change)
 
   Accordion
@@ -478,7 +478,7 @@ Pattern 3: Client-side routing (navigateTo + Tabs)
         {
           "id": "nav-tabs",
           "component": "Tabs",
-          "tabItems": [
+          "tabs": [
             {"title": "Active", "child": "active-view"},
             {"title": "Archived", "child": "archived-view"},
             {"title": "Flagged", "child": "flagged-view"}
@@ -556,14 +556,14 @@ Pattern 4: Form with toast feedback
           "component": "TextField",
           "label": "Name",
           "value": {"path": "/form/name"},
-          "textFieldType": "text"
+          "variant": "text"
         },
         {
           "id": "email-field",
           "component": "TextField",
           "label": "Email",
           "value": {"path": "/form/email"},
-          "textFieldType": "email"
+          "variant": "email"
         },
         {
           "id": "notify-switch",
