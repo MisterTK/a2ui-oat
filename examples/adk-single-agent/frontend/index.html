@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ADK Single Agent -- Oat Dashboard</title>
+  <link rel="stylesheet" href="https://unpkg.com/@knadh/oat/oat.min.css">
+  <script defer src="https://unpkg.com/@knadh/oat/oat.min.js"></script>
   <style>
     :root {
       --glass-bg: rgba(255, 255, 255, 0.05);
@@ -474,8 +476,14 @@ function resolve(val, data) {
 }
 
 function normalizeComponent(c) {
-  // LLMs sometimes use "type" instead of "component" for the component name
-  if (!c.component && c.type) { c.component = c.type; }
+  // LLMs use "type" instead of "component"
+  if (!c.component && c.type) c.component = c.type;
+  // LLMs nest properties under a "properties" key -- flatten them
+  if (c.properties) {
+    const props = c.properties;
+    delete c.properties;
+    Object.assign(c, props);
+  }
   return c;
 }
 
@@ -486,8 +494,9 @@ function renderA2UI(messages) {
 
   for (const msg of messages) {
     if (msg.createSurface) surfaceCreated = true;
-    if (msg.updateDataModel && msg.updateDataModel.data) {
-      data = deepMerge(data, msg.updateDataModel.data);
+    if (msg.updateDataModel) {
+      const modelData = msg.updateDataModel.data || msg.updateDataModel.value || {};
+      data = deepMerge(data, modelData);
     }
     if (msg.updateComponents && msg.updateComponents.components) {
       components = components.concat(msg.updateComponents.components.map(normalizeComponent));
