@@ -145,6 +145,20 @@ export class OatRenderer {
   }
 
   /**
+   * Normalize a value that may be a shorthand path string ("/foo/bar") into a
+   * binding object ({ path: "/foo/bar" }) so that _resolve / _bindValue handle
+   * it correctly.  Pass-through for anything that is already an object or is
+   * not a path-like string.
+   *
+   * @param {*} value
+   * @returns {*}
+   */
+  _asBinding(value) {
+    if (typeof value === 'string' && value.startsWith('/')) return { path: value };
+    return value;
+  }
+
+  /**
    * Read a dot/slash-delimited path from an object.
    *
    * @param {Object} obj
@@ -339,7 +353,7 @@ export class OatRenderer {
   _renderText(c, ctx) {
     const tag = TEXT_VARIANT_TAGS[c.variant] || 'p';
     const el = document.createElement(tag);
-    this._bindValue(c.text, ctx, (val) => { el.textContent = val ?? ''; });
+    this._bindValue(this._asBinding(c.text), ctx, (val) => { el.textContent = val ?? ''; });
     return el;
   }
 
@@ -379,7 +393,7 @@ export class OatRenderer {
     const el = document.createElement('span');
     el.dataset.badge = '';
     this._addClass(el, c.variant);
-    this._bindValue(c.text, ctx, (val) => { el.textContent = val ?? ''; });
+    this._bindValue(this._asBinding(c.text), ctx, (val) => { el.textContent = val ?? ''; });
     return el;
   }
 
@@ -425,7 +439,7 @@ export class OatRenderer {
   /** @returns {HTMLElement} */
   _renderProgress(c, ctx) {
     const el = document.createElement('progress');
-    this._bindValue(c.value, ctx, (val) => { if (val != null) el.value = val; });
+    this._bindValue(this._asBinding(c.value), ctx, (val) => { if (val != null) el.value = val; });
     this._setAttr(el, 'max', c.max);
     return el;
   }
@@ -433,7 +447,7 @@ export class OatRenderer {
   /** @returns {HTMLElement} */
   _renderMeter(c, ctx) {
     const el = document.createElement('meter');
-    this._bindValue(c.value, ctx, (val) => { if (val != null) el.value = val; });
+    this._bindValue(this._asBinding(c.value), ctx, (val) => { if (val != null) el.value = val; });
     this._setAttr(el, 'min', c.min);
     this._setAttr(el, 'max', c.max);
     this._setAttr(el, 'low', c.low);
@@ -887,7 +901,7 @@ export class OatRenderer {
       }
     };
 
-    this._bindValue(c.rows, ctx, renderRows);
+    this._bindValue(this._asBinding(c.rows), ctx, renderRows);
 
     table.appendChild(tbody);
     return table;
@@ -899,21 +913,22 @@ export class OatRenderer {
     nav.setAttribute('aria-label', 'pagination');
 
     const renderPages = () => {
-      const currentPage = this._resolve(c.currentPage, ctx) ?? 1;
-      const totalPages = this._resolve(c.totalPages, ctx) ?? 1;
+      const currentPage = this._resolve(this._asBinding(c.currentPage), ctx) ?? 1;
+      const totalPages = this._resolve(this._asBinding(c.totalPages), ctx) ?? 1;
 
       nav.innerHTML = '';
 
       const prevBtn = document.createElement('button');
       prevBtn.textContent = '\u2190';
       prevBtn.disabled = currentPage <= 1;
-      const pageIsBound = this._isBound(c.currentPage);
+      const cpBind = this._asBinding(c.currentPage);
+      const pageIsBound = this._isBound(cpBind);
 
       const wirePageAction = (btn, targetPage) => {
         if (!c.action) return;
         btn.addEventListener('click', (e) => {
           e.preventDefault();
-          if (pageIsBound) ctx.setDataModel(c.currentPage.path, targetPage);
+          if (pageIsBound) ctx.setDataModel(cpBind.path, targetPage);
           ctx.dispatchAction(c.action);
         });
       };
@@ -938,8 +953,10 @@ export class OatRenderer {
 
     renderPages();
 
-    if (this._isBound(c.currentPage)) ctx.subscribe(c.currentPage.path, renderPages);
-    if (this._isBound(c.totalPages)) ctx.subscribe(c.totalPages.path, renderPages);
+    const cpBinding = this._asBinding(c.currentPage);
+    const tpBinding = this._asBinding(c.totalPages);
+    if (this._isBound(cpBinding)) ctx.subscribe(cpBinding.path, renderPages);
+    if (this._isBound(tpBinding)) ctx.subscribe(tpBinding.path, renderPages);
 
     return nav;
   }
@@ -949,7 +966,7 @@ export class OatRenderer {
     const el = document.createElement('div');
     el.setAttribute('role', 'alert');
     if (c.variant) el.dataset.variant = c.variant;
-    this._bindValue(c.text, ctx, (val) => { el.textContent = val ?? ''; });
+    this._bindValue(this._asBinding(c.text), ctx, (val) => { el.textContent = val ?? ''; });
     return el;
   }
 
@@ -963,13 +980,13 @@ export class OatRenderer {
     if (c.title) {
       const titleEl = document.createElement('h6');
       titleEl.className = 'toast-title';
-      this._bindValue(c.title, ctx, (val) => { titleEl.textContent = val ?? ''; });
+      this._bindValue(this._asBinding(c.title), ctx, (val) => { titleEl.textContent = val ?? ''; });
       el.appendChild(titleEl);
     }
 
     const msgEl = document.createElement('p');
     msgEl.className = 'toast-message';
-    this._bindValue(c.text, ctx, (val) => { msgEl.textContent = val ?? ''; });
+    this._bindValue(this._asBinding(c.text), ctx, (val) => { msgEl.textContent = val ?? ''; });
     el.appendChild(msgEl);
 
     const closeBtn = document.createElement('button');
