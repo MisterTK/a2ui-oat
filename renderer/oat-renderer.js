@@ -321,11 +321,14 @@ export class OatRenderer {
 
   /** @returns {HTMLElement} */
   _renderSidebar(c, ctx) {
-    const el = document.createElement('aside');
-    if (c.position) el.dataset.position = c.position;
-    if (c.collapsible) el.dataset.collapsible = 'true';
-    this._renderSingleChild(el, c.child, ctx);
-    return el;
+    const wrapper = document.createElement('div');
+    wrapper.dataset.sidebarLayout = '';
+    const aside = document.createElement('aside');
+    aside.dataset.sidebar = '';
+    if (c.position === 'right') aside.dataset.sidebarPosition = 'right';
+    this._renderSingleChild(aside, c.child, ctx);
+    wrapper.appendChild(aside);
+    return wrapper;
   }
 
   // ---------------------------------------------------------------------------
