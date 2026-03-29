@@ -5,6 +5,11 @@
   "license": "MIT",
   "type": "module",
   "main": "renderer/index.js",
+  "exports": {
+    ".": "./renderer/index.js",
+    "./catalog": "./catalog/oat-catalog.json",
+    "./sanitizer": "./direct/sanitizer.js"
+  },
   "keywords": [
     "a2ui",
     "oat",

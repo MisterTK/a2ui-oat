@@ -3,7 +3,7 @@
   "catalogId": "https://a2ui-oat.dev/catalog/v1/oat-catalog.json",
   "version": "v0.9",
   "name": "Oat Catalog",
-  "description": "A lightweight A2UI catalog pairing Google's A2UI protocol with Kailash Nadh's Oat CSS library. Defines 37 semantic HTML components, 10 registered client-side functions, and theme properties mapped to Oat CSS custom properties.",
+  "description": "A lightweight A2UI catalog pairing Google's A2UI protocol with Kailash Nadh's Oat CSS library. Defines 37 semantic HTML components, 22 registered client-side functions, and theme properties mapped to Oat CSS custom properties.",
 
   "components": {
 
