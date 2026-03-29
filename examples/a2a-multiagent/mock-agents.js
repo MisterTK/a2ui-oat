@@ -21,7 +21,7 @@ import { createServer } from "node:http";
 
 const PORT = parseInt(process.env.PORT || "3100", 10);
 
-const OAT_CATALOG_ID = "https://a2ui-oat.dev/catalog/v1/oat-catalog.json";
+const OAT_CATALOG_ID = "https://unpkg.com/a2ui-oat/catalog/oat-catalog.json";
 const BASIC_CATALOG_ID =
   "https://a2ui.org/specification/v0_9/basic_catalog.json";
 

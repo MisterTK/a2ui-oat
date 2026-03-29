@@ -6,7 +6,7 @@ You are generating A2UI JSON against the Oat Catalog. Follow these rules exactly
 VERSION AND CATALOG
 -------------------
 Always set version to "v0.9" in every A2UI message.
-Always reference catalogId "https://a2ui-oat.dev/catalog/v1/oat-catalog.json" when creating surfaces.
+Always reference catalogId "https://unpkg.com/a2ui-oat/catalog/oat-catalog.json" when creating surfaces.
 
 
 COMPONENT TYPES
@@ -312,7 +312,7 @@ Always start by creating a surface with a createSurface message:
   "version": "v0.9",
   "createSurface": {
     "surfaceId": "<unique-id>",
-    "catalogId": "https://a2ui-oat.dev/catalog/v1/oat-catalog.json",
+    "catalogId": "https://unpkg.com/a2ui-oat/catalog/oat-catalog.json",
     "theme": {
       "primaryColor": "#1A73E8",
       "backgroundColor": "#ffffff",
@@ -765,7 +765,7 @@ Full minimal example:
     "version": "v0.9",
     "createSurface": {
       "surfaceId": "hello",
-      "catalogId": "https://a2ui-oat.dev/catalog/v1/oat-catalog.json"
+      "catalogId": "https://unpkg.com/a2ui-oat/catalog/oat-catalog.json"
     }
   },
   {

@@ -39,7 +39,7 @@ import { email } from "./functions/email.js";
 
 /** Canonical URL for the Oat Catalog JSON Schema. */
 export const CATALOG_ID =
-  "https://a2ui-oat.dev/catalog/v1/oat-catalog.json";
+  "https://unpkg.com/a2ui-oat/catalog/oat-catalog.json";
 
 /** Current specification version of the Oat Renderer. */
 export const VERSION = "v0.9";

@@ -461,7 +461,7 @@ A remote agent advertises Oat Catalog support in its AgentCard:
   "description": "A2UI with Oat Catalog",
   "params": {
     "supportedCatalogIds": [
-      "https://a2ui-oat.dev/catalog/v1/oat-catalog.json",
+      "https://unpkg.com/a2ui-oat/catalog/oat-catalog.json",
       "https://a2ui.org/specification/v0_9/basic_catalog.json"
     ],
     "acceptsInlineCatalogs": true
@@ -477,7 +477,7 @@ The A2A client running the Oat Renderer includes the Oat Catalog ID in every mes
 {
   "v0.9": {
     "supportedCatalogIds": [
-      "https://a2ui-oat.dev/catalog/v1/oat-catalog.json"
+      "https://unpkg.com/a2ui-oat/catalog/oat-catalog.json"
     ]
   }
 }
@@ -500,7 +500,7 @@ A2UI messages are encoded as A2A DataParts with `mimeType: application/json+a2ui
       "version": "v0.9",
       "createSurface": {
         "surfaceId": "dashboard",
-        "catalogId": "https://a2ui-oat.dev/catalog/v1/oat-catalog.json",
+        "catalogId": "https://unpkg.com/a2ui-oat/catalog/oat-catalog.json",
         "theme": { "primaryColor": "#1A73E8" },
         "sendDataModel": true
       }
@@ -570,7 +570,7 @@ Oat supports light/dark mode via CSS media queries. The theme includes a **mode*
   "version": "v0.9",
   "createSurface": {
     "surfaceId": "analytics-dashboard",
-    "catalogId": "https://a2ui-oat.dev/catalog/v1/oat-catalog.json",
+    "catalogId": "https://unpkg.com/a2ui-oat/catalog/oat-catalog.json",
     "theme": {
       "primaryColor": "#D97706",
       "backgroundColor": "#FFFBEB",

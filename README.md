@@ -283,7 +283,7 @@ See [docs/when-to-use-which.md](docs/when-to-use-which.md) for a detailed decisi
 - [Oat GitHub](https://github.com/knadh/oat)
 - [Architecture Document](docs/architecture.md)
 - [Mode Decision Guide](docs/when-to-use-which.md)
-- [Oat Catalog](https://a2ui-oat.dev/catalog/v1/oat-catalog.json)
+- [Oat Catalog](https://unpkg.com/a2ui-oat/catalog/oat-catalog.json)
 
 ## License
 

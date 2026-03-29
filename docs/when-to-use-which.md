@@ -76,7 +76,7 @@ When multiple remote agents from different vendors contribute UI surfaces, A2UI 
 
 **Recommended: A2UI Mode (Tier 1)**
 
-Google's Agentspace and Vertex AI agent deployments operate in structured, catalog-driven environments. A2UI Mode aligns with these platforms' security and rendering expectations. The Oat Catalog ID (`https://a2ui-oat.dev/catalog/v1/oat-catalog.json`) can be advertised in agent cards for discovery.
+Google's Agentspace and Vertex AI agent deployments operate in structured, catalog-driven environments. A2UI Mode aligns with these platforms' security and rendering expectations. The Oat Catalog ID (`https://unpkg.com/a2ui-oat/catalog/oat-catalog.json`) can be advertised in agent cards for discovery.
 
 ### Regulated Environments (Finance, Healthcare, Government)
 
