@@ -665,20 +665,20 @@
     },
 
     "Modal": {
-      "description": "A dialog overlay rendered using the native HTML dialog element. The entry point child is the trigger element; the content child is the dialog body.",
+      "description": "A dialog overlay using the native HTML dialog element with the closedby attribute and a form method=\"dialog\" wrapper. The trigger element receives commandfor/command attributes to open the dialog. Set dismissible to false to use closedby=\"none\" (prevents Escape and click-outside dismissal); defaults to closedby=\"any\".",
       "htmlElement": "dialog",
       "properties": {
         "trigger": {
           "type": "ComponentId",
-          "description": "Component ID of the trigger element that opens the modal."
+          "description": "Component ID of the trigger element that opens the modal. The trigger receives commandfor and command=\"show-modal\" attributes."
         },
         "content": {
           "type": "ComponentId",
-          "description": "Component ID of the modal body content."
+          "description": "Component ID of the modal body content, wrapped inside a form method=\"dialog\" element."
         },
         "dismissible": {
           "type": "boolean",
-          "description": "Whether the modal can be dismissed by clicking outside or pressing Escape."
+          "description": "Whether the modal can be dismissed by clicking outside or pressing Escape. Maps to closedby=\"any\" (true, default) or closedby=\"none\" (false)."
         }
       },
       "requiredProperties": ["trigger", "content"]

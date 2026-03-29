@@ -680,29 +680,26 @@ export class OatRenderer {
 
   /** @returns {HTMLElement} */
   _renderModal(c, ctx) {
+    const uid = c.id || Math.random().toString(36).slice(2, 8);
+    const dialogId = `modal-${uid}`;
+
     const dialog = document.createElement('dialog');
+    dialog.id = dialogId;
+    dialog.setAttribute('closedby', c.dismissible === false ? 'none' : 'any');
 
-    const dismissible = c.dismissible !== false;
-    if (dismissible) {
-      dialog.addEventListener('click', (e) => {
-        if (e.target === dialog) dialog.close();
-      });
-    } else {
-      dialog.addEventListener('cancel', (e) => { e.preventDefault(); });
-    }
-
+    const form = document.createElement('form');
+    form.method = 'dialog';
     const content = c.content ?? c.contentChild;
-    this._renderSingleChild(dialog, content, ctx);
+    this._renderSingleChild(form, content, ctx);
+    dialog.appendChild(form);
 
     const trigger = c.trigger ?? c.entryPointChild;
     if (trigger) {
       const wrapper = document.createElement('div');
       const triggerEl = ctx.renderChild(trigger);
       if (triggerEl) {
-        triggerEl.addEventListener('click', (e) => {
-          e.preventDefault();
-          dialog.showModal();
-        });
+        triggerEl.setAttribute('commandfor', dialogId);
+        triggerEl.setAttribute('command', 'show-modal');
         wrapper.appendChild(triggerEl);
       }
       wrapper.appendChild(dialog);
