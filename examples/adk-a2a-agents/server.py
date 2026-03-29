@@ -89,7 +89,17 @@ async def run_agent(runner, session_service, sessions, app_name, message):
         elif isinstance(parsed, dict):
             a2ui_data = [parsed]
     except json.JSONDecodeError:
-        plain_text = response_text
+        # Fallback: try parsing <a2ui-json> tags
+        try:
+            from a2ui.core.parser.parser import parse_response
+            parts = parse_response(response_text)
+            for part in parts:
+                if part.text:
+                    plain_text += part.text + "\n"
+                if part.a2ui_json:
+                    a2ui_data.extend(part.a2ui_json)
+        except (ValueError, ImportError):
+            plain_text = response_text
 
     return {"text": plain_text.strip(), "a2ui": a2ui_data}
 
