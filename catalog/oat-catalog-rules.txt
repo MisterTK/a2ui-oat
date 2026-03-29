@@ -253,6 +253,49 @@ Registered functions in the Oat Catalog:
   formatNumber(value, locale, options)
     Locale-aware number formatting via Intl.NumberFormat.
 
+  formatString(template, targetPath)
+    String interpolation. Replaces ${/data/model/path} placeholders in template
+    with values from the data model. Writes result to targetPath if provided.
+
+  formatCurrency(value, currency, locale, targetPath)
+    Currency formatting via Intl.NumberFormat. currency is an ISO 4217 code
+    (e.g. "USD", "EUR", "GBP"; default: "USD"). Writes result to targetPath if provided.
+
+  pluralize(count, singular, plural, targetPath)
+    Returns singular when count is 1, plural otherwise (default: singular + "s").
+    Writes result to targetPath if provided.
+
+  and(conditions)
+    Logical AND. Returns true if every value in the conditions array is truthy.
+    Used in checks arrays on Button to gate actions.
+
+  or(conditions)
+    Logical OR. Returns true if any value in the conditions array is truthy.
+    Used in checks arrays on Button to gate actions.
+
+  not(value)
+    Logical NOT. Returns the boolean negation of value.
+    Used in checks arrays on Button to gate actions.
+
+  required(value)
+    Validation. Returns true if value is non-null and non-empty string.
+    Used in checks arrays on Button to validate form fields before submission.
+
+  regex(value, pattern)
+    Validation. Returns true if value matches the regular expression pattern string.
+    Used in checks arrays on Button to validate input format.
+
+  length(value, min, max)
+    Validation. Returns true if string length is >= min and <= max.
+    min defaults to 0, max defaults to Infinity.
+
+  numeric(value)
+    Validation. Returns true if value is a valid number (passes Number() conversion).
+
+  email(value)
+    Validation. Returns true if value matches a basic email address pattern
+    (localpart@domain.tld format).
+
 Function arguments may use data bindings:
   "args": {
     "url": {"path": "/api/endpoint"},
@@ -604,7 +647,42 @@ Pattern 4: Form with toast feedback
     }
   }
 
-Pattern 5: Loading states with Skeleton and Spinner
+Pattern 5: Form validation with checks on Button
+
+  Wire validation functions to a Button's checks array. The action fires only
+  if every check returns true.
+
+  {
+    "id": "submit-btn",
+    "component": "Button",
+    "child": "submit-label",
+    "variant": "primary",
+    "checks": [
+      {
+        "functionCall": {
+          "call": "required",
+          "args": { "value": {"path": "/form/email"} }
+        }
+      },
+      {
+        "functionCall": {
+          "call": "email",
+          "args": { "value": {"path": "/form/email"} }
+        }
+      },
+      {
+        "functionCall": {
+          "call": "length",
+          "args": { "value": {"path": "/form/password"}, "min": 8 }
+        }
+      }
+    ],
+    "action": {
+      "event": { "eventId": "submit-form", "data": {"email": {"path": "/form/email"}} }
+    }
+  }
+
+Pattern 6: Loading states with Skeleton and Spinner
 
   Show Skeleton placeholders while data loads, then replace with real components
   via a second updateComponents message after the agent retrieves data.

@@ -13,15 +13,15 @@ a2ui-oat is an open-source community renderer that pairs [Google's A2UI protocol
 
 a2ui-oat provides two artifacts:
 
-- **Oat Catalog** -- A custom A2UI catalog JSON schema exposing 35+ UI components and 10+ registered functions.
+- **Oat Catalog** -- A custom A2UI catalog JSON schema exposing 37 UI components and 22 registered functions.
 - **Oat Renderer** -- A minimal JavaScript renderer built on `@a2ui/web-lib` that converts A2UI JSON messages into semantic HTML styled automatically by Oat.
 
 The project supports a **dual-mode architecture**: A2UI Mode for structured, catalog-constrained rendering with full security guarantees, and Direct Mode for trusted-agent scenarios where the LLM emits semantic HTML and Oat styles it with zero intermediary. Both modes share the same CSS, JS, and companion libraries. The choice between them is a security architecture decision.
 
 ## Features
 
-- **35+ components** -- Full Basic Catalog (16) plus 19 Oat-native components: tables, pagination, progress, skeleton loaders, toasts, tooltips, alerts, breadcrumbs, sidebars, accordions, switches, badges, avatars, grid, and more.
-- **10+ registered functions** -- Client-side pagination (`fetchPage`, `fetchAndAppend`), real-time streaming (`subscribeSSE`, `subscribeWebSocket`), SPA routing (`navigateTo`), toast notifications (`showToast`), debounce, and locale-aware formatting.
+- **37 components** -- Full Basic Catalog (16) plus 21 Oat-native components: tables, pagination, progress, meter, skeleton loaders, toasts, tooltips, alerts, breadcrumbs, sidebars, accordions, switches, badges, avatars, video, audio, grid, dropdown, and more.
+- **22 registered functions** -- Data (`fetchPage`, `fetchAndAppend`, `subscribeSSE`, `subscribeWebSocket`), navigation (`openUrl`, `navigateTo`), UI (`showToast`, `debounce`), formatting (`formatDate`, `formatNumber`, `formatString`, `formatCurrency`, `pluralize`), logic (`and`, `or`, `not`), and validation (`required`, `regex`, `length`, `numeric`, `email`).
 - **~13KB total client footprint** -- Oat CSS + JS + companion libraries, minified and gzipped.
 - **Zero framework dependencies** -- No React, Angular, Lit, or build tooling required. Deploy via CDN include.
 - **Dual-mode architecture** -- A2UI Mode (structured, validated) and Direct Mode (HTML-native, zero intermediary).
@@ -98,6 +98,8 @@ See [docs/when-to-use-which.md](docs/when-to-use-which.md) for guidance on choos
 | Skeleton | `<div class="skeleton">` | Oat Skeleton |
 | Progress | `<progress>` | Oat Progress |
 | Meter | `<meter>` | Oat Meter |
+| Video | `<video>` | Oat / HTML5 |
+| AudioPlayer | `<audio>` | Oat / HTML5 |
 
 ### Interactive
 
@@ -121,6 +123,7 @@ See [docs/when-to-use-which.md](docs/when-to-use-which.md) for guidance on choos
 | Tabs | `<oat-tabs>` | Basic Catalog + Oat Tabs WC |
 | Accordion | `<details><summary>` | Oat Accordion |
 | Tooltip | `<span data-tooltip>` | Oat Tooltip |
+| Dropdown | `<ot-dropdown>` | Oat Dropdown WC |
 
 ### Data & Feedback
 
@@ -132,9 +135,11 @@ See [docs/when-to-use-which.md](docs/when-to-use-which.md) for guidance on choos
 | Toast | `<oat-toast>` | Oat Toast WC |
 | Breadcrumb | `<nav aria-label="breadcrumb">` | Oat Breadcrumb |
 
-**Total: 35 components.** The Basic Catalog's 16 are fully included. The additional 19 are native Oat primitives.
+**Total: 37 components.** The Basic Catalog's 16 are fully included. The additional 21 are native Oat primitives.
 
 ## Registered Functions
+
+### Data
 
 | Function | Backed By | Purpose |
 |----------|-----------|---------|
@@ -142,12 +147,48 @@ See [docs/when-to-use-which.md](docs/when-to-use-which.md) for guidance on choos
 | fetchAndAppend | fetch API | Infinite scroll. Appends results to existing array in data model. |
 | subscribeSSE | EventSource | Opens SSE stream. Writes each event to data model path. |
 | subscribeWebSocket | WebSocket | Opens WebSocket. Writes parsed messages to data model. |
-| openUrl | window.open | Opens URL in browser. |
+
+### Navigation
+
+| Function | Backed By | Purpose |
+|----------|-----------|---------|
+| openUrl | window.open | Opens URL in browser (`target`: `"_blank"` or `"_self"`). |
 | navigateTo | tinyrouter.js | Client-side SPA routing via window.history. |
+
+### UI
+
+| Function | Backed By | Purpose |
+|----------|-----------|---------|
 | showToast | Oat Toast WC | Triggers a toast notification from any action. |
-| debounce | vanilla JS | Wraps another action with debounce. |
+| debounce | vanilla JS | Wraps another action with a debounce delay. |
+
+### Formatting
+
+| Function | Backed By | Purpose |
+|----------|-----------|---------|
 | formatDate | Intl.DateTimeFormat | Locale-aware date formatting. |
 | formatNumber | Intl.NumberFormat | Locale-aware number formatting. |
+| formatString | vanilla JS | String interpolation using `${/data/model/path}` placeholders. |
+| formatCurrency | Intl.NumberFormat | Currency formatting with ISO 4217 currency codes. |
+| pluralize | vanilla JS | Returns singular or plural form based on count. |
+
+### Logic
+
+| Function | Backed By | Purpose |
+|----------|-----------|---------|
+| and | vanilla JS | Returns `true` if all conditions in an array are truthy. |
+| or | vanilla JS | Returns `true` if any condition in an array is truthy. |
+| not | vanilla JS | Returns the boolean negation of a value. |
+
+### Validation
+
+| Function | Backed By | Purpose |
+|----------|-----------|---------|
+| required | vanilla JS | Validates that a value is non-null and non-empty. |
+| regex | vanilla JS | Validates a value against a regular expression pattern. |
+| length | vanilla JS | Validates that a string's length falls within min/max bounds. |
+| numeric | vanilla JS | Validates that a value is a valid number. |
+| email | vanilla JS | Validates that a value matches a basic email address pattern. |
 
 ## Architecture
 
@@ -172,7 +213,7 @@ Browser DOM
 
 | Layer | Artifact | Author | Role |
 |-------|----------|--------|------|
-| Oat Catalog | oat-catalog.json | a2ui-oat project | Defines 35+ components and 10+ functions as A2UI-compliant JSON Schema |
+| Oat Catalog | oat-catalog.json | a2ui-oat project | Defines 37 components and 22 registered functions as A2UI-compliant JSON Schema |
 | Oat Renderer | oat-renderer.js | a2ui-oat project | Maps catalog components to semantic HTML elements |
 | Protocol Engine | @a2ui/web-lib | Google (existing) | Stream parsing, state management, data binding, validation |
 | Styling | Oat CSS + JS + companions | Kailash Nadh (existing) | Automatic semantic styling, Web Components for dynamic elements |
@@ -214,8 +255,8 @@ See [docs/when-to-use-which.md](docs/when-to-use-which.md) for a detailed decisi
 | Attribute | a2ui-oat | Lit Renderer | React Renderer | Angular Renderer |
 |-----------|---------|-------------|---------------|-----------------|
 | Client footprint | ~13KB | ~15KB+ | ~45KB+ | ~60KB+ |
-| Components | 35+ | 16 | 16 | 16 |
-| Registered functions | 10+ | Basic set | Basic set | Basic set |
+| Components | 37 | 16 | 16 | 16 |
+| Registered functions | 22 | Basic set | Basic set | Basic set |
 | Framework dependency | None | Lit | React | Angular |
 | Build tooling required | No | Yes | Yes | Yes |
 | Client-side pagination | Native | Custom | Custom | Custom |
