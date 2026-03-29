@@ -282,6 +282,38 @@
     .a2ui-meter { width: 100%; height: 8px; }
     .a2ui-tooltip { position: relative; cursor: help; }
     .a2ui-tooltip:hover::after { content: attr(data-tooltip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); color: var(--text-primary); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; white-space: nowrap; z-index: 100; }
+
+    /* Ensure all A2UI rendered content is light on dark */
+    #surface *, .agent-surface *, #surface-basic *, #surface-oat *,
+    .surface-container *, #metrics-surface *, #incidents-surface * {
+      color: var(--text-secondary, #a0aec0);
+    }
+    #surface h1, #surface h2, #surface h3, #surface h4,
+    .agent-surface h1, .agent-surface h2, .agent-surface h3, .agent-surface h4,
+    #surface-basic h1, #surface-basic h2, #surface-basic h3,
+    #surface-oat h1, #surface-oat h2, #surface-oat h3,
+    .surface-container h1, .surface-container h2, .surface-container h3 {
+      color: var(--text-primary, #ffffff);
+    }
+    table, .a2ui-table { border-collapse: collapse; width: 100%; }
+    table th, .a2ui-table th {
+      color: var(--text-secondary, #a0aec0) !important;
+      background: rgba(255,255,255,0.05) !important;
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--glass-border, rgba(255,255,255,0.1));
+      text-align: left;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    table td, .a2ui-table td {
+      color: var(--text-secondary, #a0aec0) !important;
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    table tr:nth-child(even), .a2ui-table tr:nth-child(even) {
+      background: rgba(255,255,255,0.02);
+    }
   </style>
 </head>
 <body>
@@ -515,7 +547,22 @@ function renderComponent(comp, cMap, data) {
     case 'Toast': { const el = document.createElement('div'); el.className = 'a2ui-alert ' + (comp.variant || 'info'); el.textContent = resolve(comp.text, data) || ''; return el; }
     case 'DateTimeInput': { const el = document.createElement('input'); el.type = 'date'; el.style.cssText = 'background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:8px;padding:0.5rem;color:var(--text-primary);'; return el; }
     case 'Modal': { const el = document.createElement('div'); el.className = 'a2ui-card'; const ch = renderChild(comp.contentChild); if (ch) el.appendChild(ch); return el; }
-    default: { const el = document.createElement('div'); el.style.cssText = 'color:var(--text-muted);font-size:0.75rem;font-style:italic;'; el.textContent = `[${comp.component}]`; return el; }
+    default: {
+      const el = document.createElement('div');
+      el.style.cssText = 'color:var(--text-muted);font-size:0.75rem;font-style:italic;';
+      // Gracefully handle unknown components: render children if available, otherwise show type + properties
+      if (comp.children && comp.children.length > 0) {
+        renderChildren(el, comp.children);
+      } else if (comp.child) {
+        const ch = renderChild(comp.child);
+        if (ch) el.appendChild(ch);
+      } else if (comp.text) {
+        el.textContent = String(resolve(comp.text, data) || '');
+      } else {
+        el.textContent = `[${comp.component || 'Unknown'}]`;
+      }
+      return el;
+    }
   }
 }
 

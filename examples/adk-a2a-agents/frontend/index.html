@@ -266,6 +266,38 @@
     .a2ui-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--glass-hover); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: var(--text-primary); overflow: hidden; }
     .a2ui-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .a2ui-meter { width: 100%; height: 8px; }
+
+    /* Ensure all A2UI rendered content is light on dark */
+    #surface *, .agent-surface *, #surface-basic *, #surface-oat *,
+    .surface-container *, #metrics-surface *, #incidents-surface * {
+      color: var(--text-secondary, #a0aec0);
+    }
+    #surface h1, #surface h2, #surface h3, #surface h4,
+    .agent-surface h1, .agent-surface h2, .agent-surface h3, .agent-surface h4,
+    #surface-basic h1, #surface-basic h2, #surface-basic h3,
+    #surface-oat h1, #surface-oat h2, #surface-oat h3,
+    .surface-container h1, .surface-container h2, .surface-container h3 {
+      color: var(--text-primary, #ffffff);
+    }
+    table, .a2ui-table { border-collapse: collapse; width: 100%; }
+    table th, .a2ui-table th {
+      color: var(--text-secondary, #a0aec0) !important;
+      background: rgba(255,255,255,0.05) !important;
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--glass-border, rgba(255,255,255,0.1));
+      text-align: left;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    table td, .a2ui-table td {
+      color: var(--text-secondary, #a0aec0) !important;
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    table tr:nth-child(even), .a2ui-table tr:nth-child(even) {
+      background: rgba(255,255,255,0.02);
+    }
   </style>
 </head>
 <body>
@@ -608,7 +640,16 @@ function renderComponent(comp, cMap, data) {
     default: {
       const el = document.createElement('div');
       el.style.cssText = 'color:var(--text-muted);font-size:0.75rem;font-style:italic;';
-      el.textContent = `[${comp.component}]`;
+      if (comp.children && comp.children.length > 0) {
+        renderChildren(el, comp.children);
+      } else if (comp.child) {
+        const ch = renderChild(comp.child);
+        if (ch) el.appendChild(ch);
+      } else if (comp.text) {
+        el.textContent = String(resolve(comp.text, data) || '');
+      } else {
+        el.textContent = `[${comp.component || 'Unknown'}]`;
+      }
       return el;
     }
   }

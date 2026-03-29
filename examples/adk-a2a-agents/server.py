@@ -8,6 +8,7 @@ A2UI surface, rendered side-by-side in the frontend.
 
 import json
 import os
+import re
 import sys
 
 from dotenv import load_dotenv
@@ -102,7 +103,9 @@ async def chat(request: Request):
 
     # Parse A2UI from each agent's response (structured JSON output)
     surfaces = {}
-    for agent_name, response_text in agent_responses.items():
+
+    def _parse_agent_text(response_text: str) -> tuple[str, list]:
+        """Parse response text into (plain_text, a2ui_data)."""
         a2ui_data = []
         plain_text = ""
         try:
@@ -121,12 +124,38 @@ async def chat(request: Request):
                         a2ui_data.extend(part.a2ui_json)
             except ValueError:
                 plain_text = response_text
+        return plain_text, a2ui_data
+
+    for agent_name, response_text in agent_responses.items():
+        plain_text, a2ui_data = _parse_agent_text(response_text)
 
         if a2ui_data or plain_text.strip():
             surfaces[agent_name] = {
                 "text": plain_text.strip(),
                 "a2ui": a2ui_data,
             }
+
+    # If only the orchestrator responded (sub-agent responses were not
+    # captured as separate events), try to extract JSON blocks from the
+    # orchestrator's text and assign them to the appropriate agents.
+    if len(surfaces) == 1 and "orchestrator" in surfaces:
+        orch_text = agent_responses.get("orchestrator", "")
+        # Try splitting on multiple JSON arrays in the response
+        json_blocks = re.findall(r'\[[\s\S]*?\](?=\s*\[|\s*$)', orch_text)
+        if len(json_blocks) >= 2:
+            # Attempt to assign first block to metrics, second to incidents
+            for i, block in enumerate(json_blocks):
+                try:
+                    parsed = json.loads(block)
+                    if not isinstance(parsed, list):
+                        continue
+                    agent_key = "metrics_agent" if i == 0 else "incidents_agent"
+                    surfaces[agent_key] = {"text": "", "a2ui": parsed}
+                except json.JSONDecodeError:
+                    pass
+            if len(surfaces) > 1:
+                # Remove the orchestrator entry since we split it
+                surfaces.pop("orchestrator", None)
 
     return JSONResponse({
         "surfaces": surfaces,

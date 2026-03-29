@@ -430,6 +430,38 @@
       transition: transform 0.2s;
     }
     .a2ui-switch.on::after { transform: translateX(16px); }
+
+    /* Ensure all A2UI rendered content is light on dark */
+    #surface *, .agent-surface *, #surface-basic *, #surface-oat *,
+    .surface-container *, #metrics-surface *, #incidents-surface * {
+      color: var(--text-secondary, #a0aec0);
+    }
+    #surface h1, #surface h2, #surface h3, #surface h4,
+    .agent-surface h1, .agent-surface h2, .agent-surface h3, .agent-surface h4,
+    #surface-basic h1, #surface-basic h2, #surface-basic h3,
+    #surface-oat h1, #surface-oat h2, #surface-oat h3,
+    .surface-container h1, .surface-container h2, .surface-container h3 {
+      color: var(--text-primary, #ffffff);
+    }
+    table, .a2ui-table { border-collapse: collapse; width: 100%; }
+    table th, .a2ui-table th {
+      color: var(--text-secondary, #a0aec0) !important;
+      background: rgba(255,255,255,0.05) !important;
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--glass-border, rgba(255,255,255,0.1));
+      text-align: left;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    table td, .a2ui-table td {
+      color: var(--text-secondary, #a0aec0) !important;
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    table tr:nth-child(even), .a2ui-table tr:nth-child(even) {
+      background: rgba(255,255,255,0.02);
+    }
   </style>
 </head>
 <body>
@@ -437,7 +469,7 @@
   <header>
     <div style="display:flex;align-items:center;gap:0.75rem">
       <h1>ADK Dashboard Agent</h1>
-      <span class="tag">Gemini 2.0 Flash + Oat Catalog</span>
+      <span class="tag">Gemini 3 Flash Preview + A2UI-Oat Catalog</span>
     </div>
     <button onclick="resetSession()">Reset Session</button>
   </header>
@@ -875,7 +907,16 @@ function renderComponent(comp, cMap, data) {
     default: {
       const el = document.createElement('div');
       el.style.cssText = 'color:var(--text-muted);font-size:0.75rem;font-style:italic;';
-      el.textContent = `[${comp.component}]`;
+      if (comp.children && comp.children.length > 0) {
+        renderChildren(el, comp.children);
+      } else if (comp.child) {
+        const ch = renderChild(comp.child);
+        if (ch) el.appendChild(ch);
+      } else if (comp.text) {
+        el.textContent = String(resolve(comp.text, data) || '');
+      } else {
+        el.textContent = `[${comp.component || 'Unknown'}]`;
+      }
       return el;
     }
   }
@@ -985,8 +1026,6 @@ async function sendMessage() {
 
   msgInput.value = '';
   sendBtn.disabled = true;
-  hints.style.display = 'none';
-
   addUserMessage(text);
   addLoading();
 
