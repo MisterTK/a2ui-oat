@@ -22,14 +22,6 @@
       --accent: #7dd3fc;
       --accent-hover: #38bdf8;
       --bg-gradient: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
-      --badge-success-bg: rgba(16, 185, 129, 0.15);
-      --badge-success-text: #34d399;
-      --badge-warning-bg: rgba(245, 158, 11, 0.15);
-      --badge-warning-text: #fbbf24;
-      --badge-error-bg: rgba(239, 68, 68, 0.15);
-      --badge-error-text: #f87171;
-      --badge-info-bg: rgba(59, 130, 246, 0.15);
-      --badge-info-text: #60a5fa;
     }
 
     body {
@@ -92,76 +84,6 @@
     #log .warn { color: #f9e2af; }
     #log .err  { color: #f38ba8; }
 
-    /* Simplified A2UI component rendering */
-    .a2ui-progress { width: 100%; margin: 0.25rem 0; }
-    .a2ui-badge {
-      display: inline-block;
-      padding: 0.15rem 0.55rem;
-      border-radius: 999px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      margin-right: 0.5rem;
-    }
-    .a2ui-badge.success {
-      background: var(--badge-success-bg);
-      color: var(--badge-success-text);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-    .a2ui-badge.info {
-      background: var(--badge-info-bg);
-      color: var(--badge-info-text);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-    }
-    .a2ui-alert {
-      padding: 0.75rem 1rem;
-      border-radius: 12px;
-      margin: 0.5rem 0;
-      font-weight: 500;
-      backdrop-filter: var(--glass-blur);
-      -webkit-backdrop-filter: var(--glass-blur);
-    }
-    .a2ui-alert.error {
-      background: var(--badge-error-bg);
-      color: var(--badge-error-text);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-    .a2ui-alert.warning {
-      background: var(--badge-warning-bg);
-      color: var(--badge-warning-text);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-    }
-    .a2ui-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 0.5rem 0;
-      font-size: 0.9rem;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    .a2ui-table th, .a2ui-table td {
-      text-align: left;
-      padding: 0.5rem 0.75rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-      color: var(--text-secondary);
-    }
-    .a2ui-table th {
-      background: rgba(255, 255, 255, 0.08);
-      font-weight: 600;
-      color: var(--text-primary);
-      border-bottom: 1px solid var(--glass-border);
-    }
-    .a2ui-table tr.striped:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
-    .a2ui-pagination {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-      margin-top: 0.75rem;
-      font-size: 0.9rem;
-    }
-    .a2ui-pagination span { color: var(--text-secondary); }
-
     @media (max-width: 768px) {
       .surfaces { grid-template-columns: 1fr; }
     }
@@ -178,8 +100,8 @@
     .surface-container h1, .surface-container h2, .surface-container h3 {
       color: var(--text-primary, #ffffff);
     }
-    table, .a2ui-table { border-collapse: collapse; width: 100%; }
-    table th, .a2ui-table th {
+    table { border-collapse: collapse; width: 100%; }
+    table th {
       color: var(--text-secondary, #a0aec0) !important;
       background: rgba(255,255,255,0.05) !important;
       padding: 0.6rem 0.75rem;
@@ -189,12 +111,12 @@
       text-transform: uppercase;
       letter-spacing: 0.03em;
     }
-    table td, .a2ui-table td {
+    table td {
       color: var(--text-secondary, #a0aec0) !important;
       padding: 0.6rem 0.75rem;
       border-bottom: 1px solid rgba(255,255,255,0.05);
     }
-    table tr:nth-child(even), .a2ui-table tr:nth-child(even) {
+    table tr:nth-child(even) {
       background: rgba(255,255,255,0.02);
     }
   </style>
@@ -221,10 +143,13 @@
   <div id="log"></div>
 
   <script type="module">
+    import { OatRenderer } from '../../renderer/index.js';
+
     const AGENTS_BASE = "http://localhost:3100";
     const OAT_CATALOG_ID = "https://a2ui-oat.dev/catalog/v1/oat-catalog.json";
 
     const logEl = document.getElementById("log");
+    const renderer = new OatRenderer();
 
     function log(msg, cls = "step") {
       const line = document.createElement("div");
@@ -302,134 +227,34 @@
     }
 
     // -----------------------------------------------------------------------
-    // Step 3: Render A2UI DataParts
-    //
-    // This is a simplified client-side renderer that demonstrates the
-    // concept. A production implementation would use @a2ui/web-lib +
-    // oat-renderer.js for full data binding and streaming support.
+    // Step 3: Render A2UI DataParts using OatRenderer
     // -----------------------------------------------------------------------
 
-    /** Resolve a value that may be a literal or a data-model path reference. */
-    function resolve(val, data) {
-      if (val && typeof val === "object" && val.path) {
-        const parts = val.path.split("/").filter(Boolean);
-        let current = data;
-        for (const p of parts) {
-          if (current == null) return undefined;
-          current = current[p];
-        }
-        return current;
-      }
-      return val;
-    }
-
-    function renderComponent(comp, componentMap, data) {
-      /** Render children into a parent container element. */
-      function renderChildren(parent, childIds) {
-        for (const childId of childIds ?? []) {
-          const child = componentMap.get(childId);
-          if (child) parent.appendChild(renderComponent(child, componentMap, data));
-        }
-      }
-
-      switch (comp.component) {
-        case "Column": {
-          const el = document.createElement("div");
-          el.style.display = "flex";
-          el.style.flexDirection = "column";
-          el.style.gap = "0.5rem";
-          renderChildren(el, comp.children);
-          return el;
-        }
-        case "Row": {
-          const el = document.createElement("div");
-          el.style.display = "flex";
-          el.style.gap = "0.75rem";
-          el.style.alignItems = "center";
-          if (comp.justify) el.style.justifyContent = comp.justify;
-          renderChildren(el, comp.children);
-          return el;
-        }
-        case "Text": {
-          const tag = comp.variant === "body" ? "p" : comp.variant || "p";
-          const el = document.createElement(tag);
-          el.textContent = resolve(comp.text, data) ?? "";
-          return el;
-        }
-        case "Badge": {
-          const el = document.createElement("span");
-          el.className = `a2ui-badge ${comp.variant || ""}`;
-          el.textContent = resolve(comp.text, data) ?? "";
-          return el;
-        }
-        case "Progress": {
-          const el = document.createElement("progress");
-          el.className = "a2ui-progress";
-          el.value = resolve(comp.value, data) ?? 0;
-          el.max = comp.max ?? 100;
-          return el;
-        }
-        case "Meter": {
-          const el = document.createElement("meter");
-          el.className = "a2ui-progress";
-          el.value = resolve(comp.value, data) ?? 0;
-          el.min = comp.min ?? 0;
-          el.max = comp.max ?? 100;
-          if (comp.low != null) el.low = comp.low;
-          if (comp.high != null) el.high = comp.high;
-          return el;
-        }
-        case "Alert": {
-          const el = document.createElement("div");
-          el.className = `a2ui-alert ${comp.variant || ""}`;
-          el.setAttribute("role", "alert");
-          el.textContent = resolve(comp.text, data) ?? "";
-          return el;
-        }
-        case "Table": {
-          const table = document.createElement("table");
-          table.className = "a2ui-table";
-
-          const thead = document.createElement("thead");
-          const headerRow = document.createElement("tr");
-          const columns = comp.columns ?? [];
-          for (const col of columns) {
-            const th = document.createElement("th");
-            th.textContent = col.header;
-            headerRow.appendChild(th);
+    /**
+     * Build a RenderContext shim for OatRenderer. Each surface gets its own
+     * data model and component map, enforcing A2A surface isolation (Section 9.5).
+     */
+    function makeRenderContext(dataModel, componentMap) {
+      return {
+        getDataModel: () => dataModel,
+        setDataModel: (path, val) => {
+          const parts = path.replace(/^\//, '').split('/');
+          let cur = dataModel;
+          for (let i = 0; i < parts.length - 1; i++) {
+            if (!cur[parts[i]]) cur[parts[i]] = {};
+            cur = cur[parts[i]];
           }
-          thead.appendChild(headerRow);
-          table.appendChild(thead);
-
-          const tbody = document.createElement("tbody");
-          const rows = resolve(comp.rows, data) ?? [];
-          for (const row of rows) {
-            const tr = document.createElement("tr");
-            if (comp.striped) tr.className = "striped";
-            for (const col of columns) {
-              const td = document.createElement("td");
-              td.textContent = row[col.field] ?? "";
-              tr.appendChild(td);
-            }
-            tbody.appendChild(tr);
-          }
-          table.appendChild(tbody);
-          return table;
-        }
-        case "Pagination": {
-          const el = document.createElement("nav");
-          el.className = "a2ui-pagination";
-          const current = resolve(comp.currentPage, data) ?? 1;
-          const total = resolve(comp.totalPages, data) ?? 1;
-          el.innerHTML = `<span>Page ${current} of ${total}</span>`;
-          return el;
-        }
-        default: {
-          const el = document.createElement("div");
-          el.textContent = `[Unknown component: ${comp.component}]`;
-          return el;
-        }
-      }
+          cur[parts[parts.length - 1]] = val;
+        },
+        subscribe: () => () => {},
+        renderChild: (id) => {
+          const child = componentMap.get(id);
+          if (!child) return document.createTextNode('');
+          return renderer.renderComponent(child, makeRenderContext(dataModel, componentMap));
+        },
+        dispatchAction: (action) => console.log('[A2UI] action', action),
+        getRegisteredFunction: () => null,
+      };
     }
 
     function renderDataPart(dataPart, containerEl) {
@@ -461,7 +286,8 @@
 
       if (root) {
         containerEl.innerHTML = "";
-        containerEl.appendChild(renderComponent(root, componentMap, data));
+        const ctx = makeRenderContext(data, componentMap);
+        containerEl.appendChild(renderer.renderComponent(root, ctx));
         log(`  Rendered ${components.length} components`, "ok");
       } else {
         containerEl.textContent = "No root component found";
