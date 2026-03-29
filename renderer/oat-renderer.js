@@ -649,7 +649,7 @@ export class OatRenderer {
     const el = document.createElement('input');
     el.type = 'text';
     if (c.placeholder) el.placeholder = c.placeholder;
-    if (c.minChars) el.dataset.minChars = c.minChars;
+    if (c.disabled) el.disabled = true;
 
     this._bindValue(c.value, ctx, (val) => { el.value = val ?? ''; });
     this._wireTwoWay(el, c.value, 'input', (e) => e.value, ctx);
@@ -658,6 +658,46 @@ export class OatRenderer {
 
     this._wireAction(el, 'change', c.action, ctx);
     wrapper.appendChild(el);
+
+    // Dynamic import keeps autocomp.js optional — zero hard dependencies.
+    const displayText = (v) =>
+      typeof v === 'object' ? (v.label || v.name || JSON.stringify(v)) : v;
+
+    import('https://unpkg.com/@knadh/autocomp@1.2.0/autocomp.js')
+      .then(({ autocomp }) => {
+        autocomp(el, {
+          onQuery: async (val) => {
+            const source = this._resolve(c.source, ctx);
+            if (!source) return [];
+            try {
+              const url = new URL(source, window.location.origin);
+              url.searchParams.set('q', val);
+              const resp = await fetch(url);
+              if (!resp.ok) return [];
+              return await resp.json();
+            } catch { return []; }
+          },
+          onSelect: (val) => {
+            if (this._isBound(c.value)) {
+              ctx.setDataModel(c.value.path, val);
+            }
+            el.value = displayText(val);
+            return el.value;
+          },
+          onRender: c.renderItem ? (item) => {
+            const d = document.createElement('span');
+            d.textContent = displayText(item);
+            return d;
+          } : undefined,
+          debounce: c.debounce || 200,
+        });
+      })
+      .catch(() => {
+        console.warn(
+          'autocomp.js not loaded; Autocomplete component will function as plain text input'
+        );
+      });
+
     return wrapper;
   }
 
