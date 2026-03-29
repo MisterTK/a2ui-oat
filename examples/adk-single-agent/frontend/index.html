@@ -569,8 +569,8 @@ function renderA2UI(messages) {
   for (const c of components) {
     for (const cid of (c.children || [])) childIds.add(cid);
     if (c.child) childIds.add(c.child);
-    if (c.contentChild) childIds.add(c.contentChild);
-    if (c.entryPointChild) childIds.add(c.entryPointChild);
+    if (c.content ?? c.contentChild) childIds.add(c.content ?? c.contentChild);
+    if (c.trigger ?? c.entryPointChild) childIds.add(c.trigger ?? c.entryPointChild);
   }
   const root = components.find(c => !childIds.has(c.id)) || components[0];
 
@@ -620,7 +620,7 @@ function renderComponent(comp, cMap, data) {
     }
     case 'Text': {
       const variant = comp.variant || 'body';
-      const tagMap = { h1:'h1', h2:'h2', h3:'h3', h4:'h4', h5:'h5', h6:'h6', body:'p', paragraph:'p', p:'p' };
+      const tagMap = { h1:'h1', h2:'h2', h3:'h3', h4:'h4', h5:'h5', h6:'h6', body:'p', paragraph:'p', p:'p', span:'span', small:'small', strong:'strong', em:'em' };
       const el = document.createElement(tagMap[variant] || 'p');
       el.textContent = resolve(comp.text, data) || '';
       return el;
@@ -802,8 +802,8 @@ function renderComponent(comp, cMap, data) {
     case 'Slider': {
       const el = document.createElement('input');
       el.type = 'range';
-      el.min = comp.minValue ?? 0;
-      el.max = comp.maxValue ?? 100;
+      el.min = comp.min ?? comp.minValue ?? 0;
+      el.max = comp.max ?? comp.maxValue ?? 100;
       el.value = resolve(comp.value, data) ?? 50;
       el.style.width = '100%';
       return el;
@@ -825,8 +825,9 @@ function renderComponent(comp, cMap, data) {
       const header = document.createElement('div');
       header.className = 'a2ui-tabs-header';
       const panels = [];
-      for (let i = 0; i < (comp.tabItems || []).length; i++) {
-        const item = comp.tabItems[i];
+      const tabList = comp.tabs ?? comp.tabItems ?? [];
+      for (let i = 0; i < tabList.length; i++) {
+        const item = tabList[i];
         const btn = document.createElement('button');
         btn.className = 'a2ui-tab-btn' + (i === 0 ? ' active' : '');
         btn.textContent = item.title || `Tab ${i+1}`;
@@ -916,7 +917,7 @@ function renderComponent(comp, cMap, data) {
       const el = document.createElement('div');
       el.className = 'a2ui-card';
       el.style.border = '2px solid var(--accent)';
-      const ch = renderChild(comp.contentChild);
+      const ch = renderChild(comp.content ?? comp.contentChild);
       if (ch) el.appendChild(ch);
       return el;
     }

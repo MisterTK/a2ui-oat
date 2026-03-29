@@ -471,7 +471,7 @@ function renderA2UI(messages) {
   for (const c of components) {
     for (const cid of (c.children || [])) childIds.add(cid);
     if (c.child) childIds.add(c.child);
-    if (c.contentChild) childIds.add(c.contentChild);
+    if (c.content ?? c.contentChild) childIds.add(c.content ?? c.contentChild);
   }
   const root = components.find(c => !childIds.has(c.id)) || components[0];
   const uniqueTypes = new Set(components.map(c => c.component));
@@ -504,7 +504,7 @@ function renderComponent(comp, cMap, data) {
     case 'Column': { const el = document.createElement('div'); el.className = 'a2ui-col'; if (comp.weight) el.style.flex = comp.weight; renderChildren(el, comp.children); return el; }
     case 'Text': {
       const variant = comp.variant || 'body';
-      const tagMap = { h1:'h1', h2:'h2', h3:'h3', h4:'h4', body:'p', paragraph:'p', p:'p' };
+      const tagMap = { h1:'h1', h2:'h2', h3:'h3', h4:'h4', body:'p', paragraph:'p', p:'p', span:'span', small:'small', strong:'strong', em:'em' };
       const el = document.createElement(tagMap[variant] || 'p');
       el.textContent = resolve(comp.text, data) || '';
       return el;
@@ -539,13 +539,14 @@ function renderComponent(comp, cMap, data) {
     }
     case 'CheckBox': { const wrapper = document.createElement('label'); wrapper.style.cssText = 'display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;'; const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!resolve(comp.value, data); wrapper.appendChild(cb); if (comp.label) wrapper.append(comp.label); return wrapper; }
     case 'Switch': { const el = document.createElement('div'); el.className = 'a2ui-switch' + (resolve(comp.value, data) ? ' on' : ''); el.addEventListener('click', () => el.classList.toggle('on')); return el; }
-    case 'Slider': { const el = document.createElement('input'); el.type = 'range'; el.min = comp.minValue ?? 0; el.max = comp.maxValue ?? 100; el.value = resolve(comp.value, data) ?? 50; el.style.width = '100%'; return el; }
+    case 'Slider': { const el = document.createElement('input'); el.type = 'range'; el.min = comp.min ?? comp.minValue ?? 0; el.max = comp.max ?? comp.maxValue ?? 100; el.value = resolve(comp.value, data) ?? 50; el.style.width = '100%'; return el; }
     case 'ChoicePicker': { const el = document.createElement('select'); el.style.cssText = 'background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:8px;padding:0.5rem;color:var(--text-primary);'; for (const opt of (comp.options || [])) { const o = document.createElement('option'); o.value = opt.value || opt.label; o.textContent = opt.label; el.appendChild(o); } return el; }
     case 'Tabs': {
       const el = document.createElement('div'); el.className = 'a2ui-tabs';
       const header = document.createElement('div'); header.className = 'a2ui-tabs-header'; const panels = [];
-      for (let i = 0; i < (comp.tabItems || []).length; i++) {
-        const item = comp.tabItems[i];
+      const tabList = comp.tabs ?? comp.tabItems ?? [];
+      for (let i = 0; i < tabList.length; i++) {
+        const item = tabList[i];
         const btn = document.createElement('button'); btn.className = 'a2ui-tab-btn' + (i === 0 ? ' active' : ''); btn.textContent = item.title || `Tab ${i+1}`;
         btn.onclick = () => { header.querySelectorAll('.a2ui-tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); panels.forEach((p, j) => p.classList.toggle('active', j === i)); };
         header.appendChild(btn);
@@ -559,7 +560,7 @@ function renderComponent(comp, cMap, data) {
     case 'Pagination': { const el = document.createElement('nav'); el.className = 'a2ui-pagination'; el.innerHTML = `<span>Page ${resolve(comp.currentPage, data) ?? 1} of ${resolve(comp.totalPages, data) ?? 1}</span>`; return el; }
     case 'Toast': { const el = document.createElement('div'); el.className = 'a2ui-alert ' + (comp.variant || 'info'); el.textContent = resolve(comp.text, data) || ''; return el; }
     case 'DateTimeInput': { const el = document.createElement('input'); el.type = 'date'; el.style.cssText = 'background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);border-radius:8px;padding:0.5rem;color:var(--text-primary);'; return el; }
-    case 'Modal': { const el = document.createElement('div'); el.className = 'a2ui-card'; const ch = renderChild(comp.contentChild); if (ch) el.appendChild(ch); return el; }
+    case 'Modal': { const el = document.createElement('div'); el.className = 'a2ui-card'; const ch = renderChild(comp.content ?? comp.contentChild); if (ch) el.appendChild(ch); return el; }
     default: {
       const el = document.createElement('div');
       el.style.cssText = 'color:var(--text-muted);font-size:0.75rem;font-style:italic;';
