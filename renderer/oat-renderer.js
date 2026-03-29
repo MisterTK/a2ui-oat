@@ -713,20 +713,35 @@ export class OatRenderer {
 
   /** @returns {HTMLElement} */
   _renderTabs(c, ctx) {
-    const el = document.createElement('oat-tabs');
+    const el = document.createElement('ot-tabs');
     const tabs = c.tabs ?? c.tabItems;
     const items = tabs || [];
     const activeTab = c.activeTab != null ? this._resolve(c.activeTab, ctx) : 0;
 
+    const tablist = document.createElement('div');
+    tablist.setAttribute('role', 'tablist');
+
+    const panels = [];
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
+      const isActive = i === activeTab;
+
+      const button = document.createElement('button');
+      button.setAttribute('role', 'tab');
+      button.textContent = item.title || '';
+      button.setAttribute('tabindex', isActive ? '0' : '-1');
+      if (isActive) button.setAttribute('aria-selected', 'true');
+      tablist.appendChild(button);
+
       const panel = document.createElement('div');
-      panel.slot = 'panel';
-      panel.dataset.title = item.title || '';
-      if (i === activeTab) panel.dataset.active = 'true';
+      panel.setAttribute('role', 'tabpanel');
+      if (!isActive) panel.hidden = true;
       this._renderSingleChild(panel, item.child, ctx);
-      el.appendChild(panel);
+      panels.push(panel);
     }
+
+    el.appendChild(tablist);
+    for (const panel of panels) el.appendChild(panel);
 
     return el;
   }
