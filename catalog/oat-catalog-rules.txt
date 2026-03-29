@@ -11,10 +11,10 @@ Always reference catalogId "https://a2ui-oat.dev/catalog/v1/oat-catalog.json" wh
 
 COMPONENT TYPES
 ---------------
-The Oat Catalog defines 35 component types. Use only these names (case-sensitive):
+The Oat Catalog defines 37 component types. Use only these names (case-sensitive):
 
 Layout (5):       Row, Column, Grid, List, Sidebar
-Display (10):     Text, Image, Icon, Divider, Badge, Avatar, Spinner, Skeleton, Progress, Meter
+Display (12):     Text, Image, Icon, Divider, Badge, Avatar, Spinner, Skeleton, Progress, Meter, Video, AudioPlayer
 Interactive (8):  Button, TextField, CheckBox, Switch, Slider, DateTimeInput, ChoicePicker, Autocomplete
 Container (5):    Card, Modal, Tabs, Accordion, Tooltip
 Data/Feedback (5): Table, Pagination, Alert, Toast, Breadcrumb
@@ -90,6 +90,14 @@ Display components:
   Meter
     required: value (number or data binding)
     optional: min (number), max (number), low (number), high (number)
+
+  Video
+    required: src (string or data binding)
+    optional: poster (string or data binding), controls (boolean, default true), autoplay (boolean), loop (boolean), muted (boolean), alt (string)
+
+  AudioPlayer
+    required: src (string or data binding)
+    optional: controls (boolean, default true), autoplay (boolean), loop (boolean)
 
 Interactive components:
 
@@ -311,7 +319,7 @@ Send components to a surface with updateComponents:
   }
 }
 
-Every component must have a unique "id" (string) and a "component" (one of the 35 types).
+Every component must have a unique "id" (string) and a "component" (one of the 37 types).
 
 Update the data model with updateDataModel:
 
@@ -637,7 +645,7 @@ Do not do any of the following:
    Wrong: {"component": "div", "innerHTML": "<b>Hello</b>"}
    Right: {"id": "t1", "component": "Text", "text": "Hello", "variant": "body"}
 
-2. Do not use undefined component types. Only the 35 listed types are valid.
+2. Do not use undefined component types. Only the 37 listed types are valid.
    Wrong: {"component": "Chart"}
    Wrong: {"component": "video"}
 
