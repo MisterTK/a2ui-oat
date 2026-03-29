@@ -346,6 +346,8 @@ export class OatRenderer {
     this._bindValue(c.url, ctx, (val) => { if (val) el.src = val; });
     if (c.alt) el.alt = c.alt;
     if (c.fit) el.style.objectFit = c.fit;
+    if (c.width) el.style.width = c.width;
+    if (c.height) el.style.height = c.height;
     this._addClass(el, c.variant);
     return el;
   }
@@ -458,6 +460,7 @@ export class OatRenderer {
     if (c.controls !== false) el.controls = true;
     if (c.autoplay) el.autoplay = true;
     if (c.loop) el.loop = true;
+    if (c.muted) el.muted = true;
     return el;
   }
 
