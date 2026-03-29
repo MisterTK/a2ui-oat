@@ -251,7 +251,7 @@ export class OatRenderer {
    * @param {string} cls
    */
   _addClass(el, cls) {
-    if (cls) el.classList.add(cls);
+    if (cls && typeof cls === 'string') el.classList.add(cls);
   }
 
   /**
@@ -363,7 +363,7 @@ export class OatRenderer {
     this._bindValue(c.url, ctx, (val) => { if (val) el.src = val; });
     if (c.alt) el.alt = c.alt;
     if (c.fit) el.style.objectFit = c.fit;
-    this._addClass(el, c.variant);
+    this._addClass(el, this._resolve(this._asBinding(c.variant), ctx));
     return el;
   }
 
@@ -392,7 +392,8 @@ export class OatRenderer {
   _renderBadge(c, ctx) {
     const el = document.createElement('span');
     el.dataset.badge = '';
-    this._addClass(el, c.variant);
+    const variant = this._resolve(this._asBinding(c.variant), ctx);
+    this._addClass(el, variant);
     this._bindValue(this._asBinding(c.text), ctx, (val) => { el.textContent = val ?? ''; });
     return el;
   }
@@ -427,12 +428,12 @@ export class OatRenderer {
   }
 
   /** @returns {HTMLElement} */
-  _renderSkeleton(c, _ctx) {
+  _renderSkeleton(c, ctx) {
     const el = document.createElement('div');
     el.className = 'skeleton';
     if (c.width) el.style.width = c.width;
     if (c.height) el.style.height = c.height;
-    this._addClass(el, c.variant);
+    this._addClass(el, this._resolve(this._asBinding(c.variant), ctx));
     return el;
   }
 
@@ -485,7 +486,7 @@ export class OatRenderer {
   /** @returns {HTMLElement} */
   _renderButton(c, ctx) {
     const el = document.createElement('button');
-    this._addClass(el, c.variant);
+    this._addClass(el, this._resolve(this._asBinding(c.variant), ctx));
     if (c.disabled) el.disabled = true;
     this._renderSingleChild(el, c.child, ctx);
     this._wireAction(el, 'click', c.action, ctx);
