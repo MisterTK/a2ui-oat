@@ -6,6 +6,7 @@ import os
 from a2ui.core.schema.manager import A2uiSchemaManager, CatalogConfig
 from a2ui.core.schema.constants import VERSION_0_9
 from google.adk.agents.llm_agent import LlmAgent
+from google.genai import types
 
 _CATALOG_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'catalog', 'oat-catalog.json')
@@ -44,8 +45,11 @@ def instruction(_ctx):
 
 
 incidents_agent = LlmAgent(
-    model='gemini-2.0-flash',
+    model='gemini-3-flash-preview',
     name='incidents_agent',
     description='Generates incident tracking tables with severity badges and status.',
     instruction=instruction,
+    generate_content_config=types.GenerateContentConfig(
+        thinking_config=types.ThinkingConfig(thinking_level='MEDIUM'),
+    ),
 )

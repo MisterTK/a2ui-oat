@@ -11,6 +11,7 @@ import os
 from a2ui.core.schema.manager import A2uiSchemaManager, CatalogConfig
 from a2ui.core.schema.constants import VERSION_0_9
 from google.adk.agents.llm_agent import LlmAgent
+from google.genai import types
 
 # Catalog paths
 _OAT_CATALOG_PATH = os.path.abspath(
@@ -77,8 +78,11 @@ def create_agent(mode: str = 'oat') -> LlmAgent:
         return _instruction
 
     return LlmAgent(
-        model='gemini-2.0-flash',
+        model='gemini-3-flash-preview',
         name=f'{mode}_dashboard_agent',
         description=f'Dashboard agent using {catalog_name} ({component_count} components).',
         instruction=instruction_fn,
+        generate_content_config=types.GenerateContentConfig(
+            thinking_config=types.ThinkingConfig(thinking_level='MEDIUM'),
+        ),
     )

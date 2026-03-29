@@ -9,6 +9,7 @@ import os
 from a2ui.core.schema.manager import A2uiSchemaManager, CatalogConfig
 from a2ui.core.schema.constants import VERSION_0_9
 from google.adk.agents.llm_agent import LlmAgent
+from google.genai import types
 
 # Resolve the catalog path relative to this file
 _CATALOG_PATH = os.path.join(
@@ -56,8 +57,11 @@ def instruction(_ctx):
 
 
 root_agent = LlmAgent(
-    model='gemini-2.0-flash',
+    model='gemini-3-flash-preview',
     name='dashboard_agent',
     description='An agent that generates rich dashboard UIs using the Oat Catalog.',
     instruction=instruction,
+    generate_content_config=types.GenerateContentConfig(
+        thinking_config=types.ThinkingConfig(thinking_level='MEDIUM'),
+    ),
 )

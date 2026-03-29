@@ -6,13 +6,17 @@ specialized sub-agents which each generate their own A2UI surfaces.
 """
 
 from google.adk.agents.llm_agent import LlmAgent
+from google.genai import types
 from agents.metrics_agent import metrics_agent
 from agents.incidents_agent import incidents_agent
 
 root_agent = LlmAgent(
-    model='gemini-2.0-flash',
+    model='gemini-3-flash-preview',
     name='orchestrator',
     description='Routes requests to metrics or incidents sub-agents.',
+    generate_content_config=types.GenerateContentConfig(
+        thinking_config=types.ThinkingConfig(thinking_level='MEDIUM'),
+    ),
     instruction=(
         'You are an orchestrator that delegates to specialized sub-agents. '
         'When the user asks about metrics, system status, CPU, memory, or '
