@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "pluralize",
+  "description": "Basic pluralization based on count. Returns singular or plural form of a word depending on the numeric count value.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "count": {
+        "oneOf": [
+          { "type": "number" },
+          {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "A JSON pointer path into the data model to resolve the count dynamically."
+              }
+            },
+            "required": ["path"],
+            "additionalProperties": false
+          }
+        ],
+        "description": "The numeric count used to determine singular or plural. Can be a literal number or a DynamicNumber referencing a data model path."
+      },
+      "singular": {
+        "type": "string",
+        "description": "The singular form of the word."
+      },
+      "plural": {
+        "type": "string",
+        "description": "The plural form of the word. Defaults to singular + 's' if omitted."
+      },
+      "targetPath": {
+        "type": "string",
+        "description": "Optional data model path to write the result to."
+      }
+    },
+    "required": ["count", "singular"],
+    "additionalProperties": false
+  }
+}

@@ -30,6 +30,10 @@
       "options": {
         "type": "object",
         "description": "Intl.DateTimeFormat options object (e.g., { dateStyle: 'long', timeStyle: 'short' })."
+      },
+      "targetPath": {
+        "type": "string",
+        "description": "Optional data model path to write the formatted result to."
       }
     },
     "required": ["value"],

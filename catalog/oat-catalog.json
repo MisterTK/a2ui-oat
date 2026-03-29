@@ -1116,6 +1116,10 @@
         "options": {
           "type": "object",
           "description": "Intl.DateTimeFormat options (dateStyle, timeStyle, etc.)."
+        },
+        "targetPath": {
+          "type": "string",
+          "description": "Data model path to write the formatted result to."
         }
       },
       "requiredParameters": ["value"]
@@ -1135,6 +1139,171 @@
         "options": {
           "type": "object",
           "description": "Intl.NumberFormat options (style, currency, minimumFractionDigits, etc.)."
+        },
+        "targetPath": {
+          "type": "string",
+          "description": "Data model path to write the formatted result to."
+        }
+      },
+      "requiredParameters": ["value"]
+    },
+
+    "formatString": {
+      "description": "String interpolation with ${/path} syntax. Replaces path references in a template with values from the data model.",
+      "parameters": {
+        "template": {
+          "type": "DynamicString",
+          "description": "Template string containing ${/data/model/path} placeholders to interpolate."
+        },
+        "targetPath": {
+          "type": "string",
+          "description": "Data model path to write the interpolated result to."
+        }
+      },
+      "requiredParameters": ["template"]
+    },
+
+    "formatCurrency": {
+      "description": "Currency formatting via Intl.NumberFormat. Formats a numeric value as a locale-aware currency string.",
+      "parameters": {
+        "value": {
+          "type": "DynamicNumber",
+          "description": "Numeric value to format or data model path. Supports data binding."
+        },
+        "currency": {
+          "type": "string",
+          "description": "ISO 4217 currency code (e.g., 'USD', 'EUR', 'GBP'). Defaults to 'USD'."
+        },
+        "locale": {
+          "type": "string",
+          "description": "BCP 47 locale string (e.g., 'en-US', 'de-DE'). Defaults to browser locale."
+        },
+        "targetPath": {
+          "type": "string",
+          "description": "Data model path to write the formatted result to."
+        }
+      },
+      "requiredParameters": ["value"]
+    },
+
+    "pluralize": {
+      "description": "Basic pluralization based on count. Returns singular or plural form of a word.",
+      "parameters": {
+        "count": {
+          "type": "DynamicNumber",
+          "description": "Numeric count to determine singular or plural. Supports data binding."
+        },
+        "singular": {
+          "type": "string",
+          "description": "Singular form of the word."
+        },
+        "plural": {
+          "type": "string",
+          "description": "Plural form of the word. Defaults to singular + 's'."
+        },
+        "targetPath": {
+          "type": "string",
+          "description": "Data model path to write the result to."
+        }
+      },
+      "requiredParameters": ["count", "singular"]
+    },
+
+    "and": {
+      "description": "Logical AND over an array of conditions. Returns true if every condition is truthy.",
+      "parameters": {
+        "conditions": {
+          "type": "array",
+          "description": "Array of values or expressions to evaluate. Each may be a literal or a dynamic reference."
+        }
+      },
+      "requiredParameters": ["conditions"]
+    },
+
+    "or": {
+      "description": "Logical OR over an array of conditions. Returns true if any condition is truthy.",
+      "parameters": {
+        "conditions": {
+          "type": "array",
+          "description": "Array of values or expressions to evaluate. Each may be a literal or a dynamic reference."
+        }
+      },
+      "requiredParameters": ["conditions"]
+    },
+
+    "not": {
+      "description": "Logical NOT of a value. Returns the boolean negation of the resolved value.",
+      "parameters": {
+        "value": {
+          "type": "Dynamic",
+          "description": "The value to negate. Supports data binding."
+        }
+      },
+      "requiredParameters": ["value"]
+    },
+
+    "required": {
+      "description": "Validates that a value is non-null and non-empty. Returns true if the value is present.",
+      "parameters": {
+        "value": {
+          "type": "Dynamic",
+          "description": "The value to validate. Supports data binding."
+        }
+      },
+      "requiredParameters": ["value"]
+    },
+
+    "regex": {
+      "description": "Validates a value against a regular expression pattern. Returns true if the value matches.",
+      "parameters": {
+        "value": {
+          "type": "DynamicString",
+          "description": "The value to test against the pattern. Supports data binding."
+        },
+        "pattern": {
+          "type": "string",
+          "description": "The regular expression pattern string to match against."
+        }
+      },
+      "requiredParameters": ["value", "pattern"]
+    },
+
+    "length": {
+      "description": "Validates that a string's length falls within a specified range. Returns true if within bounds.",
+      "parameters": {
+        "value": {
+          "type": "DynamicString",
+          "description": "The string value to validate. Supports data binding."
+        },
+        "min": {
+          "type": "number",
+          "description": "Minimum allowed length. Defaults to 0."
+        },
+        "max": {
+          "type": "number",
+          "description": "Maximum allowed length. Defaults to Infinity."
+        }
+      },
+      "requiredParameters": ["value"]
+    },
+
+    "numeric": {
+      "description": "Validates that a value is numeric. Returns true if the value can be parsed as a valid number.",
+      "parameters": {
+        "value": {
+          "type": "Dynamic",
+          "description": "The value to validate. Supports data binding."
+        }
+      },
+      "requiredParameters": ["value"]
+    },
+
+    "email": {
+      "description": "Validates that a value is a valid email address. Returns true if the value matches a standard email pattern.",
+      "parameters": {
+        "value": {
+          "type": "DynamicString",
+          "description": "The value to validate as an email address. Supports data binding."
         }
       },
       "requiredParameters": ["value"]
