@@ -1,81 +1,118 @@
 /**
- * showToast -- Toast notification trigger backed by Oat Toast Web Component.
+ * showToast -- Toast notification trigger using Oat CSS toast structure.
  *
- * Creates (or reuses) a positioned toast container, appends a toast element
- * styled with Oat data-attributes, and auto-removes it after `duration` ms.
+ * Creates (or reuses) a `.toast-container[data-placement]` element, appends an
+ * `<output class="toast">` with Oat's data-attribute animation pattern, and
+ * auto-removes after `duration` ms.
  *
  * @param {object} args
- * @param {string}  args.text               - Toast message text (required).
+ * @param {string}  args.message             - Toast message body (also accepts `text` for compat).
+ * @param {string}  [args.title]             - Optional toast title rendered as h6.
  * @param {string}  [args.variant="info"]    - "success" | "warning" | "error" | "info".
- * @param {number}  [args.duration=3000]     - Auto-dismiss time in milliseconds.
- * @param {string}  [args.position="top-right"] - Screen position for the toast container.
+ * @param {number}  [args.duration=4000]     - Auto-dismiss ms; 0 = persistent.
+ * @param {string}  [args.placement="top-right"] - Container placement.
  * @param {object}  context                  - Renderer context.
  */
 
 const VALID_VARIANTS = new Set(["success", "warning", "error", "info"]);
 
-const POSITION_STYLES = {
-  "top-left":      { top: "1rem", left: "1rem" },
-  "top-center":    { top: "1rem", left: "50%", transform: "translateX(-50%)" },
-  "top-right":     { top: "1rem", right: "1rem" },
-  "bottom-left":   { bottom: "1rem", left: "1rem" },
-  "bottom-center": { bottom: "1rem", left: "50%", transform: "translateX(-50%)" },
-  "bottom-right":  { bottom: "1rem", right: "1rem" },
-};
+const VALID_PLACEMENTS = new Set([
+  "top-left", "top-center", "top-right",
+  "bottom-left", "bottom-center", "bottom-right",
+]);
+
+const DEFAULT_PLACEMENT = "top-right";
+const DEFAULT_DURATION = 4000;
+const EXIT_TIMEOUT = 300;
+
+function identity(v) { return v; }
+
+/**
+ * Find or create the `.toast-container` for a given placement.
+ */
+function getContainer(placement) {
+  const selector = `.toast-container[data-placement="${placement}"]`;
+  let container = document.querySelector(selector);
+  if (!container) {
+    container = document.createElement("div");
+    container.className = "toast-container";
+    container.dataset.placement = placement;
+    document.body.appendChild(container);
+  }
+  return container;
+}
+
+/**
+ * Animate a toast element out, then remove it from the DOM.
+ */
+function dismissToast(el) {
+  if (el.dataset.exiting != null) return;
+  el.dataset.exiting = "";
+  const remove = () => { clearTimeout(fallback); el.remove(); };
+  el.addEventListener("transitionend", remove, { once: true });
+  const fallback = setTimeout(remove, EXIT_TIMEOUT);
+}
 
 export function showToast(args, context) {
   const resolve = context.resolveDynamic || identity;
 
-  const text = resolve(args.text);
-  if (typeof text !== "string" || text === "") {
-    throw new Error("showToast: 'text' must be a non-empty string");
+  // Support both `message` and legacy `text` parameter names.
+  const message = resolve(args.message || args.text);
+  if (typeof message !== "string" || message === "") {
+    throw new Error("showToast: 'message' (or 'text') must be a non-empty string");
   }
 
-  const variant = args.variant ? resolve(args.variant) : "info";
-  const duration = args.duration != null ? Number(resolve(args.duration)) : 3000;
-  const position = args.position ? resolve(args.position) : "top-right";
+  const title = args.title ? resolve(args.title) : null;
+  const rawVariant = args.variant ? resolve(args.variant) : "info";
+  const variant = VALID_VARIANTS.has(rawVariant) ? rawVariant : "info";
+  const duration = args.duration != null ? Number(resolve(args.duration)) : DEFAULT_DURATION;
+  const rawPlacement = resolve(args.placement || args.position || DEFAULT_PLACEMENT);
+  const placement = VALID_PLACEMENTS.has(rawPlacement) ? rawPlacement : DEFAULT_PLACEMENT;
 
-  const safeVariant = VALID_VARIANTS.has(variant) ? variant : "info";
+  const container = getContainer(placement);
 
-  const containerId = `oat-toast-container-${position}`;
-  let container = document.getElementById(containerId);
-  if (!container) {
-    container = document.createElement("div");
-    container.id = containerId;
-    container.setAttribute("role", "status");
-    container.setAttribute("aria-live", "polite");
-    container.dataset.toastContainer = "";
-    container.dataset.position = position;
-    applyPositionStyles(container, position);
-    document.body.appendChild(container);
-  }
-
-  const toast = document.createElement("div");
+  const toast = document.createElement("output");
+  toast.className = "toast";
   toast.setAttribute("role", "alert");
-  toast.dataset.variant = safeVariant;
-  toast.dataset.toast = "";
-  toast.textContent = text;
+  toast.dataset.variant = variant;
 
+  if (title) {
+    const h6 = document.createElement("h6");
+    h6.className = "toast-title";
+    h6.textContent = title;
+    toast.appendChild(h6);
+  }
+
+  const p = document.createElement("p");
+  p.className = "toast-message";
+  p.textContent = message;
+  toast.appendChild(p);
+
+  const closeBtn = document.createElement("button");
+  closeBtn.dataset.close = "";
+  closeBtn.setAttribute("aria-label", "Close");
+  closeBtn.innerHTML = "&times;";
+  closeBtn.addEventListener("click", () => dismissToast(toast));
+  toast.appendChild(closeBtn);
+
+  toast.dataset.entering = "";
   container.appendChild(toast);
+  requestAnimationFrame(() => { delete toast.dataset.entering; });
 
+  // Auto-dismiss with pause-on-hover.
   if (duration > 0) {
-    setTimeout(function () {
-      toast.remove();
-    }, duration);
+    let remaining = duration;
+    let start = Date.now();
+    let timer = setTimeout(() => dismissToast(toast), remaining);
+
+    toast.addEventListener("mouseenter", () => {
+      clearTimeout(timer);
+      remaining -= Date.now() - start;
+    });
+
+    toast.addEventListener("mouseleave", () => {
+      start = Date.now();
+      timer = setTimeout(() => dismissToast(toast), remaining);
+    });
   }
 }
-
-function applyPositionStyles(el, position) {
-  const offsets = POSITION_STYLES[position] || POSITION_STYLES["top-right"];
-  Object.assign(el.style, {
-    position: "fixed",
-    zIndex: "9999",
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.5rem",
-    pointerEvents: "none",
-    ...offsets,
-  });
-}
-
-function identity(v) { return v; }
