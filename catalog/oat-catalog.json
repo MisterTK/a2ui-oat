@@ -736,7 +736,7 @@
         },
         "grouped": {
           "type": "boolean",
-          "description": "When true, only one panel can be open at a time (exclusive mode)."
+          "description": "When true, only one panel can be open at a time (exclusive mode). Uses the HTML name attribute on details elements for native exclusive-open behavior."
         }
       },
       "requiredProperties": ["items"]
