@@ -5,6 +5,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "test": "node --test tests/test-functions.js tests/test-catalog.js tests/test-renderer.js",
     "validate": "node scripts/validate-catalog.js"
   },
   "main": "renderer/index.js",
