@@ -749,10 +749,13 @@ export class OatRenderer {
     const wrapper = document.createElement('div');
     wrapper.className = 'accordion';
     const items = c.items || [];
+    const groupName = c.grouped
+      ? `accordion-${c.id || Math.random().toString(36).slice(2, 8)}`
+      : null;
 
     for (const item of items) {
       const details = document.createElement('details');
-      if (c.grouped) details.dataset.grouped = 'true';
+      if (groupName) details.setAttribute('name', groupName);
       const summary = document.createElement('summary');
       summary.textContent = item.title || '';
       details.appendChild(summary);
