@@ -56,6 +56,29 @@ _sessions: dict[str, str] = {}
 APP_NAME = "oat_dashboard"
 USER_ID = "web_user"
 
+DOMAIN_CONTEXTS = {
+    "sre": (
+        "Platform: SRE operations. Audience: on-call engineers. "
+        "Design for instant visibility into system health, service reliability, "
+        "incident status, infrastructure metrics, and alert triage."
+    ),
+    "retail": (
+        "Platform: Retail management. Audience: store managers and merchants. "
+        "Design for visibility into inventory levels, sales performance, "
+        "order fulfillment, product trends, and customer analytics."
+    ),
+    "healthcare": (
+        "Platform: Healthcare operations. Audience: clinical staff and administrators. "
+        "Design for visibility into patient appointments, care team workloads, "
+        "department capacity, clinical metrics, and resource utilization."
+    ),
+    "sales": (
+        "Platform: Sales CRM. Audience: sales reps and managers. "
+        "Design for visibility into pipeline health, lead status, "
+        "revenue forecasts, deal activity, and team performance."
+    ),
+}
+
 
 async def get_or_create_session() -> str:
     """Get or create a session for the web user."""
@@ -88,14 +111,18 @@ async def chat(request: Request):
     """
     body = await request.json()
     user_message = body.get("message", "").strip()
+    domain = body.get("domain", "sre")
 
     if not user_message:
         return JSONResponse({"error": "Empty message"}, status_code=400)
 
+    domain_ctx = DOMAIN_CONTEXTS.get(domain, DOMAIN_CONTEXTS["sre"])
+    full_message = f"{domain_ctx}\n\nRequest: {user_message}"
+
     session_id = await get_or_create_session()
 
     # Run the agent
-    content = Content(role="user", parts=[Part(text=user_message)])
+    content = Content(role="user", parts=[Part(text=full_message)])
     response_text = ""
 
     async for event in runner.run_async(

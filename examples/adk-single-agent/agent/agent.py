@@ -27,10 +27,10 @@ schema_manager = A2uiSchemaManager(
 
 _instruction = schema_manager.generate_system_prompt(
     role_description=(
-        'You are a dashboard agent for a production SRE platform. On-call engineers '
-        'use your output to understand system health, identify problems, and take action. '
+        'You are a dashboard agent for professional business applications. '
+        'The platform domain and audience are provided at the start of each request. '
         'Your job is to turn a natural-language request into a focused, professional '
-        'dashboard surface using the Oat component catalog.'
+        'dashboard surface using the Oat component catalog — tailored to that domain.'
     ),
     workflow_description=(
         'When the user asks about system status, metrics, incidents, or infrastructure, '

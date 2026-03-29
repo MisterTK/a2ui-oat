@@ -3,75 +3,134 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ADK Single Agent -- Oat Dashboard</title>
+  <title>A2UI-Oat Dashboard Showcase</title>
   <link rel="stylesheet" href="https://unpkg.com/@knadh/oat/oat.min.css">
   <script defer src="https://unpkg.com/@knadh/oat/oat.min.js"></script>
   <style>
+    /* ── Theme tokens ───────────────────────────────────────────────── */
     :root {
-      --glass-bg: rgba(255, 255, 255, 0.05);
-      --glass-border: rgba(255, 255, 255, 0.1);
-      --glass-blur: blur(20px);
-      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      --glass-hover: rgba(255, 255, 255, 0.1);
-      --text-primary: #ffffff;
+      --glass-bg:     rgba(255,255,255,0.05);
+      --glass-border: rgba(255,255,255,0.1);
+      --glass-blur:   blur(20px);
+      --glass-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      --glass-hover:  rgba(255,255,255,0.1);
+      --text-primary:   #ffffff;
       --text-secondary: #a0aec0;
-      --text-muted: #718096;
-      --accent: #7dd3fc;
-      --bg-gradient: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
-      --badge-error-text: #f87171;
-      --badge-info-bg: rgba(59, 130, 246, 0.15);
+      --text-muted:     #718096;
+      --accent:       #7dd3fc;
+      --bg-gradient:  linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
+      --badge-info-bg:   rgba(59,130,246,0.15);
       --badge-info-text: #60a5fa;
+      --badge-err-text:  #f87171;
+      --user-msg-bg:     rgba(59,130,246,0.15);
+      --user-msg-border: rgba(59,130,246,0.3);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [data-theme="light"] {
+      --glass-bg:     rgba(255,255,255,0.75);
+      --glass-border: rgba(0,0,0,0.08);
+      --glass-hover:  rgba(0,0,0,0.05);
+      --glass-shadow: 0 8px 32px rgba(0,0,0,0.08);
+      --text-primary:   #0f172a;
+      --text-secondary: #334155;
+      --text-muted:     #94a3b8;
+      --accent:       #3b82f6;
+      --bg-gradient:  linear-gradient(135deg, #e8f0fe 0%, #f0f4ff 50%, #e8f4ff 100%);
+      --badge-info-bg:   rgba(59,130,246,0.1);
+      --badge-info-text: #1d4ed8;
+      --badge-err-text:  #dc2626;
+      --user-msg-bg:     rgba(59,130,246,0.1);
+      --user-msg-border: rgba(59,130,246,0.25);
+    }
+
+    /* ── Reset & base ───────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
       background: var(--bg-gradient);
       background-attachment: fixed;
       color: var(--text-secondary);
-      min-height: 100vh;
       display: flex;
       flex-direction: column;
+      min-height: 100vh;
     }
 
+    /* ── Header ─────────────────────────────────────────────────────── */
     header {
-      padding: 1rem 1.5rem;
+      padding: 0.9rem 1.5rem;
       border-bottom: 1px solid var(--glass-border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
       background: var(--glass-bg);
       backdrop-filter: var(--glass-blur);
       -webkit-backdrop-filter: var(--glass-blur);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
     }
     header h1 {
-      font-size: 1.1rem;
+      font-size: 1rem;
+      font-weight: 700;
       color: var(--text-primary);
-      font-weight: 600;
+      letter-spacing: -0.01em;
     }
-    header .tag {
+    .header-meta {
       font-size: 0.7rem;
       padding: 0.2rem 0.5rem;
       border-radius: 999px;
       background: var(--badge-info-bg);
       color: var(--badge-info-text);
-      border: 1px solid rgba(59, 130, 246, 0.3);
+      border: 1px solid currentColor;
+      opacity: 0.7;
+      margin-left: 0.5rem;
     }
-    header button {
+    .header-actions { display: flex; gap: 0.5rem; align-items: center; }
+    .icon-btn {
       background: var(--glass-bg);
       border: 1px solid var(--glass-border);
       color: var(--text-secondary);
-      padding: 0.35rem 0.75rem;
+      padding: 0.35rem 0.6rem;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 0.8rem;
+      font-size: 0.95rem;
+      line-height: 1;
+      transition: background 0.15s;
     }
-    header button:hover {
-      background: var(--glass-hover);
-      color: var(--text-primary);
-    }
+    .icon-btn:hover { background: var(--glass-hover); color: var(--text-primary); }
 
+    /* ── Domain bar ─────────────────────────────────────────────────── */
+    .domain-bar {
+      padding: 0.6rem 1.5rem;
+      border-bottom: 1px solid var(--glass-border);
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      display: flex;
+      gap: 0.4rem;
+    }
+    .domain-btn {
+      background: transparent;
+      border: 1px solid var(--glass-border);
+      color: var(--text-muted);
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .domain-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .domain-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    [data-theme="light"] .domain-btn.active { color: #fff; }
+
+    /* ── Chat area ──────────────────────────────────────────────────── */
     #chat-area {
       flex: 1;
       overflow-y: auto;
@@ -81,26 +140,21 @@
       gap: 1.5rem;
     }
 
-    .message {
-      max-width: 90%;
-    }
+    .message { max-width: 92%; }
     .message.user {
       align-self: flex-end;
-      background: rgba(59, 130, 246, 0.15);
-      border: 1px solid rgba(59, 130, 246, 0.3);
+      background: var(--user-msg-bg);
+      border: 1px solid var(--user-msg-border);
       border-radius: 16px 16px 4px 16px;
-      padding: 0.75rem 1rem;
+      padding: 0.7rem 1rem;
       color: var(--text-primary);
-      font-size: 0.9rem;
+      font-size: 0.88rem;
     }
-    .message.agent {
-      align-self: flex-start;
-      width: 100%;
-      max-width: 100%;
-    }
+    .message.agent { align-self: flex-start; width: 100%; max-width: 100%; }
+
     .agent-text {
       color: var(--text-secondary);
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       margin-bottom: 0.75rem;
       line-height: 1.5;
     }
@@ -115,7 +169,7 @@
     }
     .agent-raw-toggle {
       margin-top: 0.5rem;
-      font-size: 0.75rem;
+      font-size: 0.73rem;
       color: var(--text-muted);
       cursor: pointer;
       user-select: none;
@@ -124,75 +178,37 @@
     .agent-raw {
       display: none;
       margin-top: 0.5rem;
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(0,0,0,0.25);
       border: 1px solid var(--glass-border);
-      border-radius: 12px;
-      padding: 1rem;
+      border-radius: 10px;
+      padding: 0.85rem;
       font-family: 'SF Mono', 'Fira Code', monospace;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--text-muted);
       white-space: pre-wrap;
       word-break: break-all;
-      max-height: 300px;
+      max-height: 280px;
       overflow-y: auto;
     }
 
-    .loading {
-      align-self: flex-start;
-      display: flex;
-      gap: 6px;
-      padding: 0.75rem 1rem;
-    }
+    /* ── Loading dots ───────────────────────────────────────────────── */
+    .loading { align-self: flex-start; display: flex; gap: 6px; padding: 0.75rem 1rem; }
     .loading span {
       width: 8px; height: 8px;
       border-radius: 50%;
       background: var(--accent);
       animation: bounce 1.4s infinite both;
     }
-    .loading span:nth-child(2) { animation-delay: 0.16s; }
-    .loading span:nth-child(3) { animation-delay: 0.32s; }
+    .loading span:nth-child(2) { animation-delay: .16s; }
+    .loading span:nth-child(3) { animation-delay: .32s; }
     @keyframes bounce {
-      0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
-      40% { transform: scale(1); opacity: 1; }
+      0%,80%,100% { transform: scale(0); opacity: .5; }
+      40%         { transform: scale(1); opacity: 1; }
     }
 
-    #input-area {
-      padding: 1rem 1.5rem;
-      border-top: 1px solid var(--glass-border);
-      background: var(--glass-bg);
-      backdrop-filter: var(--glass-blur);
-      -webkit-backdrop-filter: var(--glass-blur);
-      display: flex;
-      gap: 0.75rem;
-    }
-    #input-area input {
-      flex: 1;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      border-radius: 12px;
-      padding: 0.7rem 1rem;
-      color: var(--text-primary);
-      font-size: 0.9rem;
-      outline: none;
-    }
-    #input-area input::placeholder { color: var(--text-muted); }
-    #input-area input:focus { border-color: var(--accent); }
-    #input-area button {
-      background: linear-gradient(135deg, #3b82f6, #2563eb);
-      border: none;
-      border-radius: 12px;
-      padding: 0.7rem 1.25rem;
-      color: white;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    #input-area button:hover { filter: brightness(1.1); }
-    #input-area button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .prompt-hints {
-      padding: 0.75rem 1.5rem;
+    /* ── Prompt hints ───────────────────────────────────────────────── */
+    #hints {
+      padding: 0.6rem 1.5rem;
       display: flex;
       gap: 0.5rem;
       flex-wrap: wrap;
@@ -201,67 +217,104 @@
       background: var(--glass-bg);
       border: 1px solid var(--glass-border);
       border-radius: 999px;
-      padding: 0.3rem 0.75rem;
+      padding: 0.28rem 0.72rem;
       font-size: 0.75rem;
       color: var(--text-muted);
       cursor: pointer;
+      transition: all 0.15s;
     }
-    .prompt-hint:hover {
-      background: var(--glass-hover);
-      color: var(--text-primary);
-    }
+    .prompt-hint:hover { background: var(--glass-hover); color: var(--text-primary); border-color: var(--accent); }
 
-    /* Dark-theme overrides for rendered content */
-    .agent-surface * {
-      color: var(--text-secondary, #a0aec0);
+    /* ── Input area ─────────────────────────────────────────────────── */
+    #input-area {
+      padding: 0.9rem 1.5rem;
+      border-top: 1px solid var(--glass-border);
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      display: flex;
+      gap: 0.75rem;
     }
-    .agent-surface h1, .agent-surface h2, .agent-surface h3, .agent-surface h4 {
-      color: var(--text-primary, #ffffff);
+    #msg-input {
+      flex: 1;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 0.65rem 1rem;
+      color: var(--text-primary);
+      font-size: 0.88rem;
+      outline: none;
     }
+    [data-theme="light"] #msg-input { background: rgba(255,255,255,0.8); }
+    #msg-input::placeholder { color: var(--text-muted); }
+    #msg-input:focus { border-color: var(--accent); }
+    #send-btn {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      border: none;
+      border-radius: 12px;
+      padding: 0.65rem 1.2rem;
+      color: #fff;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    #send-btn:hover { filter: brightness(1.1); }
+    #send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Rendered surface text colors ───────────────────────────────── */
+    .agent-surface * { color: var(--text-secondary); }
+    .agent-surface h1,.agent-surface h2,.agent-surface h3,.agent-surface h4 { color: var(--text-primary); }
     table { border-collapse: collapse; width: 100%; }
     table th {
-      color: var(--text-secondary, #a0aec0) !important;
+      color: var(--text-secondary) !important;
       background: rgba(255,255,255,0.05) !important;
-      padding: 0.6rem 0.75rem;
-      border-bottom: 1px solid var(--glass-border, rgba(255,255,255,0.1));
+      padding: 0.55rem 0.75rem;
+      border-bottom: 1px solid var(--glass-border);
       text-align: left;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       text-transform: uppercase;
       letter-spacing: 0.03em;
     }
+    [data-theme="light"] table th { background: rgba(0,0,0,0.04) !important; }
     table td {
-      color: var(--text-secondary, #a0aec0) !important;
-      padding: 0.6rem 0.75rem;
+      color: var(--text-secondary) !important;
+      padding: 0.55rem 0.75rem;
       border-bottom: 1px solid rgba(255,255,255,0.05);
     }
-    table tr:nth-child(even) {
-      background: rgba(255,255,255,0.02);
-    }
+    [data-theme="light"] table td { border-bottom-color: rgba(0,0,0,0.05); }
+    table tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+    [data-theme="light"] table tr:nth-child(even) { background: rgba(0,0,0,0.02); }
   </style>
 </head>
 <body>
 
   <header>
-    <div style="display:flex;align-items:center;gap:0.75rem">
-      <h1>ADK Dashboard Agent</h1>
-      <span class="tag">Gemini 3 Flash Preview + A2UI-Oat Catalog</span>
+    <div style="display:flex;align-items:center">
+      <h1>A2UI-Oat Dashboard</h1>
+      <span class="header-meta">Gemini 3 Flash · Oat Catalog</span>
     </div>
-    <button onclick="resetSession()">Reset Session</button>
+    <div class="header-actions">
+      <button class="icon-btn" id="theme-toggle" title="Toggle theme" onclick="toggleTheme()">☀</button>
+      <button class="icon-btn" onclick="resetSession()">Reset</button>
+    </div>
   </header>
 
-  <div class="prompt-hints" id="hints">
-    <span class="prompt-hint" onclick="sendHint(this)">Show me a system dashboard</span>
-    <span class="prompt-hint" onclick="sendHint(this)">Show CPU and memory metrics</span>
-    <span class="prompt-hint" onclick="sendHint(this)">Create an incident tracker table</span>
-    <span class="prompt-hint" onclick="sendHint(this)">Build a team overview dashboard</span>
+  <div class="domain-bar">
+    <button class="domain-btn active" data-domain="sre"        onclick="selectDomain('sre')">SRE</button>
+    <button class="domain-btn"        data-domain="retail"     onclick="selectDomain('retail')">Retail</button>
+    <button class="domain-btn"        data-domain="healthcare" onclick="selectDomain('healthcare')">Healthcare</button>
+    <button class="domain-btn"        data-domain="sales"      onclick="selectDomain('sales')">Sales</button>
   </div>
+
+  <div id="hints"></div>
 
   <div id="chat-area"></div>
 
   <div id="input-area">
     <input type="text" id="msg-input" placeholder="Ask for a dashboard..." autocomplete="off"
-           onkeydown="if(event.key==='Enter' && !event.shiftKey) sendMessage()">
-    <button onclick="sendMessage()" id="send-btn">Send</button>
+           onkeydown="if(event.key==='Enter'&&!event.shiftKey) sendMessage()">
+    <button id="send-btn" onclick="sendMessage()">Send</button>
   </div>
 
 <script type="module">
@@ -269,17 +322,79 @@ import { OatRenderer } from '../../../renderer/index.js';
 
 const renderer = new OatRenderer();
 
-// ---------------------------------------------------------------------------
-// A2UI Component Rendering via OatRenderer
-// ---------------------------------------------------------------------------
+// ── Domain config ──────────────────────────────────────────────────────────
+
+const DOMAIN_HINTS = {
+  sre: [
+    'Show me a system health dashboard',
+    'Create an incident tracker',
+    'Show CPU and memory metrics',
+    'Build an on-call overview',
+  ],
+  retail: [
+    'Show inventory status dashboard',
+    'Create a sales performance overview',
+    'Build an order fulfillment tracker',
+    'Show top products by revenue',
+  ],
+  healthcare: [
+    'Show patient appointment schedule',
+    'Create a clinical metrics dashboard',
+    'Build a care team workload view',
+    'Show department capacity overview',
+  ],
+  sales: [
+    'Show pipeline health dashboard',
+    'Create a team performance overview',
+    'Build a revenue forecast view',
+    'Show lead conversion funnel',
+  ],
+};
+
+let currentDomain = 'sre';
+
+function selectDomain(domain) {
+  if (domain === currentDomain) return;
+  currentDomain = domain;
+  document.querySelectorAll('.domain-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.domain === domain)
+  );
+  renderHints();
+  resetSession();
+}
+
+function renderHints() {
+  const container = document.getElementById('hints');
+  container.innerHTML = DOMAIN_HINTS[currentDomain]
+    .map(h => `<span class="prompt-hint" onclick="sendHint(this)">${h}</span>`)
+    .join('');
+}
+
+// ── Theme toggle ───────────────────────────────────────────────────────────
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  const next = isDark ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  document.getElementById('theme-toggle').textContent = isDark ? '🌙' : '☀';
+  localStorage.setItem('oat-theme', next);
+}
+
+// Apply persisted theme on load
+(function () {
+  const saved = localStorage.getItem('oat-theme');
+  if (saved) {
+    document.documentElement.setAttribute('data-theme', saved);
+    document.getElementById('theme-toggle').textContent = saved === 'dark' ? '☀' : '🌙';
+  }
+})();
+
+// ── A2UI rendering ─────────────────────────────────────────────────────────
 
 function normalizeComponent(c) {
   if (!c.component && c.type) c.component = c.type;
-  if (c.properties) {
-    const props = c.properties;
-    delete c.properties;
-    Object.assign(c, props);
-  }
+  if (c.properties) { Object.assign(c, c.properties); delete c.properties; }
   if (c.children && !Array.isArray(c.children)) c.children = [c.children];
   if (c.children && c.children.length > 0 && typeof c.children[0] === 'object') {
     const inlined = [];
@@ -298,52 +413,46 @@ function createContext(components, dataModel) {
     setDataModel: (path, val) => {
       const segs = path.replace(/^\//, '').split(/[/.]/);
       let obj = dataModel;
-      for (let i = 0; i < segs.length - 1; i++) {
-        obj = obj[segs[i]] = obj[segs[i]] || {};
-      }
+      for (let i = 0; i < segs.length - 1; i++) obj = obj[segs[i]] = obj[segs[i]] || {};
       obj[segs[segs.length - 1]] = val;
     },
-    subscribe: (path, cb) => () => {},
+    subscribe: () => () => {},
     renderChild: (id) => {
       const comp = components[id];
       return comp ? renderer.renderComponent(comp, ctx) : null;
     },
-    dispatchAction: (action) => {
-      console.log('Action dispatched:', action);
-    },
-    getRegisteredFunction: (name) => null,
+    dispatchAction: (action) => console.log('Action:', action),
+    getRegisteredFunction: () => null,
   };
   return ctx;
 }
 
 function deepMerge(target, source) {
   const out = { ...target };
-  for (const key of Object.keys(source)) {
-    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])
-        && target[key] && typeof target[key] === 'object' && !Array.isArray(target[key])) {
-      out[key] = deepMerge(target[key], source[key]);
+  for (const k of Object.keys(source)) {
+    if (source[k] && typeof source[k] === 'object' && !Array.isArray(source[k])
+        && target[k] && typeof target[k] === 'object' && !Array.isArray(target[k])) {
+      out[k] = deepMerge(target[k], source[k]);
     } else {
-      out[key] = source[key];
+      out[k] = source[k];
     }
   }
   return out;
 }
 
 function renderA2UI(messages) {
-  let data = {};
-  let components = [];
+  let data = {}, components = [];
 
   for (const msg of messages) {
     if (msg.updateDataModel) {
       const dm = msg.updateDataModel;
       let modelData = dm.data || dm.value || {};
       if (dm.path && dm.path !== '/' && dm.value) {
-        const key = dm.path.replace(/^\//, '');
-        modelData = { [key]: dm.value };
+        modelData = { [dm.path.replace(/^\//, '')]: dm.value };
       }
       data = deepMerge(data, modelData);
     }
-    if (msg.updateComponents && msg.updateComponents.components) {
+    if (msg.updateComponents?.components) {
       const normalized = msg.updateComponents.components.map(normalizeComponent);
       for (const c of normalized) {
         components.push(c);
@@ -354,13 +463,9 @@ function renderA2UI(messages) {
 
   if (components.length === 0) return null;
 
-  // Build component lookup map
   const cMap = {};
-  for (const c of components) {
-    cMap[c.id] = c;
-  }
+  for (const c of components) cMap[c.id] = c;
 
-  // Find root component (not referenced as a child by any other component)
   const childIds = new Set();
   for (const c of components) {
     for (const cid of (c.children || [])) childIds.add(cid);
@@ -370,19 +475,14 @@ function renderA2UI(messages) {
   }
   const root = components.find(c => !childIds.has(c.id)) || components[0];
 
-  const ctx = createContext(cMap, data);
-  return renderer.renderComponent(root, ctx);
+  return renderer.renderComponent(root, createContext(cMap, data));
 }
 
-
-// ---------------------------------------------------------------------------
-// Chat Logic
-// ---------------------------------------------------------------------------
+// ── Chat UI ────────────────────────────────────────────────────────────────
 
 const chatArea = document.getElementById('chat-area');
 const msgInput = document.getElementById('msg-input');
-const sendBtn = document.getElementById('send-btn');
-const hints = document.getElementById('hints');
+const sendBtn  = document.getElementById('send-btn');
 
 function addUserMessage(text) {
   const div = document.createElement('div');
@@ -402,8 +502,7 @@ function addLoading() {
 }
 
 function removeLoading() {
-  const el = document.getElementById('loading-indicator');
-  if (el) el.remove();
+  document.getElementById('loading-indicator')?.remove();
 }
 
 function addAgentResponse(text, a2uiMessages, raw) {
@@ -411,13 +510,13 @@ function addAgentResponse(text, a2uiMessages, raw) {
   wrap.className = 'message agent';
 
   if (text) {
-    const textEl = document.createElement('div');
-    textEl.className = 'agent-text';
-    textEl.textContent = text;
-    wrap.appendChild(textEl);
+    const el = document.createElement('div');
+    el.className = 'agent-text';
+    el.textContent = text;
+    wrap.appendChild(el);
   }
 
-  if (a2uiMessages && a2uiMessages.length > 0) {
+  if (a2uiMessages?.length > 0) {
     const surface = document.createElement('div');
     surface.className = 'agent-surface';
     try {
@@ -425,32 +524,27 @@ function addAgentResponse(text, a2uiMessages, raw) {
       if (rendered) surface.appendChild(rendered);
       else surface.textContent = 'No components rendered';
     } catch (e) {
-      surface.innerHTML = `<div style="color:var(--badge-error-text)">Render error: ${e.message}</div><pre style="font-size:0.7rem;color:var(--text-muted);overflow:auto;max-height:200px">${JSON.stringify(a2uiMessages, null, 2)}</pre>`;
+      surface.innerHTML = `<div style="color:var(--badge-err-text)">Render error: ${e.message}</div>` +
+        `<pre style="font-size:.7rem;color:var(--text-muted);overflow:auto;max-height:200px">${JSON.stringify(a2uiMessages,null,2)}</pre>`;
     }
     wrap.appendChild(surface);
   }
 
-  // Raw toggle
   if (raw) {
-    const toggleId = 'raw-' + Date.now();
+    const id = 'raw-' + Date.now();
     const toggle = document.createElement('div');
     toggle.className = 'agent-raw-toggle';
     toggle.textContent = 'Show raw response';
     toggle.onclick = () => {
-      const rawEl = document.getElementById(toggleId);
-      if (rawEl.style.display === 'none') {
-        rawEl.style.display = 'block';
-        toggle.textContent = 'Hide raw response';
-      } else {
-        rawEl.style.display = 'none';
-        toggle.textContent = 'Show raw response';
-      }
+      const el = document.getElementById(id);
+      const open = el.style.display !== 'none';
+      el.style.display = open ? 'none' : 'block';
+      toggle.textContent = open ? 'Show raw response' : 'Hide raw response';
     };
     wrap.appendChild(toggle);
-
     const rawEl = document.createElement('pre');
     rawEl.className = 'agent-raw';
-    rawEl.id = toggleId;
+    rawEl.id = id;
     rawEl.textContent = raw;
     wrap.appendChild(rawEl);
   }
@@ -462,7 +556,6 @@ function addAgentResponse(text, a2uiMessages, raw) {
 async function sendMessage() {
   const text = msgInput.value.trim();
   if (!text) return;
-
   msgInput.value = '';
   sendBtn.disabled = true;
   addUserMessage(text);
@@ -472,11 +565,10 @@ async function sendMessage() {
     const resp = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text }),
+      body: JSON.stringify({ message: text, domain: currentDomain }),
     });
     const result = await resp.json();
     removeLoading();
-
     if (result.error) {
       addAgentResponse('Error: ' + result.error, [], null);
     } else {
@@ -491,21 +583,25 @@ async function sendMessage() {
   msgInput.focus();
 }
 
+async function resetSession() {
+  await fetch('/api/reset', { method: 'POST' });
+  chatArea.innerHTML = '';
+}
+
 function sendHint(el) {
   msgInput.value = el.textContent;
   sendMessage();
 }
 
-async function resetSession() {
-  await fetch('/api/reset', { method: 'POST' });
-  chatArea.innerHTML = '';
-  hints.style.display = 'flex';
-}
-
-// Expose functions to inline event handlers
-window.sendMessage = sendMessage;
-window.sendHint = sendHint;
+// Expose to inline handlers
+window.sendMessage  = sendMessage;
+window.sendHint     = sendHint;
 window.resetSession = resetSession;
+window.toggleTheme  = toggleTheme;
+window.selectDomain = selectDomain;
+
+// Init
+renderHints();
 </script>
 </body>
 </html>
