@@ -8,15 +8,113 @@
   <!-- Oat CSS -->
   <link rel="stylesheet" href="https://unpkg.com/@knadh/oat/oat.min.css">
   <style>
-    body { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
-    nav.pagination { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 1rem; }
-    nav.pagination button { min-width: 5rem; }
-    .page-info { font-variant-numeric: tabular-nums; }
-    table { width: 100%; }
-    .status-active  { color: green; }
-    .status-pending { color: orange; }
-    .status-archived { color: gray; }
-    .status-error   { color: red; }
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-blur: blur(20px);
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      --glass-hover: rgba(255, 255, 255, 0.1);
+      --text-primary: #ffffff;
+      --text-secondary: #a0aec0;
+      --text-muted: #718096;
+      --accent: #7dd3fc;
+      --accent-hover: #38bdf8;
+      --bg-gradient: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
+      --badge-success-bg: rgba(16, 185, 129, 0.15);
+      --badge-success-text: #34d399;
+      --badge-warning-bg: rgba(245, 158, 11, 0.15);
+      --badge-warning-text: #fbbf24;
+      --badge-error-bg: rgba(239, 68, 68, 0.15);
+      --badge-error-text: #f87171;
+      --badge-info-bg: rgba(59, 130, 246, 0.15);
+      --badge-info-text: #60a5fa;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+      max-width: 960px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-secondary);
+      min-height: 100vh;
+    }
+
+    h1 { color: var(--text-primary); }
+    p { color: var(--text-secondary); }
+    a { color: var(--accent); }
+    a:hover { color: var(--accent-hover); }
+    hr { border-color: var(--glass-border); }
+    strong { color: var(--text-primary); }
+
+    nav.pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      box-shadow: var(--glass-shadow);
+    }
+    nav.pagination button {
+      min-width: 5rem;
+      background: var(--glass-bg);
+      color: var(--text-primary);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    nav.pagination button:hover:not(:disabled) {
+      background: var(--glass-hover);
+      box-shadow: 0 0 16px rgba(125, 211, 252, 0.15);
+    }
+    nav.pagination button:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+    .page-info {
+      font-variant-numeric: tabular-nums;
+      color: var(--text-secondary);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--glass-shadow);
+    }
+    thead { background: rgba(255, 255, 255, 0.08); }
+    th {
+      color: var(--text-primary) !important;
+      font-weight: 600;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--glass-border);
+    }
+    td {
+      color: var(--text-secondary);
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
+
+    .status-active  { color: #34d399; }
+    .status-pending { color: #fbbf24; }
+    .status-archived { color: #718096; }
+    .status-error   { color: #f87171; }
     .loading { opacity: 0.5; pointer-events: none; }
   </style>
 </head>
@@ -202,11 +300,11 @@
 
     function renderSurface() {
       surface.innerHTML =
-        renderTable(dataModel.tableData.rows, TABLE_COLUMNS) +
         renderPagination(
           dataModel.pagination.currentPage,
           dataModel.pagination.totalPages
-        );
+        ) +
+        renderTable(dataModel.tableData.rows, TABLE_COLUMNS);
     }
 
     // Event delegation: single listener handles all pagination clicks.

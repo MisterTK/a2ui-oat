@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" style="scroll-behavior: smooth;">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +13,161 @@
   <link rel="stylesheet" href="https://unpkg.com/@knadh/oat/oat.min.css">
   <script defer src="https://unpkg.com/@knadh/oat/oat.min.js"></script>
   <style>
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-blur: blur(20px);
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      --glass-hover: rgba(255, 255, 255, 0.1);
+      --text-primary: #ffffff;
+      --text-secondary: #a0aec0;
+      --text-muted: #718096;
+      --accent: #7dd3fc;
+      --accent-hover: #38bdf8;
+      --bg-gradient: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
+      --badge-success-bg: rgba(16, 185, 129, 0.15);
+      --badge-success-text: #34d399;
+      --badge-warning-bg: rgba(245, 158, 11, 0.15);
+      --badge-warning-text: #fbbf24;
+      --badge-error-bg: rgba(239, 68, 68, 0.15);
+      --badge-error-text: #f87171;
+      --badge-info-bg: rgba(59, 130, 246, 0.15);
+      --badge-info-text: #60a5fa;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-secondary);
+      min-height: 100vh;
+    }
+
+    h1, h2, h3, h4, strong { color: var(--text-primary); }
+    p, small, label { color: var(--text-secondary); }
+    a { color: var(--accent); }
+    a:hover { color: var(--accent-hover); }
+    hr { border-color: var(--glass-border); }
+    code { color: var(--accent); background: var(--glass-bg); }
+
+    /* Frosted glass cards */
+    article, aside, details {
+      background: var(--glass-bg) !important;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border) !important;
+      border-radius: 16px !important;
+      box-shadow: var(--glass-shadow);
+      padding: 1.25rem;
+      color: var(--text-secondary);
+    }
+
+    /* Sidebar nav */
+    aside nav strong { color: var(--text-primary); }
+    aside nav ul li a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      display: block;
+      padding: 0.4rem 0.6rem;
+      border-radius: 8px;
+      transition: background 0.2s, color 0.2s;
+    }
+    aside nav ul li a:hover {
+      background: var(--glass-hover);
+      color: var(--text-primary);
+    }
+
+    /* Breadcrumb */
+    nav[aria-label="breadcrumb"] { color: var(--text-muted); }
+    nav[aria-label="breadcrumb"] a { color: var(--accent); }
+    nav[aria-label="breadcrumb"] strong { color: var(--text-primary); }
+
+    /* Badges */
+    [data-badge] {
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    [data-badge="success"] {
+      background: var(--badge-success-bg) !important;
+      color: var(--badge-success-text) !important;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    [data-badge="warning"] {
+      background: var(--badge-warning-bg) !important;
+      color: var(--badge-warning-text) !important;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    [data-badge="error"] {
+      background: var(--badge-error-bg) !important;
+      color: var(--badge-error-text) !important;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    [data-badge]:not([data-badge="success"]):not([data-badge="warning"]):not([data-badge="error"]) {
+      background: var(--badge-info-bg) !important;
+      color: var(--badge-info-text) !important;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    /* Alert */
+    div[role="alert"] {
+      background: var(--badge-warning-bg) !important;
+      color: var(--badge-warning-text) !important;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+    }
+    div[role="alert"] a { color: var(--accent); }
+
+    /* Table */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--glass-shadow);
+    }
+    thead {
+      background: rgba(255, 255, 255, 0.08);
+    }
+    th {
+      color: var(--text-primary) !important;
+      font-weight: 600;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--glass-border) !important;
+    }
+    td {
+      color: var(--text-secondary);
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+    }
+    tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Details/accordion */
+    summary {
+      color: var(--text-primary);
+      cursor: pointer;
+      font-weight: 500;
+    }
+    details p { color: var(--text-secondary); }
+
+    /* Progress & meters stay colorful */
     progress, meter { width: 100%; }
+    progress {
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    /* Footer */
+    footer small, small { color: var(--text-muted); }
   </style>
 </head>
 <body>

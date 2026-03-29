@@ -10,13 +10,43 @@
   <script src="https://unpkg.com/@knadh/oat/oat.min.js" defer></script>
 
   <style>
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-blur: blur(20px);
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      --glass-hover: rgba(255, 255, 255, 0.1);
+      --text-primary: #ffffff;
+      --text-secondary: #a0aec0;
+      --text-muted: #718096;
+      --accent: #7dd3fc;
+      --accent-hover: #38bdf8;
+      --bg-gradient: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #16213e 100%);
+      --badge-success-bg: rgba(16, 185, 129, 0.15);
+      --badge-success-text: #34d399;
+      --badge-warning-bg: rgba(245, 158, 11, 0.15);
+      --badge-warning-text: #fbbf24;
+      --badge-error-bg: rgba(239, 68, 68, 0.15);
+      --badge-error-text: #f87171;
+      --badge-info-bg: rgba(59, 130, 246, 0.15);
+      --badge-info-text: #60a5fa;
+    }
+
     body {
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
       margin: 0;
       padding: 1rem;
-      background: #f8f9fa;
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-secondary);
+      min-height: 100vh;
     }
-    h1 { margin-top: 0; }
+    h1 { margin-top: 0; color: var(--text-primary); }
+    h2, h3, h4 { color: var(--text-primary); }
+    p { color: var(--text-secondary); }
+    a { color: var(--accent); }
+    a:hover { color: var(--accent-hover); }
+
     .surfaces {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -24,31 +54,38 @@
       margin-top: 1rem;
     }
     .surface-container {
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 8px;
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
       padding: 1.5rem;
       min-height: 200px;
+      box-shadow: var(--glass-shadow);
     }
     .surface-container h3 {
       margin-top: 0;
       font-size: 0.85rem;
-      color: #666;
+      color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
 
-    /* Status log at the bottom */
+    /* Status log at the bottom -- keep dark styling */
     #log {
       margin-top: 2rem;
-      background: #1e1e2e;
+      background: rgba(30, 30, 46, 0.8);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
       color: #cdd6f4;
-      border-radius: 8px;
+      border-radius: 16px;
       padding: 1rem;
       font-family: monospace;
       font-size: 0.85rem;
       max-height: 260px;
       overflow-y: auto;
+      box-shadow: var(--glass-shadow);
     }
     #log .step { color: #89b4fa; }
     #log .ok   { color: #a6e3a1; }
@@ -65,29 +102,57 @@
       font-weight: 600;
       margin-right: 0.5rem;
     }
-    .a2ui-badge.success { background: #d4edda; color: #155724; }
-    .a2ui-badge.info    { background: #d1ecf1; color: #0c5460; }
+    .a2ui-badge.success {
+      background: var(--badge-success-bg);
+      color: var(--badge-success-text);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .a2ui-badge.info {
+      background: var(--badge-info-bg);
+      color: var(--badge-info-text);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
     .a2ui-alert {
       padding: 0.75rem 1rem;
-      border-radius: 6px;
+      border-radius: 12px;
       margin: 0.5rem 0;
       font-weight: 500;
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
     }
-    .a2ui-alert.error   { background: #f8d7da; color: #721c24; }
-    .a2ui-alert.warning { background: #fff3cd; color: #856404; }
+    .a2ui-alert.error {
+      background: var(--badge-error-bg);
+      color: var(--badge-error-text);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .a2ui-alert.warning {
+      background: var(--badge-warning-bg);
+      color: var(--badge-warning-text);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
     .a2ui-table {
       width: 100%;
       border-collapse: collapse;
       margin: 0.5rem 0;
       font-size: 0.9rem;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      overflow: hidden;
     }
     .a2ui-table th, .a2ui-table td {
       text-align: left;
       padding: 0.5rem 0.75rem;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-secondary);
     }
-    .a2ui-table th { background: #f4f4f5; font-weight: 600; }
-    .a2ui-table tr.striped:nth-child(even) { background: #fafafa; }
+    .a2ui-table th {
+      background: rgba(255, 255, 255, 0.08);
+      font-weight: 600;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .a2ui-table tr.striped:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
     .a2ui-pagination {
       display: flex;
       gap: 0.5rem;
@@ -95,7 +160,7 @@
       margin-top: 0.75rem;
       font-size: 0.9rem;
     }
-    .a2ui-pagination span { color: #666; }
+    .a2ui-pagination span { color: var(--text-secondary); }
 
     @media (max-width: 768px) {
       .surfaces { grid-template-columns: 1fr; }
