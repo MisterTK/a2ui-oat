@@ -1,6 +1,6 @@
 {
   "name": "a2ui-oat",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A lightweight A2UI renderer and catalog for agent-driven web interfaces, built on Oat CSS",
   "license": "MIT",
   "type": "module",
