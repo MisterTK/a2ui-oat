@@ -481,10 +481,9 @@ export class OatRenderer {
   /** @returns {HTMLElement} */
   _renderTextField(c, ctx) {
     const wrapper = document.createElement('label');
+    wrapper.dataset.field = '';
     if (c.label) {
-      const labelText = document.createElement('span');
-      labelText.textContent = c.label;
-      wrapper.appendChild(labelText);
+      wrapper.append(c.label);
     }
 
     const tfVariant = c.variant ?? c.textFieldType;
@@ -548,9 +547,8 @@ export class OatRenderer {
 
     if (c.label) {
       const wrapper = document.createElement('label');
-      const labelText = document.createElement('span');
-      labelText.textContent = c.label;
-      wrapper.appendChild(labelText);
+      wrapper.dataset.field = '';
+      wrapper.append(c.label);
       wrapper.appendChild(el);
       return wrapper;
     }
