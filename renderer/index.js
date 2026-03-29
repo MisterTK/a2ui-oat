@@ -22,6 +22,18 @@ import { showToast } from "./functions/showToast.js";
 import { debounce } from "./functions/debounce.js";
 import { formatDate } from "./functions/formatDate.js";
 import { formatNumber } from "./functions/formatNumber.js";
+import { openUrl } from "./functions/openUrl.js";
+import { formatString } from "./functions/formatString.js";
+import { formatCurrency } from "./functions/formatCurrency.js";
+import { pluralize } from "./functions/pluralize.js";
+import { and } from "./functions/and.js";
+import { or } from "./functions/or.js";
+import { not } from "./functions/not.js";
+import { required } from "./functions/required.js";
+import { regex } from "./functions/regex.js";
+import { length } from "./functions/length.js";
+import { numeric } from "./functions/numeric.js";
+import { email } from "./functions/email.js";
 
 // --- Constants ------------------------------------------------------------------
 
@@ -57,6 +69,18 @@ export function createOatRenderer(options = {}) {
     debounce,
     formatDate,
     formatNumber,
+    openUrl,
+    formatString,
+    formatCurrency,
+    pluralize,
+    and,
+    or,
+    not,
+    required,
+    regex,
+    length,
+    numeric,
+    email,
   };
 
   return { renderer, functions, catalogId: CATALOG_ID, version: VERSION };
@@ -105,4 +129,16 @@ export {
   debounce,
   formatDate,
   formatNumber,
+  openUrl,
+  formatString,
+  formatCurrency,
+  pluralize,
+  and,
+  or,
+  not,
+  required,
+  regex,
+  length,
+  numeric,
+  email,
 };

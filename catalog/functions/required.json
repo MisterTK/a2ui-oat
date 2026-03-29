@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "required",
+  "description": "Validates that a value is non-null and non-empty. Returns true if the value is present.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "value": {
+        "oneOf": [
+          { "type": "string" },
+          { "type": "number" },
+          { "type": "boolean" },
+          {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "A JSON pointer path into the data model to resolve the value dynamically."
+              }
+            },
+            "required": ["path"],
+            "additionalProperties": false
+          }
+        ],
+        "description": "The value to validate. Can be a literal or a dynamic reference to a data model path."
+      }
+    },
+    "required": ["value"],
+    "additionalProperties": false
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "formatString",
+  "description": "String interpolation with ${/path} syntax. Replaces path references in a template string with values from the data model.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "template": {
+        "type": "string",
+        "description": "Template string containing ${/data/model/path} placeholders to interpolate."
+      },
+      "targetPath": {
+        "type": "string",
+        "description": "Optional data model path to write the interpolated result to."
+      }
+    },
+    "required": ["template"],
+    "additionalProperties": false
+  }
+}

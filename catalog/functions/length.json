@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "name": "length",
+  "description": "Validates that a string's length falls within a specified range. Returns true if the length is within bounds.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "value": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "A JSON pointer path into the data model to resolve the value dynamically."
+              }
+            },
+            "required": ["path"],
+            "additionalProperties": false
+          }
+        ],
+        "description": "The string value to validate. Can be a literal string or a dynamic reference."
+      },
+      "min": {
+        "type": "number",
+        "description": "Minimum allowed length. Defaults to 0."
+      },
+      "max": {
+        "type": "number",
+        "description": "Maximum allowed length. Defaults to Infinity."
+      }
+    },
+    "required": ["value"],
+    "additionalProperties": false
+  }
+}
