@@ -184,6 +184,10 @@
           "type": "string",
           "enum": ["small", "medium", "large"],
           "description": "Size of the icon."
+        },
+        "label": {
+          "type": "string",
+          "description": "Accessible label for the icon. If omitted, icon is treated as decorative (aria-hidden)."
         }
       },
       "requiredProperties": ["name"]
