@@ -354,6 +354,13 @@ export class OatRenderer {
   _renderIcon(c, ctx) {
     const el = document.createElement('span');
     if (c.name) el.className = `icon icon-${c.name}`;
+    if (c.label) {
+      el.setAttribute('aria-label', c.label);
+      el.setAttribute('role', 'img');
+    } else {
+      el.setAttribute('aria-hidden', 'true');
+    }
+    if (c.size) el.dataset.size = c.size;
     return el;
   }
 
@@ -386,7 +393,11 @@ export class OatRenderer {
     const el = document.createElement('span');
     el.className = 'avatar';
     if (c.size) el.dataset.size = c.size;
-    this._bindValue(c.initials, ctx, (val) => { el.textContent = val ?? ''; });
+    el.setAttribute('role', 'img');
+    this._bindValue(c.initials, ctx, (val) => {
+      el.textContent = val ?? '';
+      el.setAttribute('aria-label', val ?? 'avatar');
+    });
     return el;
   }
 
@@ -486,6 +497,7 @@ export class OatRenderer {
     if (c.placeholder) el.placeholder = c.placeholder;
     if (c.disabled) el.disabled = true;
     if (c.readOnly) el.readOnly = true;
+    if (c.required) el.required = true;
 
     this._bindValue(c.value, ctx, (val) => { el.value = val ?? ''; });
     this._wireTwoWay(el, c.value, 'input', (e) => e.value, ctx);
@@ -531,6 +543,14 @@ export class OatRenderer {
     this._bindValue(c.value, ctx, (val) => { if (val != null) el.value = val; });
     this._wireTwoWay(el, c.value, 'input', (e) => Number(e.value), ctx);
 
+    if (c.label) {
+      const wrapper = document.createElement('label');
+      const labelText = document.createElement('span');
+      labelText.textContent = c.label;
+      wrapper.appendChild(labelText);
+      wrapper.appendChild(el);
+      return wrapper;
+    }
     return el;
   }
 
@@ -648,6 +668,11 @@ export class OatRenderer {
   /** @returns {HTMLElement} */
   _renderCard(c, ctx) {
     const el = document.createElement('article');
+    if (c.title) {
+      const header = document.createElement('header');
+      header.textContent = c.title;
+      el.appendChild(header);
+    }
     this._renderSingleChild(el, c.child, ctx);
     return el;
   }
@@ -655,6 +680,15 @@ export class OatRenderer {
   /** @returns {HTMLElement} */
   _renderModal(c, ctx) {
     const dialog = document.createElement('dialog');
+
+    const dismissible = c.dismissible !== false;
+    if (dismissible) {
+      dialog.addEventListener('click', (e) => {
+        if (e.target === dialog) dialog.close();
+      });
+    } else {
+      dialog.addEventListener('cancel', (e) => { e.preventDefault(); });
+    }
 
     const content = c.content ?? c.contentChild;
     this._renderSingleChild(dialog, content, ctx);
@@ -682,11 +716,14 @@ export class OatRenderer {
     const el = document.createElement('oat-tabs');
     const tabs = c.tabs ?? c.tabItems;
     const items = tabs || [];
+    const activeTab = c.activeTab != null ? this._resolve(c.activeTab, ctx) : 0;
 
-    for (const item of items) {
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
       const panel = document.createElement('div');
       panel.slot = 'panel';
       panel.dataset.title = item.title || '';
+      if (i === activeTab) panel.dataset.active = 'true';
       this._renderSingleChild(panel, item.child, ctx);
       el.appendChild(panel);
     }
@@ -718,6 +755,7 @@ export class OatRenderer {
     const el = document.createElement('span');
     el.dataset.tooltip = this._resolve(c.text, ctx) ?? '';
     if (c.position) el.dataset.tooltipPosition = c.position;
+    el.setAttribute('tabindex', '0');
     this._renderSingleChild(el, c.child, ctx);
     return el;
   }
