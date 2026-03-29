@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Media Components — A2UI-Oat Example</title>
+
+  <!-- Oat CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/@knadh/oat/oat.min.css">
+
+  <style>
+    :root {
+      --color-primary: #3B82F6;
+      --color-bg: #111827;
+      --color-surface: #1F2937;
+      --color-border: #374151;
+      --color-text: #F9FAFB;
+      --color-muted: #9CA3AF;
+      --font-family: system-ui, sans-serif;
+      --border-radius: 8px;
+      --spacing: 1rem;
+    }
+
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-family);
+      margin: 0;
+      padding: var(--spacing);
+    }
+
+    #app {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      margin: 0 0 0.25rem 0;
+      color: var(--color-text);
+    }
+
+    .subtitle {
+      color: var(--color-muted);
+      font-size: 0.9rem;
+      margin: 0 0 2rem 0;
+    }
+
+    .section {
+      margin-bottom: 3rem;
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0 0 1.5rem 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--color-border);
+      color: var(--color-text);
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 640px) {
+      .demo-grid { grid-template-columns: 1fr; }
+    }
+
+    .demo-panel {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius);
+      padding: 1.25rem;
+    }
+
+    .panel-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-primary);
+      margin: 0 0 0.75rem 0;
+    }
+
+    .panel-desc {
+      font-size: 0.8rem;
+      color: var(--color-muted);
+      margin: 0.75rem 0 0 0;
+    }
+
+    /* Rendered media elements */
+    video, audio {
+      width: 100%;
+      border-radius: 6px;
+      display: block;
+    }
+
+    /* JSON code block */
+    pre {
+      background: #0D1117;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      padding: 1rem;
+      font-size: 0.75rem;
+      overflow-x: auto;
+      margin: 0;
+      color: #E5E7EB;
+      line-height: 1.5;
+    }
+
+    .json-key { color: #7DD3FC; }
+    .json-string { color: #86EFAC; }
+    .json-bool { color: #FCA5A5; }
+
+    .badge-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    .badge-video { background: #1E3A5F; color: #93C5FD; }
+    .badge-audio { background: #14532D; color: #86EFAC; }
+    .badge-element { background: #3B1F63; color: #C4B5FD; }
+
+    .prop-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin-top: 1rem;
+    }
+
+    .prop-table th {
+      text-align: left;
+      padding: 0.4rem 0.75rem;
+      color: var(--color-muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .prop-table td {
+      padding: 0.4rem 0.75rem;
+      border-bottom: 1px solid #1F2937;
+      color: var(--color-text);
+    }
+
+    .prop-table tr:last-child td { border-bottom: none; }
+
+    .prop-name { color: #7DD3FC; font-family: monospace; }
+    .prop-type { color: #FCA5A5; font-family: monospace; }
+    .prop-required { color: #FCD34D; font-size: 0.7rem; }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--color-border);
+      margin: 2rem 0;
+    }
+
+    #render-output {
+      margin-top: 1rem;
+    }
+
+    .render-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 640px) {
+      .render-pair { grid-template-columns: 1fr; }
+    }
+
+    .render-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--border-radius);
+      padding: 1.25rem;
+    }
+
+    .render-card h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin: 0 0 1rem 0;
+      color: var(--color-text);
+    }
+
+    .rendered-output {
+      margin-bottom: 1rem;
+    }
+
+    .mode-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    .mode-a2ui { color: #93C5FD; }
+    .mode-direct { color: #86EFAC; }
+
+    .verification-box {
+      background: #0F2E1A;
+      border: 1px solid #166534;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+    }
+
+    .verification-box h3 {
+      color: #86EFAC;
+      margin: 0 0 0.75rem 0;
+      font-size: 0.9rem;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin-bottom: 0.4rem;
+      color: #D1FAE5;
+    }
+
+    .check-icon { flex-shrink: 0; }
+    .check-pass { color: #D1FAE5; }
+    .check-fail { color: #FCA5A5; }
+
+    .section-heading {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0 0 1rem 0;
+      color: #E5E7EB;
+    }
+
+    .tag-note {
+      font-size: 0.75rem;
+      color: #9CA3AF;
+      margin: 0.5rem 0 0 0;
+      font-family: monospace;
+    }
+
+    .check-summary {
+      font-size: 0.85rem;
+      margin: 0 0 0.75rem 0;
+    }
+
+    .check-summary.pass { color: #6EE7B7; }
+    .check-summary.fail { color: #FCA5A5; }
+
+    .verification-box.fail {
+      background: #2D0A0A;
+      border-color: #991B1B;
+    }
+
+    .verification-box.fail h3 { color: #FCA5A5; }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <h1>Media Components</h1>
+  <p class="subtitle">
+    A2UI-Oat catalog — <code>Video</code> and <code>AudioPlayer</code> rendered via OatRenderer
+  </p>
+
+  <div class="badge-row">
+    <span class="badge badge-video">Video → &lt;video&gt;</span>
+    <span class="badge badge-audio">AudioPlayer → &lt;audio&gt;</span>
+    <span class="badge badge-element">A2UI Mode + Direct Mode</span>
+  </div>
+
+  <!-- Live render output -->
+  <div class="section">
+    <h2 class="section-title">Live Render — A2UI Mode via OatRenderer</h2>
+    <div id="render-output"></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Direct HTML mode -->
+  <div class="section">
+    <h2 class="section-title">Direct Mode — native HTML elements</h2>
+    <div class="demo-grid">
+      <div class="demo-panel">
+        <p class="panel-label">Direct Mode — Video</p>
+        <video
+          src="https://www.w3schools.com/html/mov_bbb.mp4"
+          poster="https://www.w3schools.com/html/pic_trulli.jpg"
+          controls
+        ></video>
+        <p class="panel-desc">
+          Native <code>&lt;video&gt;</code> — Oat CSS styles it automatically by element semantics.
+        </p>
+      </div>
+      <div class="demo-panel">
+        <p class="panel-label">Direct Mode — Audio</p>
+        <audio
+          src="https://www.w3schools.com/html/horse.ogg"
+          controls
+        ></audio>
+        <p class="panel-desc">
+          Native <code>&lt;audio&gt;</code> — no renderer required in Direct Mode.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Property reference -->
+  <div class="section">
+    <h2 class="section-title">Property Reference</h2>
+    <div class="demo-grid">
+      <div class="demo-panel">
+        <p class="panel-label">Video properties</p>
+        <table class="prop-table">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Type</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="prop-name">src</td><td class="prop-type">DynamicString</td><td class="prop-required">required</td></tr>
+            <tr><td class="prop-name">poster</td><td class="prop-type">DynamicString</td><td></td></tr>
+            <tr><td class="prop-name">controls</td><td class="prop-type">boolean</td><td></td></tr>
+            <tr><td class="prop-name">autoplay</td><td class="prop-type">boolean</td><td></td></tr>
+            <tr><td class="prop-name">loop</td><td class="prop-type">boolean</td><td></td></tr>
+            <tr><td class="prop-name">muted</td><td class="prop-type">boolean</td><td></td></tr>
+            <tr><td class="prop-name">alt</td><td class="prop-type">string</td><td></td></tr>
+          </tbody>
+        </table>
+        <p class="panel-desc">Renders as <code>&lt;video&gt;</code>. <code>controls</code> defaults to true when omitted.</p>
+      </div>
+      <div class="demo-panel">
+        <p class="panel-label">AudioPlayer properties</p>
+        <table class="prop-table">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Type</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="prop-name">src</td><td class="prop-type">DynamicString</td><td class="prop-required">required</td></tr>
+            <tr><td class="prop-name">controls</td><td class="prop-type">boolean</td><td></td></tr>
+            <tr><td class="prop-name">autoplay</td><td class="prop-type">boolean</td><td></td></tr>
+            <tr><td class="prop-name">loop</td><td class="prop-type">boolean</td><td></td></tr>
+          </tbody>
+        </table>
+        <p class="panel-desc">Renders as <code>&lt;audio&gt;</code>. <code>controls</code> defaults to true when omitted.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verification -->
+  <div class="verification-box" id="verification-box">
+    <h3>Verification</h3>
+    <p style="color: #9CA3AF; font-size: 0.8rem; margin: 0 0 0.75rem;">Running checks...</p>
+  </div>
+</div>
+
+<script type="module">
+import { OatRenderer } from '../../renderer/index.js';
+
+function makeCtx(dataModel = {}) {
+  const subscribers = {};
+  return {
+    getDataModel: () => dataModel,
+    setDataModel: (path, val) => {
+      const parts = path.replace(/^\//, '').split('/');
+      let cur = dataModel;
+      for (let i = 0; i < parts.length - 1; i++) {
+        if (!cur[parts[i]]) cur[parts[i]] = {};
+        cur = cur[parts[i]];
+      }
+      cur[parts[parts.length - 1]] = val;
+      (subscribers[path] || []).forEach(fn => fn(val));
+    },
+    subscribe: (path, fn) => {
+      if (!subscribers[path]) subscribers[path] = [];
+      subscribers[path].push(fn);
+      return () => { subscribers[path] = subscribers[path].filter(f => f !== fn); };
+    },
+    renderChild: () => null,
+    dispatchAction: (action) => console.log('[A2UI] action', action),
+    getRegisteredFunction: () => null,
+  };
+}
+
+const renderer = new OatRenderer();
+
+const videoDefs = [
+  {
+    id: 'video-full',
+    label: 'Video — all properties',
+    component: {
+      id: 'video-full',
+      component: 'Video',
+      src: 'https://www.w3schools.com/html/mov_bbb.mp4',
+      poster: 'https://www.w3schools.com/html/pic_trulli.jpg',
+      controls: true,
+      autoplay: false,
+      loop: false,
+      muted: false,
+      alt: 'Big Buck Bunny short film clip',
+    },
+  },
+  {
+    id: 'video-muted-loop',
+    label: 'Video — muted + loop (ambient)',
+    component: {
+      id: 'video-muted-loop',
+      component: 'Video',
+      src: 'https://www.w3schools.com/html/mov_bbb.mp4',
+      controls: true,
+      loop: true,
+      muted: true,
+      alt: 'Looping ambient video',
+    },
+  },
+];
+
+const audioDefs = [
+  {
+    id: 'audio-basic',
+    label: 'AudioPlayer — controls',
+    component: {
+      id: 'audio-basic',
+      component: 'AudioPlayer',
+      src: 'https://www.w3schools.com/html/horse.ogg',
+      controls: true,
+      autoplay: false,
+    },
+  },
+  {
+    id: 'audio-loop',
+    label: 'AudioPlayer — loop enabled',
+    component: {
+      id: 'audio-loop',
+      component: 'AudioPlayer',
+      src: 'https://www.w3schools.com/html/horse.ogg',
+      controls: true,
+      loop: true,
+    },
+  },
+];
+
+function syntaxHighlight(json) {
+  return JSON.stringify(json, null, 2)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"([^"]+)":/g, '<span class="json-key">"$1"</span>:')
+    .replace(/: "([^"]*)"/g, ': <span class="json-string">"$1"</span>')
+    .replace(/: (true|false)/g, ': <span class="json-bool">$1</span>');
+}
+
+function buildSection(defs, title) {
+  const section = document.createElement('div');
+  section.style.marginBottom = '2rem';
+
+  const heading = document.createElement('h3');
+  heading.className = 'section-heading';
+  heading.textContent = title;
+  section.appendChild(heading);
+
+  for (const def of defs) {
+    const pair = document.createElement('div');
+    pair.className = 'render-pair';
+
+    // Left: rendered output
+    const renderCard = document.createElement('div');
+    renderCard.className = 'render-card';
+    const renderHeading = document.createElement('h3');
+    renderHeading.textContent = def.label;
+    renderCard.appendChild(renderHeading);
+
+    const modeLabel = document.createElement('p');
+    modeLabel.className = 'mode-label mode-a2ui';
+    modeLabel.textContent = 'A2UI Mode — OatRenderer output';
+    renderCard.appendChild(modeLabel);
+
+    const outputDiv = document.createElement('div');
+    outputDiv.className = 'rendered-output';
+    const ctx = makeCtx();
+    const el = renderer.renderComponent(def.component, ctx);
+    outputDiv.appendChild(el);
+    renderCard.appendChild(outputDiv);
+
+    const tagNote = document.createElement('p');
+    tagNote.className = 'tag-note';
+    tagNote.textContent = `Rendered element: <${el.tagName.toLowerCase()}>`;
+    renderCard.appendChild(tagNote);
+
+    const jsonCard = document.createElement('div');
+    jsonCard.className = 'render-card';
+    const jsonHeading = document.createElement('h3');
+    jsonHeading.textContent = 'A2UI JSON definition';
+    jsonCard.appendChild(jsonHeading);
+
+    const subLabel = document.createElement('p');
+    subLabel.className = 'mode-label mode-a2ui';
+    subLabel.textContent = 'Catalog-compliant component object';
+    jsonCard.appendChild(subLabel);
+
+    const pre = document.createElement('pre');
+    pre.innerHTML = syntaxHighlight(def.component);
+    jsonCard.appendChild(pre);
+
+    pair.appendChild(renderCard);
+    pair.appendChild(jsonCard);
+    section.appendChild(pair);
+  }
+
+  return section;
+}
+
+const output = document.getElementById('render-output');
+output.appendChild(buildSection(videoDefs, 'Video component'));
+output.appendChild(buildSection(audioDefs, 'AudioPlayer component'));
+
+const checks = [];
+
+function check(label, fn) {
+  try {
+    checks.push({ label, pass: fn() });
+  } catch (e) {
+    checks.push({ label, pass: false, error: e.message });
+  }
+}
+
+const ctx = makeCtx();
+
+const videoEl = renderer.renderComponent({
+  id: 'v-check', component: 'Video',
+  src: 'https://example.com/video.mp4',
+  controls: true,
+}, ctx);
+check('Video renders as <video> element', () => videoEl.tagName === 'VIDEO');
+check('Video has controls attribute when controls: true', () => videoEl.controls === true);
+check('Video src is set', () => videoEl.src !== '');
+
+const videoFull = renderer.renderComponent({
+  id: 'v-full', component: 'Video',
+  src: 'https://example.com/video.mp4',
+  poster: 'https://example.com/poster.jpg',
+  controls: true,
+  autoplay: false,
+  loop: true,
+  muted: true,
+  alt: 'Test video',
+}, ctx);
+check('Video poster attribute is set', () => videoFull.poster !== '');
+check('Video loop is set when loop: true', () => videoFull.loop === true);
+check('Video muted is set when muted: true', () => videoFull.muted === true);
+check('Video aria-label set from alt property', () => videoFull.getAttribute('aria-label') === 'Test video');
+check('Video autoplay is false when autoplay: false', () => videoFull.autoplay === false);
+
+const videoNoControls = renderer.renderComponent({
+  id: 'v-nc', component: 'Video',
+  src: 'https://example.com/video.mp4',
+  controls: false,
+}, ctx);
+check('Video controls is false when controls: false', () => videoNoControls.controls === false);
+
+const audioEl = renderer.renderComponent({
+  id: 'a-check', component: 'AudioPlayer',
+  src: 'https://example.com/audio.mp3',
+  controls: true,
+}, ctx);
+check('AudioPlayer renders as <audio> element', () => audioEl.tagName === 'AUDIO');
+check('AudioPlayer has controls when controls: true', () => audioEl.controls === true);
+check('AudioPlayer src is set', () => audioEl.src !== '');
+
+const audioLoop = renderer.renderComponent({
+  id: 'a-loop', component: 'AudioPlayer',
+  src: 'https://example.com/audio.mp3',
+  controls: true,
+  loop: true,
+}, ctx);
+check('AudioPlayer loop is set when loop: true', () => audioLoop.loop === true);
+
+const audioNoCtrl = renderer.renderComponent({
+  id: 'a-nc', component: 'AudioPlayer',
+  src: 'https://example.com/audio.mp3',
+  controls: false,
+}, ctx);
+check('AudioPlayer controls is false when controls: false', () => audioNoCtrl.controls === false);
+
+const unknown = renderer.renderComponent({ id: 'u1', component: 'NonExistent' }, ctx);
+check('Unknown component returns fallback <div>', () => unknown.tagName === 'DIV' && unknown.dataset.unknownComponent === 'NonExistent');
+
+// Render verification box
+const verBox = document.getElementById('verification-box');
+verBox.innerHTML = '';
+
+const verTitle = document.createElement('h3');
+verTitle.textContent = 'Verification';
+verBox.appendChild(verTitle);
+
+const passed = checks.filter(c => c.pass).length;
+const total = checks.length;
+
+const summary = document.createElement('p');
+summary.className = `check-summary ${passed === total ? 'pass' : 'fail'}`;
+summary.textContent = `${passed} / ${total} checks passed`;
+verBox.appendChild(summary);
+
+for (const c of checks) {
+  const item = document.createElement('div');
+  item.className = 'check-item';
+
+  const icon = document.createElement('span');
+  icon.className = 'check-icon';
+  icon.textContent = c.pass ? '✓' : '✗';
+
+  const text = document.createElement('span');
+  text.className = c.pass ? 'check-pass' : 'check-fail';
+  text.textContent = c.error ? `${c.label} — ${c.error}` : c.label;
+
+  item.appendChild(icon);
+  item.appendChild(text);
+  verBox.appendChild(item);
+}
+
+if (passed < total) {
+  verBox.classList.add('fail');
+}
+
+console.log(`[a2ui-oat media] Verification: ${passed}/${total} checks passed`);
+checks.filter(c => !c.pass).forEach(c => console.error('[FAIL]', c.label, c.error || ''));
+</script>
+</body>
+</html>
