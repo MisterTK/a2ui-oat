@@ -31,8 +31,8 @@
 
 const TEXT_VARIANT_TAGS = {
   h1: 'h1', h2: 'h2', h3: 'h3', h4: 'h4', h5: 'h5', h6: 'h6',
-  body: 'p', paragraph: 'p',
-  span: 'span', small: 'small', strong: 'strong', em: 'em',
+  p: 'p', span: 'span', small: 'small', strong: 'strong', em: 'em',
+  body: 'p', paragraph: 'p',  // backwards-compat aliases
 };
 
 const TEXT_FIELD_TYPES = {
@@ -299,8 +299,9 @@ export class OatRenderer {
 
   /** @returns {HTMLElement} */
   _renderList(c, ctx) {
-    const tag = c.direction === 'ordered' ? 'ol' : 'ul';
+    const tag = (c.ordered || c.direction === 'ordered') ? 'ol' : 'ul';
     const el = document.createElement(tag);
+    if (c.direction === 'horizontal') el.style.display = 'flex';
     if (Array.isArray(c.children)) {
       for (const id of c.children) {
         const li = document.createElement('li');
