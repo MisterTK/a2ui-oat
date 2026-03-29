@@ -915,19 +915,53 @@ export class OatRenderer {
 
   /** @returns {HTMLElement} */
   _renderToast(c, ctx) {
-    const el = document.createElement('div');
+    const el = document.createElement('output');
     el.setAttribute('role', 'alert');
     el.className = 'toast';
     if (c.variant) el.dataset.variant = c.variant;
-    if (c.position) el.dataset.position = c.position;
-    this._bindValue(c.text, ctx, (val) => { el.textContent = val ?? ''; });
+
+    if (c.title) {
+      const titleEl = document.createElement('h6');
+      titleEl.className = 'toast-title';
+      this._bindValue(c.title, ctx, (val) => { titleEl.textContent = val ?? ''; });
+      el.appendChild(titleEl);
+    }
+
+    const msgEl = document.createElement('p');
+    msgEl.className = 'toast-message';
+    this._bindValue(c.text, ctx, (val) => { msgEl.textContent = val ?? ''; });
+    el.appendChild(msgEl);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.setAttribute('data-close', '');
+    closeBtn.setAttribute('aria-label', 'Close');
+    closeBtn.textContent = '\u00d7';
+    closeBtn.addEventListener('click', () => { el.remove(); });
+    el.appendChild(closeBtn);
+
+    el.dataset.entering = '';
+    requestAnimationFrame(() => { delete el.dataset.entering; });
 
     if (c.duration) {
       const ms = typeof c.duration === 'number' ? c.duration : parseInt(c.duration, 10);
       if (ms > 0) {
-        setTimeout(() => { el.remove(); }, ms);
+        setTimeout(() => {
+          el.dataset.exiting = '';
+          setTimeout(() => { el.remove(); }, 300);
+        }, ms);
       }
     }
+
+    const placement = this._resolve(c.position, ctx) || 'top-right';
+    const selector = `.toast-container[data-placement="${placement}"]`;
+    let container = document.querySelector(selector);
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'toast-container';
+      container.dataset.placement = placement;
+      document.body.appendChild(container);
+    }
+    container.appendChild(el);
 
     return el;
   }
