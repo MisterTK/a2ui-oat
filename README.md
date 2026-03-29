@@ -3,7 +3,12 @@
 **A lightweight A2UI renderer and catalog for agent-driven web interfaces.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![npm version](https://img.shields.io/npm/v/a2ui-oat.svg)](https://www.npmjs.com/package/a2ui-oat)
 [![Client Size: ~13KB](https://img.shields.io/badge/client_size-~13KB-green.svg)](#companion-libraries)
+
+```bash
+npm install a2ui-oat
+```
 
 ---
 
@@ -30,7 +35,16 @@ The project supports a **dual-mode architecture**: A2UI Mode for structured, cat
 
 ## Quick Start
 
-### A2UI Mode
+### A2UI Mode (ES Module)
+
+```js
+import { createOatRenderer, registerWithWebLib } from 'a2ui-oat';
+
+const { renderer, functions } = createOatRenderer();
+registerWithWebLib(webLib); // one-call setup for @a2ui/web-lib
+```
+
+### A2UI Mode (CDN)
 
 Include Oat CSS, `@a2ui/web-lib`, and the Oat Renderer. The agent emits A2UI JSON against the Oat Catalog schema. The protocol engine parses the stream, manages state, and delegates to the renderer for HTML output.
 
@@ -43,12 +57,9 @@ Include Oat CSS, `@a2ui/web-lib`, and the Oat Renderer. The agent emits A2UI JSO
 <script src="https://unpkg.com/@a2ui/web-lib"></script>
 
 <!-- Oat Renderer -->
-<script src="renderer/index.js"></script>
-
-<script>
-  const renderer = new OatRenderer({
-    catalogId: "https://a2ui-oat.dev/catalog/v1/oat-catalog.json"
-  });
+<script type="module">
+  import { createOatRenderer } from 'https://unpkg.com/a2ui-oat/renderer/index.js';
+  const { renderer, functions } = createOatRenderer();
   // Connect to your agent transport (A2A, MCP, WebSocket, SSE)
 </script>
 ```
