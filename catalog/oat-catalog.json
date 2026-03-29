@@ -91,6 +91,10 @@
           "type": "string",
           "enum": ["vertical", "horizontal"],
           "description": "Layout direction of the list. Vertical renders as a standard list; horizontal renders inline."
+        },
+        "ordered": {
+          "type": "boolean",
+          "description": "If true, renders as an ordered list (ol). Defaults to false (ul)."
         }
       },
       "requiredProperties": []

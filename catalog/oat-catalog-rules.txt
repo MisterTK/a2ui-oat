@@ -56,7 +56,7 @@ Display components:
 
   Text
     required: text (string or data binding)
-    optional: variant ("h1"|"h2"|"h3"|"h4"|"h5"|"h6"|"body"|"caption"|"code")
+    optional: variant ("h1"|"h2"|"h3"|"h4"|"h5"|"h6"|"p"|"span"|"small"|"strong"|"em")
 
   Image
     required: url (string or data binding)
