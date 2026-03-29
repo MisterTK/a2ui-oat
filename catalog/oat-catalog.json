@@ -358,7 +358,7 @@
           "type": "DynamicString",
           "description": "Current input value. Supports two-way data binding."
         },
-        "textFieldType": {
+        "variant": {
           "type": "string",
           "enum": ["text", "email", "password", "number", "tel", "url", "search", "textarea"],
           "description": "Type of the text input. 'textarea' renders a multi-line input."
@@ -439,11 +439,11 @@
           "type": "DynamicNumber",
           "description": "Current slider value. Supports two-way data binding."
         },
-        "minValue": {
+        "min": {
           "type": "number",
           "description": "Minimum selectable value."
         },
-        "maxValue": {
+        "max": {
           "type": "number",
           "description": "Maximum selectable value."
         },
@@ -464,7 +464,7 @@
           "description": "Whether the slider is disabled."
         }
       },
-      "requiredProperties": ["value", "minValue", "maxValue"]
+      "requiredProperties": ["value", "min", "max"]
     },
 
     "DateTimeInput": {
@@ -600,11 +600,11 @@
       "description": "A dialog overlay rendered using the native HTML dialog element. The entry point child is the trigger element; the content child is the dialog body.",
       "htmlElement": "dialog",
       "properties": {
-        "entryPointChild": {
+        "trigger": {
           "type": "ComponentId",
           "description": "Component ID of the trigger element that opens the modal."
         },
-        "contentChild": {
+        "content": {
           "type": "ComponentId",
           "description": "Component ID of the modal body content."
         },
@@ -613,14 +613,14 @@
           "description": "Whether the modal can be dismissed by clicking outside or pressing Escape."
         }
       },
-      "requiredProperties": ["entryPointChild", "contentChild"]
+      "requiredProperties": ["trigger", "content"]
     },
 
     "Tabs": {
       "description": "A tabbed interface rendered as an oat-tabs web component. Each tab has a title and a child component.",
       "htmlElement": "oat-tabs",
       "properties": {
-        "tabItems": {
+        "tabs": {
           "type": "array",
           "description": "Array of tab definitions, each with a title and child component ID.",
           "items": {
@@ -642,7 +642,7 @@
           "description": "Index of the initially active tab. Supports data binding."
         }
       },
-      "requiredProperties": ["tabItems"]
+      "requiredProperties": ["tabs"]
     },
 
     "Accordion": {
