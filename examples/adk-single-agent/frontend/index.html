@@ -476,13 +476,20 @@ function resolve(val, data) {
 }
 
 function normalizeComponent(c) {
-  // LLMs use "type" instead of "component"
   if (!c.component && c.type) c.component = c.type;
-  // LLMs nest properties under a "properties" key -- flatten them
   if (c.properties) {
     const props = c.properties;
     delete c.properties;
     Object.assign(c, props);
+  }
+  if (c.children && !Array.isArray(c.children)) c.children = [c.children];
+  if (c.children && c.children.length > 0 && typeof c.children[0] === 'object') {
+    const inlined = [];
+    c.children = c.children.map(ch => {
+      if (typeof ch === 'object' && ch.id) { inlined.push(normalizeComponent(ch)); return ch.id; }
+      return ch;
+    });
+    c._inlined = inlined;
   }
   return c;
 }
@@ -499,7 +506,11 @@ function renderA2UI(messages) {
       data = deepMerge(data, modelData);
     }
     if (msg.updateComponents && msg.updateComponents.components) {
-      components = components.concat(msg.updateComponents.components.map(normalizeComponent));
+      const normalized = msg.updateComponents.components.map(normalizeComponent);
+      for (const c of normalized) {
+        components.push(c);
+        if (c._inlined) { for (const ic of c._inlined) components.push(ic); delete c._inlined; }
+      }
     }
   }
 
@@ -929,9 +940,13 @@ function addAgentResponse(text, a2uiMessages, raw) {
   if (a2uiMessages && a2uiMessages.length > 0) {
     const surface = document.createElement('div');
     surface.className = 'agent-surface';
-    const rendered = renderA2UI(a2uiMessages);
-    if (rendered) surface.appendChild(rendered);
-    else surface.textContent = 'No components rendered';
+    try {
+      const rendered = renderA2UI(a2uiMessages);
+      if (rendered) surface.appendChild(rendered);
+      else surface.textContent = 'No components rendered';
+    } catch (e) {
+      surface.innerHTML = `<div style="color:var(--badge-error-text)">Render error: ${e.message}</div><pre style="font-size:0.7rem;color:var(--text-muted);overflow:auto;max-height:200px">${JSON.stringify(a2uiMessages, null, 2)}</pre>`;
+    }
     wrap.appendChild(surface);
   }
 

@@ -383,13 +383,22 @@ function deepMerge(target, source) {
 }
 
 function normalizeComponent(c) {
-  // LLMs use "type" instead of "component"
   if (!c.component && c.type) c.component = c.type;
-  // LLMs nest properties under a "properties" key -- flatten them
   if (c.properties) {
     const props = c.properties;
     delete c.properties;
     Object.assign(c, props);
+  }
+  // Ensure children is always an array
+  if (c.children && !Array.isArray(c.children)) c.children = [c.children];
+  // LLMs sometimes put child components inline instead of by ID
+  if (c.children && c.children.length > 0 && typeof c.children[0] === 'object') {
+    const inlined = [];
+    c.children = c.children.map(ch => {
+      if (typeof ch === 'object' && ch.id) { inlined.push(normalizeComponent(ch)); return ch.id; }
+      return ch;
+    });
+    c._inlined = inlined;
   }
   return c;
 }
@@ -402,7 +411,13 @@ function renderA2UI(messages) {
       const modelData = msg.updateDataModel.data || msg.updateDataModel.value || {};
       data = deepMerge(data, modelData);
     }
-    if (msg.updateComponents && msg.updateComponents.components) components = components.concat(msg.updateComponents.components.map(normalizeComponent));
+    if (msg.updateComponents && msg.updateComponents.components) {
+      const normalized = msg.updateComponents.components.map(normalizeComponent);
+      for (const c of normalized) {
+        components.push(c);
+        if (c._inlined) { for (const ic of c._inlined) components.push(ic); delete c._inlined; }
+      }
+    }
   }
   if (components.length === 0) return { el: null, componentCount: 0, uniqueTypes: new Set() };
 
@@ -564,15 +579,18 @@ function renderSurface(mode, data) {
   }
 
   if (data.a2ui && data.a2ui.length > 0) {
-    const result = renderA2UI(data.a2ui);
-    if (result.el) {
-      containerEl.appendChild(result.el);
+    try {
+      const result = renderA2UI(data.a2ui);
+      if (result.el) {
+        containerEl.appendChild(result.el);
+      }
+      document.getElementById(`stat-${mode}-components`).textContent = result.componentCount;
+      document.getElementById(`stat-${mode}-types`).textContent = result.uniqueTypes.size;
+      document.getElementById(`${mode}-meta`).textContent =
+        `${result.componentCount} components, ${result.uniqueTypes.size} types: ${[...result.uniqueTypes].join(', ')}`;
+    } catch (e) {
+      containerEl.innerHTML += `<div class="surface-empty">Render error: ${e.message}</div><pre style="font-size:0.7rem;color:var(--text-muted);overflow:auto;max-height:200px">${JSON.stringify(data.a2ui, null, 2)}</pre>`;
     }
-
-    document.getElementById(`stat-${mode}-components`).textContent = result.componentCount;
-    document.getElementById(`stat-${mode}-types`).textContent = result.uniqueTypes.size;
-    document.getElementById(`${mode}-meta`).textContent =
-      `${result.componentCount} components, ${result.uniqueTypes.size} types: ${[...result.uniqueTypes].join(', ')}`;
   } else {
     containerEl.innerHTML += '<div class="surface-empty">No A2UI components generated</div>';
     document.getElementById(`stat-${mode}-components`).textContent = '0';

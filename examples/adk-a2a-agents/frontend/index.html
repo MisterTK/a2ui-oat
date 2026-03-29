@@ -338,13 +338,20 @@ function deepMerge(target, source) {
 }
 
 function normalizeComponent(c) {
-  // LLMs use "type" instead of "component"
   if (!c.component && c.type) c.component = c.type;
-  // LLMs nest properties under a "properties" key -- flatten them
   if (c.properties) {
     const props = c.properties;
     delete c.properties;
     Object.assign(c, props);
+  }
+  if (c.children && !Array.isArray(c.children)) c.children = [c.children];
+  if (c.children && c.children.length > 0 && typeof c.children[0] === 'object') {
+    const inlined = [];
+    c.children = c.children.map(ch => {
+      if (typeof ch === 'object' && ch.id) { inlined.push(normalizeComponent(ch)); return ch.id; }
+      return ch;
+    });
+    c._inlined = inlined;
   }
   return c;
 }
@@ -357,7 +364,13 @@ function renderA2UI(messages) {
       const modelData = msg.updateDataModel.data || msg.updateDataModel.value || {};
       data = deepMerge(data, modelData);
     }
-    if (msg.updateComponents && msg.updateComponents.components) components = components.concat(msg.updateComponents.components.map(normalizeComponent));
+    if (msg.updateComponents && msg.updateComponents.components) {
+      const normalized = msg.updateComponents.components.map(normalizeComponent);
+      for (const c of normalized) {
+        components.push(c);
+        if (c._inlined) { for (const ic of c._inlined) components.push(ic); delete c._inlined; }
+      }
+    }
   }
   if (components.length === 0) return null;
 
@@ -670,13 +683,18 @@ async function sendMessage() {
         }
 
         if (surfaceData.a2ui && surfaceData.a2ui.length > 0) {
-          const rendered = renderA2UI(surfaceData.a2ui);
-          if (rendered) {
-            targetEl.appendChild(rendered);
-            log(`  ${agentName}: rendered ${surfaceData.a2ui.length} A2UI messages`, 'ok');
-          } else {
-            targetEl.innerHTML += '<div class="surface-empty">No components rendered</div>';
-            log(`  ${agentName}: no renderable components`, 'warn');
+          try {
+            const rendered = renderA2UI(surfaceData.a2ui);
+            if (rendered) {
+              targetEl.appendChild(rendered);
+              log(`  ${agentName}: rendered ${surfaceData.a2ui.length} A2UI messages`, 'ok');
+            } else {
+              targetEl.innerHTML += '<div class="surface-empty">No components rendered</div>';
+              log(`  ${agentName}: no renderable components`, 'warn');
+            }
+          } catch (e) {
+            targetEl.innerHTML += `<div style="color:var(--badge-error-text)">Render error: ${e.message}</div><pre style="font-size:0.7rem;color:var(--text-muted);overflow:auto;max-height:200px">${JSON.stringify(surfaceData.a2ui, null, 2)}</pre>`;
+            log(`  ${agentName}: render error: ${e.message}`, 'err');
           }
         } else if (!surfaceData.text) {
           targetEl.innerHTML = '<div class="surface-empty">No A2UI data returned</div>';
