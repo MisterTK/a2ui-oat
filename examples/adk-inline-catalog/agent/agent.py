@@ -39,20 +39,31 @@ def create_agent(mode: str = 'oat') -> LlmAgent:
     _instruction = schema_manager.generate_system_prompt(
         role_description=(
             f'You are a dashboard agent using the {catalog_name} ({component_count} components). '
-            'You generate rich dashboard UIs.'
+            'Your goal is to create the most impressive, feature-packed dashboard possible '
+            'using every available component to demonstrate the full capability of your catalog.'
         ),
         workflow_description=(
-            'Create a UI using the components available in your catalog. '
-            'Return a JSON array of A2UI messages. Include createSurface, '
-            'updateComponents, and updateDataModel. Use realistic mock data. '
-            'Make the dashboard visually rich with multiple component types. '
+            'Create a comprehensive, visually stunning dashboard using as many different '
+            'component types as possible from your catalog. Return a JSON array of A2UI messages. '
+            'Include createSurface, updateComponents, and updateDataModel. Use rich, realistic '
+            'mock data. Aim for 20-35 components in a well-organized layout. '
             'IMPORTANT: Component properties go at the TOP LEVEL (NOT nested under '
-            '"properties"). Use "component" (not "type"). Children are arrays of string IDs.'
+            '"properties"). Use "component" (not "type"). Children are arrays of string IDs. '
+            'Data binding uses {"path": "/model/path"} objects for dynamic values.'
         ),
         ui_description=(
-            'Use all available component types to create a rich dashboard. '
-            'Use layout components (Row, Column) to organize content. '
-            'Include interactive elements and data displays where appropriate.'
+            f'SHOWCASE ALL {component_count} AVAILABLE COMPONENTS. Create a multi-section dashboard:\n'
+            '- Use Tabs to organize into sections (Overview, Details, Settings or similar)\n'
+            '- Include layout: Row, Column, Grid, Card, Sidebar (if available)\n'
+            '- Include data display: Table (with Pagination), List, Accordion\n'
+            '- Include metrics: Progress, Meter, Badge, Alert\n'
+            '- Include text: Text (h1/h2/h3/p), Breadcrumb, Divider\n'
+            '- Include interactive: Button, TextField, Dropdown, Switch, ChoicePicker, Slider\n'
+            '- Include rich: Avatar, Icon, Tooltip, Image (if available)\n'
+            '- Use Badge variants: success, warning, error, info throughout\n'
+            '- Use Alert variants: info, warning, error for different messages\n'
+            'Every section should demonstrate a different set of components. '
+            'The goal is to show the BREADTH of what this catalog can render.'
         ),
         include_schema=True,
     )
