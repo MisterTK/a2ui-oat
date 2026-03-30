@@ -77,6 +77,7 @@ Include only Oat CSS + JS. The agent emits semantic HTML directly. Oat styles it
 <script>
   // Agent sends semantic HTML; insert it into the DOM.
   // Oat CSS styles it automatically based on element semantics.
+  // For untrusted input, run through the sanitizer first: see direct/sanitizer.js
   document.getElementById("agent-output").innerHTML = agentHtml;
 </script>
 ```
@@ -257,7 +258,7 @@ a2ui-oat provides three security tiers. The choice depends on the trust level of
 
 **Direct Mode** has no catalog, no schema validation, and no sandboxing. It is appropriate only for trusted, internally-controlled agents.
 
-**OatHTML** is an escape hatch that accepts sanitized HTML within A2UI's security model, bridging the gap between strict catalog constraints and full HTML freedom.
+**OatHTML** accepts sanitized HTML within A2UI's security model, bridging the gap between strict catalog constraints and full HTML freedom.
 
 See [docs/when-to-use-which.md](docs/when-to-use-which.md) for a detailed decision guide.
 
