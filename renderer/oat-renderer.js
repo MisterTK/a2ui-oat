@@ -580,6 +580,16 @@ export class OatRenderer {
       el.dataset.variant = variant;
     }
     if (c.disabled) el.disabled = true;
+    if (Array.isArray(c.checks) && c.checks.length > 0) {
+      const evaluate = () => {
+        const allPass = c.checks.every((check) => this._evaluateCheck(check, ctx));
+        el.disabled = !allPass || Boolean(c.disabled);
+      };
+      evaluate();
+      for (const path of this._extractCheckPaths(c.checks)) {
+        ctx.subscribe(path, evaluate);
+      }
+    }
     this._renderSingleChild(el, c.child, ctx);
     this._wireAction(el, 'click', c.action, ctx);
     return el;
@@ -679,6 +689,7 @@ export class OatRenderer {
     this._bindValue(c.value, ctx, (val) => { if (val != null) el.value = val; });
     this._wireTwoWay(el, c.value, 'change', (e) => e.value, ctx);
 
+    this._renderChecks(el, null, c.checks, ctx);
     return el;
   }
 
@@ -712,6 +723,7 @@ export class OatRenderer {
         });
       }
 
+      this._renderChecks(el, null, c.checks, ctx);
       return el;
     }
 
@@ -749,6 +761,7 @@ export class OatRenderer {
       }
     });
 
+    this._renderChecks(fieldset, null, c.checks, ctx);
     return fieldset;
   }
 
@@ -809,6 +822,7 @@ export class OatRenderer {
         );
       });
 
+    this._renderChecks(el, null, c.checks, ctx);
     return wrapper;
   }
 

@@ -440,6 +440,31 @@ describe('Checkable / checks validation', () => {
     const input = wrapper.children.find((c) => c.tagName === 'INPUT');
     assert.equal(input.attributes['aria-invalid'], 'true');
   });
+
+  it('Button disables itself while a check fails, and re-enables when it passes', () => {
+    const requiredFn = ({ value }) => value != null && value !== '';
+    const ctx = makeReactiveContext({ form: { email: '' } }, { required: requiredFn });
+    const btn = renderer.renderComponent(
+      {
+        id: 'submit', component: 'Button', child: null,
+        checks: [{ functionCall: { call: 'required', args: { value: { path: '/form/email' } } } }],
+      },
+      ctx
+    );
+    assert.equal(btn.disabled, true);
+    ctx.fireChange('/form/email', 'a@b.com');
+    assert.equal(btn.disabled, false);
+  });
+
+  it('DateTimeInput sets aria-invalid without an error element', () => {
+    const requiredFn = ({ value }) => value != null && value !== '';
+    const ctx = makeReactiveContext({ date: '' }, { required: requiredFn });
+    const el = renderer.renderComponent(
+      { id: 'dt1', component: 'DateTimeInput', value: { path: '/date' }, checks: [{ functionCall: { call: 'required', args: { value: { path: '/date' } } } }] },
+      ctx
+    );
+    assert.equal(el.attributes['aria-invalid'], 'true');
+  });
 });
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

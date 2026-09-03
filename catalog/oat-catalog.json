@@ -591,6 +591,13 @@
         "disabled": {
           "type": "boolean",
           "description": "Whether the input is disabled."
+        },
+        "checks": {
+          "type": "array",
+          "description": "Validation checks to run against this field's value. On failure, sets aria-invalid.",
+          "items": {
+            "type": "object"
+          }
         }
       },
       "requiredProperties": ["value"]
@@ -636,6 +643,13 @@
         "disabled": {
           "type": "boolean",
           "description": "Whether the picker is disabled."
+        },
+        "checks": {
+          "type": "array",
+          "description": "Validation checks to run against this field's value. On failure, sets aria-invalid.",
+          "items": {
+            "type": "object"
+          }
         }
       },
       "requiredProperties": ["options", "selections"]
@@ -672,6 +686,13 @@
         "disabled": {
           "type": "boolean",
           "description": "Whether the input is disabled."
+        },
+        "checks": {
+          "type": "array",
+          "description": "Validation checks to run against this field's value. On failure, sets aria-invalid.",
+          "items": {
+            "type": "object"
+          }
         }
       },
       "requiredProperties": ["source"]
