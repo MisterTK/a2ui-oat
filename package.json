@@ -11,6 +11,7 @@
   "main": "renderer/index.js",
   "exports": {
     ".": "./renderer/index.js",
+    "./surface-adapter": "./renderer/surface-adapter.js",
     "./catalog": "./catalog/oat-catalog.json",
     "./sanitizer": "./direct/sanitizer.js"
   },
