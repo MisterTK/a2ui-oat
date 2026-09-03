@@ -271,6 +271,33 @@ describe('component output correctness', () => {
     );
     assert.equal(el.dataset.componentId, 'myid');
   });
+
+  it('Button renders secondary/danger variants as data-variant', () => {
+    const el = renderer.renderComponent(
+      { id: 'btn1', component: 'Button', child: null, variant: 'secondary' },
+      makeContext()
+    );
+    assert.equal(el.dataset.variant, 'secondary');
+    assert.equal(el.className, '');
+  });
+
+  it('Button renders outline/ghost variants as classes', () => {
+    const el = renderer.renderComponent(
+      { id: 'btn2', component: 'Button', child: null, variant: 'outline' },
+      makeContext()
+    );
+    assert.equal(el.className, 'outline');
+    assert.equal(el.dataset.variant, undefined);
+  });
+
+  it('Button renders primary/default variants with no extra class or attribute', () => {
+    const el = renderer.renderComponent(
+      { id: 'btn3', component: 'Button', child: null, variant: 'primary' },
+      makeContext()
+    );
+    assert.equal(el.className, '');
+    assert.equal(el.dataset.variant, undefined);
+  });
 });
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

@@ -490,7 +490,12 @@ export class OatRenderer {
   /** @returns {HTMLElement} */
   _renderButton(c, ctx) {
     const el = document.createElement('button');
-    this._addClass(el, this._resolve(this._asBinding(c.variant), ctx));
+    const variant = this._resolve(this._asBinding(c.variant), ctx);
+    if (variant === 'outline' || variant === 'ghost') {
+      this._addClass(el, variant);
+    } else if (variant === 'secondary' || variant === 'danger') {
+      el.dataset.variant = variant;
+    }
     if (c.disabled) el.disabled = true;
     this._renderSingleChild(el, c.child, ctx);
     this._wireAction(el, 'click', c.action, ctx);
