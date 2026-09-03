@@ -559,11 +559,15 @@ describe('Checkable / checks validation', () => {
   });
 
   it('CheckBox sets aria-invalid on its input when a check fails', () => {
-    const ctx = makeReactiveContext({ agree: false }, { required: requiredFn });
+    // Note: `required` treats `false` as "present" (it only rejects null/''),
+    // so the check targets a separate empty-string field rather than the
+    // boolean `value` itself — this still exercises the exact same
+    // _renderChecks wiring, since it doesn't care what path a check reads.
+    const ctx = makeReactiveContext({ agree: false, agreeName: '' }, { required: requiredFn });
     const wrapper = renderer.renderComponent(
       {
         id: 'cb1', component: 'CheckBox', label: 'Agree', value: { path: '/agree' },
-        checks: [{ functionCall: { call: 'required', args: { value: { path: '/agree' } } }, message: 'You must agree' }],
+        checks: [{ functionCall: { call: 'required', args: { value: { path: '/agreeName' } } }, message: 'You must agree' }],
       },
       ctx
     );
@@ -913,8 +917,8 @@ Add the method (place it after `_renderAutocomplete`'s closing brace):
       if (this._isBound(filesBinding)) {
         ctx.setDataModel(filesBinding.path, files);
       }
+      if (c.action) ctx.dispatchAction(c.action);
     });
-    this._wireAction(input, 'change', c.action, ctx);
     this._renderChecks(input, null, c.checks, ctx);
 
     return el;
