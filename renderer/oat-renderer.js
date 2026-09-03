@@ -869,9 +869,10 @@ export class OatRenderer {
   _renderTagInput(c, ctx) {
     const el = document.createElement('ot-taginput');
 
+    let listId;
     const suggestions = this._resolve(this._asBinding(c.suggestions), ctx);
     if (Array.isArray(suggestions) && suggestions.length > 0) {
-      const listId = `taginput-list-${c.id || Math.random().toString(36).slice(2, 8)}`;
+      listId = `taginput-list-${c.id || Math.random().toString(36).slice(2, 8)}`;
       const datalist = document.createElement('datalist');
       datalist.id = listId;
       for (const s of suggestions) {
@@ -884,6 +885,7 @@ export class OatRenderer {
 
     const input = document.createElement('input');
     if (c.placeholder) input.placeholder = c.placeholder;
+    if (listId) input.setAttribute('list', listId);
     el.appendChild(input);
 
     const initialValue = this._resolve(this._asBinding(c.value), ctx);

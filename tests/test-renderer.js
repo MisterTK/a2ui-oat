@@ -431,6 +431,8 @@ describe('component output correctness', () => {
     const datalist = el.children.find((c) => c.tagName === 'DATALIST');
     assert.ok(datalist);
     assert.equal(datalist.children.length, 3);
+    const input = el.children.find((c) => c.tagName === 'INPUT');
+    assert.equal(input.getAttribute('list'), datalist.id);
   });
 
   it('TagInput writes tags to the data model on input', () => {
