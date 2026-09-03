@@ -835,7 +835,8 @@ export class OatRenderer {
   _renderTooltip(c, ctx) {
     const el = document.createElement('span');
     el.dataset.tooltip = this._resolve(c.text, ctx) ?? '';
-    if (c.position) el.dataset.tooltipPosition = c.position;
+    const placement = c.placement ?? c.position;
+    if (placement) el.dataset.tooltipPlacement = placement;
     el.setAttribute('tabindex', '0');
     this._renderSingleChild(el, c.child, ctx);
     return el;

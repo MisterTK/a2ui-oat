@@ -150,7 +150,7 @@ Container components:
 
   Tooltip
     required: child (string ID), text (string)
-    optional: position ("top"|"bottom"|"left"|"right")
+    optional: placement ("top"|"bottom"|"left"|"right") -- "position" is accepted as a deprecated alias
 
 Data and Feedback components:
 

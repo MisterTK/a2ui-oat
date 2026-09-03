@@ -307,6 +307,22 @@ describe('component output correctness', () => {
     assert.equal(el.attributes.role, 'status');
     assert.equal(el.className, 'skeleton box');
   });
+
+  it('Tooltip sets data-tooltip-placement from the placement property', () => {
+    const el = renderer.renderComponent(
+      { id: 'tt1', component: 'Tooltip', text: 'Tip', placement: 'bottom' },
+      makeContext()
+    );
+    assert.equal(el.dataset.tooltipPlacement, 'bottom');
+  });
+
+  it('Tooltip falls back to the deprecated position property', () => {
+    const el = renderer.renderComponent(
+      { id: 'tt2', component: 'Tooltip', text: 'Tip', position: 'left' },
+      makeContext()
+    );
+    assert.equal(el.dataset.tooltipPlacement, 'left');
+  });
 });
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

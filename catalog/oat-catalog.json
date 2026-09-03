@@ -758,10 +758,10 @@
           "type": "DynamicString",
           "description": "Tooltip text content. Supports data binding."
         },
-        "position": {
+        "placement": {
           "type": "string",
           "enum": ["top", "bottom", "left", "right"],
-          "description": "Position of the tooltip relative to the trigger element."
+          "description": "Position of the tooltip relative to the trigger element. Supports the deprecated `position` property name as a fallback."
         }
       },
       "requiredProperties": ["child", "text"]
