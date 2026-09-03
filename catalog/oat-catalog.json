@@ -207,7 +207,7 @@
     },
 
     "Badge": {
-      "description": "A small status indicator or label rendered as a span with data-badge attribute.",
+      "description": "A small status indicator or label rendered as a span with class=\"badge\", plus a data-variant attribute for secondary/success/warning/danger variants or an .outline class for the outline variant.",
       "htmlElement": "span",
       "properties": {
         "text": {
