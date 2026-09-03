@@ -698,6 +698,45 @@
       "requiredProperties": ["source"]
     },
 
+    "FileUpload": {
+      "description": "A file picker with drag-and-drop support, rendered as an ot-upload web component wrapping a native file input.",
+      "htmlElement": "ot-upload",
+      "properties": {
+        "accept": {
+          "type": "string",
+          "description": "Comma-separated list of accepted file types (MIME types or extensions)."
+        },
+        "multiple": {
+          "type": "boolean",
+          "description": "Whether multiple files can be selected."
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "Whether the upload control is disabled."
+        },
+        "hint": {
+          "type": "string",
+          "description": "Hint text shown when no files are selected."
+        },
+        "files": {
+          "type": "DynamicString",
+          "description": "Selected files, written as an array of {name, size, type} objects. Two-way bound to the data model."
+        },
+        "action": {
+          "type": "Action",
+          "description": "Action to execute when the file selection changes."
+        },
+        "checks": {
+          "type": "array",
+          "description": "Validation checks to run against the selected files. On failure, sets aria-invalid on the file input.",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "requiredProperties": []
+    },
+
     "Card": {
       "description": "A content container rendered as an article or section element.",
       "htmlElement": "article",

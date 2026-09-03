@@ -162,7 +162,7 @@ describe('renderer has all 37 component types registered', () => {
     'Text', 'Image', 'Icon', 'Divider', 'Badge', 'Avatar',
     'Spinner', 'Skeleton', 'Progress', 'Meter', 'Video', 'AudioPlayer',
     'Button', 'TextField', 'CheckBox', 'Switch', 'Slider',
-    'DateTimeInput', 'ChoicePicker', 'Autocomplete',
+    'DateTimeInput', 'ChoicePicker', 'Autocomplete', 'FileUpload',
     'Card', 'Modal', 'Tabs', 'Accordion', 'Tooltip', 'Dropdown',
     'Table', 'Pagination', 'Alert', 'Toast', 'Breadcrumb',
     'OatHTML',
@@ -383,6 +383,35 @@ describe('component output correctness', () => {
     const link = ol.children[0].children[0];
     assert.equal(link.className, 'unstyled');
   });
+
+  it('FileUpload renders an ot-upload with a hidden file input and a trigger button', () => {
+    const el = renderer.renderComponent(
+      { id: 'fu1', component: 'FileUpload', accept: 'image/*', multiple: true },
+      makeContext()
+    );
+    assert.equal(el.tagName, 'OT-UPLOAD');
+    const input = el.children.find((c) => c.tagName === 'INPUT');
+    assert.equal(input.accept, 'image/*');
+    assert.equal(input.multiple, true);
+    assert.equal(input.hidden, true);
+    const button = el.children.find((c) => c.tagName === 'BUTTON');
+    assert.ok(button);
+    const filesContainer = el.children.find((c) => c.attributes['data-files'] !== undefined);
+    assert.ok(filesContainer);
+  });
+
+  it('FileUpload writes selected files to the data model on change', () => {
+    const dataModel = { upload: {} };
+    const ctx = makeContext({}, dataModel);
+    const el = renderer.renderComponent(
+      { id: 'fu2', component: 'FileUpload', files: { path: '/upload/files' } },
+      ctx
+    );
+    const input = el.children.find((c) => c.tagName === 'INPUT');
+    input.files = [{ name: 'a.png', size: 100, type: 'image/png' }];
+    input._listeners.change();
+    assert.deepEqual(dataModel.upload.files, [{ name: 'a.png', size: 100, type: 'image/png' }]);
+  });
 });
 
 describe('Checkable / checks validation', () => {
@@ -511,6 +540,7 @@ function makeMinimalComponent(type) {
     Skeleton: {},
     Divider: {},
     Dropdown: {},
+    FileUpload: {},
   };
 
   return { ...base, ...(overrides[type] || {}) };

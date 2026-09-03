@@ -11,11 +11,11 @@ Always reference catalogId "https://unpkg.com/a2ui-oat/catalog/oat-catalog.json"
 
 COMPONENT TYPES
 ---------------
-The Oat Catalog defines 37 component types. Use only these names (case-sensitive):
+The Oat Catalog defines 38 component types. Use only these names (case-sensitive):
 
 Layout (5):       Row, Column, Grid, List, Sidebar
 Display (12):     Text, Image, Icon, Divider, Badge, Avatar, Spinner, Skeleton, Progress, Meter, Video, AudioPlayer
-Interactive (8):  Button, TextField, CheckBox, Switch, Slider, DateTimeInput, ChoicePicker, Autocomplete
+Interactive (9):  Button, TextField, CheckBox, Switch, Slider, DateTimeInput, ChoicePicker, Autocomplete, FileUpload
 Container (5):    Card, Modal, Tabs, Accordion, Tooltip
 Data/Feedback (5): Table, Pagination, Alert, Toast, Breadcrumb
 Escape Hatch (1): OatHTML
@@ -131,6 +131,9 @@ Interactive components:
   Autocomplete
     required: source (string URL or data binding)
     optional: minChars (integer), action (action object), placeholder (string)
+
+  FileUpload
+    optional: accept (string), multiple (boolean), disabled (boolean), hint (string), files (data binding, array of {name, size, type}), action (action object), checks (array of check objects)
 
 Container components:
 

@@ -105,6 +105,7 @@ export class OatRenderer {
     this.renderers.set('DateTimeInput', (c, ctx) => this._renderDateTimeInput(c, ctx));
     this.renderers.set('ChoicePicker', (c, ctx) => this._renderChoicePicker(c, ctx));
     this.renderers.set('Autocomplete', (c, ctx) => this._renderAutocomplete(c, ctx));
+    this.renderers.set('FileUpload', (c, ctx) => this._renderFileUpload(c, ctx));
 
     // Container
     this.renderers.set('Card', (c, ctx) => this._renderCard(c, ctx));
@@ -824,6 +825,43 @@ export class OatRenderer {
 
     this._renderChecks(el, null, c.checks, ctx);
     return wrapper;
+  }
+
+  /** @returns {HTMLElement} */
+  _renderFileUpload(c, ctx) {
+    const el = document.createElement('ot-upload');
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    if (c.accept) input.accept = c.accept;
+    if (c.multiple) input.multiple = true;
+    input.hidden = true;
+    if (this._resolve(this._asBinding(c.disabled), ctx)) input.disabled = true;
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = 'Choose files';
+
+    const out = document.createElement('div');
+    out.setAttribute('data-files', '');
+    const hint = document.createElement('small');
+    hint.setAttribute('data-hint', '');
+    hint.textContent = c.hint || 'Drop files here or click to choose';
+    out.appendChild(hint);
+
+    el.append(input, button, out);
+
+    const filesBinding = this._asBinding(c.files);
+    input.addEventListener('change', () => {
+      const files = [...input.files].map((f) => ({ name: f.name, size: f.size, type: f.type }));
+      if (this._isBound(filesBinding)) {
+        ctx.setDataModel(filesBinding.path, files);
+      }
+      if (c.action) ctx.dispatchAction(c.action);
+    });
+    this._renderChecks(input, null, c.checks, ctx);
+
+    return el;
   }
 
   // ---------------------------------------------------------------------------
