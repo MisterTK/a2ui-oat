@@ -1,5 +1,34 @@
 # Changelog
 
+## v0.2.0 — 2026-09-02
+
+### Catalog
+
+- Added 2 new components: FileUpload (`ot-upload`), TagInput (`ot-taginput`) — 39 components total.
+- Added 1 new registered function: callMcpTool — 22 functions total.
+- Fixed Badge's variant enum to match Oat's real CSS vocabulary (`secondary`/`success`/`warning`/`danger`/`outline` instead of nonexistent `info`/`error`).
+- Fixed Skeleton's variant enum (`box`/`line` instead of nonexistent `text`/`circle`/`rect`).
+- Renamed Tooltip's `position` property to `placement` (old name still accepted).
+- Added `checks` (Checkable validation) to TextField, CheckBox, Switch, DateTimeInput, ChoicePicker, Autocomplete, FileUpload, TagInput.
+- Added `anchorKey` to Tabs, `width` to Sidebar.
+
+### Renderer
+
+- Fixed Badge, Button, and Skeleton rendering to match current Oat CSS (several variant colors were previously rendering unstyled due to using CSS classes where Oat now expects `data-variant` attributes, or vice versa).
+- Fixed Skeleton to set `role="status"` (required by current Oat CSS, previously missing).
+- Fixed Tooltip to emit `data-tooltip-placement` (previously `data-tooltip-position`, which no longer matches Oat's CSS selector).
+- Implemented the `checks`/Checkable validation mechanism (previously declared in the catalog but never read by any render function, including Button's existing `checks` property, which never actually gated the button's action until now).
+- Fixed Breadcrumb to use Oat's `.unstyled` helper class on its list and links.
+
+### MCP Integration
+
+- Added `callMcpTool` registered function for invoking tools on a connected MCP server.
+- Added an example demonstrating the static-template + data-diff pattern (serve the UI template once, apply subsequent updates as data-only diffs).
+
+### Non-goals
+
+- A2UI spec v0.9.1/v1.0 and the real `@a2ui/web_core` protocol integration adapter are tracked separately (not part of this release) — see `docs/superpowers/specs/2026-09-02-a2ui-oat-modernization-design.md`.
+
 ## v0.1.0 — 2026-03-29
 
 Initial public release.
