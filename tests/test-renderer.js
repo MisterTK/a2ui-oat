@@ -298,6 +298,15 @@ describe('component output correctness', () => {
     assert.equal(el.className, '');
     assert.equal(el.dataset.variant, undefined);
   });
+
+  it('Skeleton sets role="status"', () => {
+    const el = renderer.renderComponent(
+      { id: 'sk1', component: 'Skeleton', variant: 'box' },
+      makeContext()
+    );
+    assert.equal(el.attributes.role, 'status');
+    assert.equal(el.className, 'skeleton box');
+  });
 });
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

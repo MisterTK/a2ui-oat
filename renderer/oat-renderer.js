@@ -435,6 +435,7 @@ export class OatRenderer {
   _renderSkeleton(c, ctx) {
     const el = document.createElement('div');
     el.className = 'skeleton';
+    el.setAttribute('role', 'status');
     if (c.width) el.style.width = c.width;
     if (c.height) el.style.height = c.height;
     this._addClass(el, this._resolve(this._asBinding(c.variant), ctx));

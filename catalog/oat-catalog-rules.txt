@@ -81,7 +81,7 @@ Display components:
     optional: size ("small"|"medium"|"large")
 
   Skeleton
-    optional: width (string), height (string), variant ("text"|"circle"|"rect")
+    optional: width (string), height (string), variant ("box"|"line")
 
   Progress
     required: value (number or data binding)
@@ -694,8 +694,8 @@ Pattern 6: Loading states with Skeleton and Spinner
       "surfaceId": "report",
       "components": [
         {"id": "root", "component": "Column", "children": ["title-skel", "body-skel", "load-spin"]},
-        {"id": "title-skel", "component": "Skeleton", "variant": "text", "width": "60%", "height": "2rem"},
-        {"id": "body-skel", "component": "Skeleton", "variant": "rect", "width": "100%", "height": "12rem"},
+        {"id": "title-skel", "component": "Skeleton", "variant": "line", "width": "60%", "height": "2rem"},
+        {"id": "body-skel", "component": "Skeleton", "variant": "box", "width": "100%", "height": "12rem"},
         {"id": "load-spin", "component": "Spinner", "size": "medium"}
       ]
     }

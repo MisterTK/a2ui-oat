@@ -275,7 +275,7 @@
         },
         "variant": {
           "type": "string",
-          "enum": ["text", "circle", "rect"],
+          "enum": ["box", "line"],
           "description": "Shape variant of the skeleton placeholder."
         }
       },
