@@ -42,7 +42,7 @@ describe('components', () => {
   const componentNames = Object.keys(components);
 
   it('has 37 components', () => {
-    assert.equal(componentNames.length, 38);
+    assert.equal(componentNames.length, 39);
   });
 
   it('includes all 16 Basic Catalog components', () => {

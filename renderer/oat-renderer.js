@@ -106,6 +106,7 @@ export class OatRenderer {
     this.renderers.set('ChoicePicker', (c, ctx) => this._renderChoicePicker(c, ctx));
     this.renderers.set('Autocomplete', (c, ctx) => this._renderAutocomplete(c, ctx));
     this.renderers.set('FileUpload', (c, ctx) => this._renderFileUpload(c, ctx));
+    this.renderers.set('TagInput', (c, ctx) => this._renderTagInput(c, ctx));
 
     // Container
     this.renderers.set('Card', (c, ctx) => this._renderCard(c, ctx));
@@ -860,6 +861,39 @@ export class OatRenderer {
       if (c.action) ctx.dispatchAction(c.action);
     });
     this._renderChecks(input, null, c.checks, ctx);
+
+    return el;
+  }
+
+  /** @returns {HTMLElement} */
+  _renderTagInput(c, ctx) {
+    const el = document.createElement('ot-taginput');
+
+    const suggestions = this._resolve(this._asBinding(c.suggestions), ctx);
+    if (Array.isArray(suggestions) && suggestions.length > 0) {
+      const listId = `taginput-list-${c.id || Math.random().toString(36).slice(2, 8)}`;
+      const datalist = document.createElement('datalist');
+      datalist.id = listId;
+      for (const s of suggestions) {
+        const option = document.createElement('option');
+        option.value = s;
+        datalist.appendChild(option);
+      }
+      el.appendChild(datalist);
+    }
+
+    const input = document.createElement('input');
+    if (c.placeholder) input.placeholder = c.placeholder;
+    el.appendChild(input);
+
+    const initialValue = this._resolve(this._asBinding(c.value), ctx);
+    if (Array.isArray(initialValue) && initialValue.length > 0) {
+      el.setAttribute('value', initialValue.join(','));
+    }
+    if (this._resolve(this._asBinding(c.disabled), ctx)) el.setAttribute('disabled', '');
+
+    this._wireTwoWay(el, this._asBinding(c.value), 'input', (e) => e.value, ctx);
+    this._renderChecks(el, null, c.checks, ctx);
 
     return el;
   }

@@ -737,6 +737,37 @@
       "requiredProperties": []
     },
 
+    "TagInput": {
+      "description": "A tag/chip input for entering multiple short values, rendered as an ot-taginput web component with optional autocomplete.",
+      "htmlElement": "ot-taginput",
+      "properties": {
+        "value": {
+          "type": "DynamicString",
+          "description": "Current array of tags. Two-way bound to the data model."
+        },
+        "placeholder": {
+          "type": "string",
+          "description": "Placeholder text for the tag entry input."
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "Whether the tag input is disabled."
+        },
+        "suggestions": {
+          "type": "DynamicString",
+          "description": "Array of suggested tag values shown via autocomplete."
+        },
+        "checks": {
+          "type": "array",
+          "description": "Validation checks to run against the current tags. On failure, sets aria-invalid.",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "requiredProperties": []
+    },
+
     "Card": {
       "description": "A content container rendered as an article or section element.",
       "htmlElement": "article",

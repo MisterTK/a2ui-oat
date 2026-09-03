@@ -156,13 +156,13 @@ describe('registerWithWebLib', () => {
 
 // ── Component rendering ───────────────────────────────────────────────────────
 
-describe('renderer has all 37 component types registered', () => {
+describe('renders all 39 component types', () => {
   const allComponents = [
     'Row', 'Column', 'Grid', 'List', 'Sidebar',
     'Text', 'Image', 'Icon', 'Divider', 'Badge', 'Avatar',
     'Spinner', 'Skeleton', 'Progress', 'Meter', 'Video', 'AudioPlayer',
     'Button', 'TextField', 'CheckBox', 'Switch', 'Slider',
-    'DateTimeInput', 'ChoicePicker', 'Autocomplete', 'FileUpload',
+    'DateTimeInput', 'ChoicePicker', 'Autocomplete', 'FileUpload', 'TagInput',
     'Card', 'Modal', 'Tabs', 'Accordion', 'Tooltip', 'Dropdown',
     'Table', 'Pagination', 'Alert', 'Toast', 'Breadcrumb',
     'OatHTML',
@@ -412,6 +412,38 @@ describe('component output correctness', () => {
     input._listeners.change();
     assert.deepEqual(dataModel.upload.files, [{ name: 'a.png', size: 100, type: 'image/png' }]);
   });
+
+  it('TagInput renders an ot-taginput with an inner input', () => {
+    const el = renderer.renderComponent(
+      { id: 'ti1', component: 'TagInput', placeholder: 'Add tags' },
+      makeContext()
+    );
+    assert.equal(el.tagName, 'OT-TAGINPUT');
+    const input = el.children.find((c) => c.tagName === 'INPUT');
+    assert.equal(input.placeholder, 'Add tags');
+  });
+
+  it('TagInput renders a datalist when suggestions are provided', () => {
+    const el = renderer.renderComponent(
+      { id: 'ti2', component: 'TagInput', suggestions: ['red', 'green', 'blue'] },
+      makeContext()
+    );
+    const datalist = el.children.find((c) => c.tagName === 'DATALIST');
+    assert.ok(datalist);
+    assert.equal(datalist.children.length, 3);
+  });
+
+  it('TagInput writes tags to the data model on input', () => {
+    const dataModel = { tags: [] };
+    const ctx = makeContext({}, dataModel);
+    const el = renderer.renderComponent(
+      { id: 'ti3', component: 'TagInput', value: { path: '/tags' } },
+      ctx
+    );
+    el.value = ['a', 'b'];
+    el._listeners.input();
+    assert.deepEqual(dataModel.tags, ['a', 'b']);
+  });
 });
 
 describe('Checkable / checks validation', () => {
@@ -541,6 +573,7 @@ function makeMinimalComponent(type) {
     Divider: {},
     Dropdown: {},
     FileUpload: {},
+    TagInput: {},
   };
 
   return { ...base, ...(overrides[type] || {}) };
