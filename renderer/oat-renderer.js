@@ -280,6 +280,87 @@ export class OatRenderer {
     });
   }
 
+  /**
+   * Evaluate one CheckRule-style check: { functionCall: { call, args }, message? }.
+   *
+   * @param {Object} check
+   * @param {RenderContext} ctx
+   * @returns {boolean}
+   */
+  _evaluateCheck(check, ctx) {
+    const fc = check?.functionCall;
+    if (!fc) return true;
+    const fn = ctx.getRegisteredFunction(fc.call);
+    if (!fn) return true;
+    const args = {};
+    for (const [k, v] of Object.entries(fc.args || {})) {
+      args[k] = this._resolve(this._asBinding(v), ctx);
+    }
+    return Boolean(fn(args, { resolveDynamic: (v) => this._resolve(this._asBinding(v), ctx) }));
+  }
+
+  /**
+   * Collect every data-model path referenced in an array of checks, so callers
+   * can subscribe to them and re-evaluate on change.
+   *
+   * @param {Array} checks
+   * @returns {string[]}
+   */
+  _extractCheckPaths(checks) {
+    const paths = [];
+    for (const check of checks || []) {
+      const args = check?.functionCall?.args || {};
+      for (const v of Object.values(args)) {
+        const bound = this._asBinding(v);
+        if (this._isBound(bound)) paths.push(bound.path);
+      }
+    }
+    return paths;
+  }
+
+  /**
+   * Wire a Checkable component's `checks` array to `aria-invalid` (and,
+   * optionally, a visible `.error` message) on `controlEl`, re-evaluating
+   * whenever a referenced data-model path changes.
+   *
+   * @param {HTMLElement} controlEl - Element to mark aria-invalid.
+   * @param {HTMLElement|null} errorContainerEl - Wrapper to append a `.error`
+   *   message element into, or null to skip message display.
+   * @param {Array|undefined} checks
+   * @param {RenderContext} ctx
+   */
+  _renderChecks(controlEl, errorContainerEl, checks, ctx) {
+    if (!Array.isArray(checks) || checks.length === 0) return;
+
+    let errorEl = null;
+    if (errorContainerEl) {
+      errorEl = document.createElement('small');
+      errorEl.className = 'error';
+      errorContainerEl.appendChild(errorEl);
+    }
+
+    const evaluate = () => {
+      let failedMessage = null;
+      for (const check of checks) {
+        if (!this._evaluateCheck(check, ctx)) {
+          failedMessage = check.message || 'This field is invalid.';
+          break;
+        }
+      }
+      if (failedMessage !== null) {
+        controlEl.setAttribute('aria-invalid', 'true');
+      } else {
+        controlEl.removeAttribute('aria-invalid');
+      }
+      if (errorEl) errorEl.textContent = failedMessage || '';
+    };
+
+    evaluate();
+    for (const path of this._extractCheckPaths(checks)) {
+      ctx.subscribe(path, evaluate);
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Layout components
   // ---------------------------------------------------------------------------
@@ -532,6 +613,7 @@ export class OatRenderer {
 
     this._wireAction(el, 'change', c.action, ctx);
     wrapper.appendChild(el);
+    this._renderChecks(el, wrapper, c.checks, ctx);
     return wrapper;
   }
 
@@ -548,6 +630,7 @@ export class OatRenderer {
   /** Shared implementation for CheckBox and Switch. */
   _renderToggle(c, ctx, isSwitch) {
     const wrapper = document.createElement('label');
+    wrapper.dataset.field = '';
     const el = document.createElement('input');
     el.type = 'checkbox';
     if (isSwitch) el.role = 'switch';
@@ -557,6 +640,7 @@ export class OatRenderer {
 
     wrapper.appendChild(el);
     if (c.label) wrapper.append(` ${c.label}`);
+    this._renderChecks(el, wrapper, c.checks, ctx);
     return wrapper;
   }
 

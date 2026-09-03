@@ -454,6 +454,13 @@
         "required": {
           "type": "boolean",
           "description": "Whether the field is required for form validation."
+        },
+        "checks": {
+          "type": "array",
+          "description": "Validation checks to run against this field's value. On failure, sets aria-invalid and shows the first failing check's message.",
+          "items": {
+            "type": "object"
+          }
         }
       },
       "requiredProperties": ["label"]
@@ -478,6 +485,13 @@
         "action": {
           "type": "Action",
           "description": "Action to execute on state change."
+        },
+        "checks": {
+          "type": "array",
+          "description": "Validation checks to run against this field's value. On failure, sets aria-invalid and shows the first failing check's message.",
+          "items": {
+            "type": "object"
+          }
         }
       },
       "requiredProperties": ["label", "value"]
@@ -502,6 +516,13 @@
         "action": {
           "type": "Action",
           "description": "Action to execute on toggle."
+        },
+        "checks": {
+          "type": "array",
+          "description": "Validation checks to run against this field's value. On failure, sets aria-invalid and shows the first failing check's message.",
+          "items": {
+            "type": "object"
+          }
         }
       },
       "requiredProperties": ["label", "value"]

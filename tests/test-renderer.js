@@ -29,6 +29,7 @@ class MiniElement {
   }
   setAttribute(k, v) { this.attributes[k] = v; }
   getAttribute(k) { return this.attributes[k]; }
+  removeAttribute(k) { delete this.attributes[k]; }
   appendChild(child) { if (child) this.children.push(child); return child; }
   append(...nodes) { for (const n of nodes) this.appendChild(typeof n === 'string' ? new MiniTextNode(n) : n); }
   addEventListener(ev, fn) { this._listeners[ev] = fn; }
@@ -86,6 +87,34 @@ function makeContext(componentMap = {}, dataModel = {}) {
     },
     dispatchAction: () => {},
     getRegisteredFunction: () => null,
+  };
+}
+
+// Context variant that actually fires subscribers, for reactivity tests.
+function makeReactiveContext(dataModel = {}, registeredFunctions = {}) {
+  const subscribers = {};
+  return {
+    getDataModel: () => dataModel,
+    setDataModel: (path, val) => {
+      const segs = path.replace(/^\//, '').split(/[/.]/);
+      let obj = dataModel;
+      for (let i = 0; i < segs.length - 1; i++) obj = obj[segs[i]] = obj[segs[i]] || {};
+      obj[segs[segs.length - 1]] = val;
+    },
+    subscribe: (path, cb) => {
+      (subscribers[path] ??= []).push(cb);
+      return () => {};
+    },
+    fireChange(path, val) {
+      const segs = path.replace(/^\//, '').split(/[/.]/);
+      let obj = dataModel;
+      for (let i = 0; i < segs.length - 1; i++) obj = obj[segs[i]] = obj[segs[i]] || {};
+      obj[segs[segs.length - 1]] = val;
+      for (const cb of subscribers[path] || []) cb(val);
+    },
+    renderChild: () => null,
+    dispatchAction: () => {},
+    getRegisteredFunction: (name) => registeredFunctions[name] || null,
   };
 }
 
@@ -353,6 +382,63 @@ describe('component output correctness', () => {
     assert.equal(ol.className, 'unstyled');
     const link = ol.children[0].children[0];
     assert.equal(link.className, 'unstyled');
+  });
+});
+
+describe('Checkable / checks validation', () => {
+  const requiredFn = ({ value }) => value != null && value !== '';
+
+  it('TextField sets aria-invalid and shows the error message when a check fails', () => {
+    const ctx = makeReactiveContext({ form: { email: '' } }, { required: requiredFn });
+    const wrapper = renderer.renderComponent(
+      {
+        id: 'tf1', component: 'TextField', label: 'Email', value: { path: '/form/email' },
+        checks: [{ functionCall: { call: 'required', args: { value: { path: '/form/email' } } }, message: 'Email is required' }],
+      },
+      ctx
+    );
+    const input = wrapper.children.find((c) => c.tagName === 'INPUT');
+    assert.equal(input.attributes['aria-invalid'], 'true');
+    const errorEl = wrapper.children.find((c) => c.className === 'error');
+    assert.equal(errorEl.textContent, 'Email is required');
+  });
+
+  it('TextField clears aria-invalid once the check passes', () => {
+    const ctx = makeReactiveContext({ form: { email: '' } }, { required: requiredFn });
+    const wrapper = renderer.renderComponent(
+      {
+        id: 'tf2', component: 'TextField', label: 'Email', value: { path: '/form/email' },
+        checks: [{ functionCall: { call: 'required', args: { value: { path: '/form/email' } } } }],
+      },
+      ctx
+    );
+    const input = wrapper.children.find((c) => c.tagName === 'INPUT');
+    assert.equal(input.attributes['aria-invalid'], 'true');
+    ctx.fireChange('/form/email', 'a@b.com');
+    assert.equal(input.attributes['aria-invalid'], undefined);
+  });
+
+  it('TextField with no checks never sets aria-invalid', () => {
+    const el = renderer.renderComponent({ id: 'tf3', component: 'TextField', label: 'Name' }, makeContext());
+    const input = el.children.find((c) => c.tagName === 'INPUT');
+    assert.equal(input.attributes['aria-invalid'], undefined);
+  });
+
+  it('CheckBox sets aria-invalid on its input when a check fails', () => {
+    // Note: `required` treats `false` as "present" (it only rejects null/''),
+    // so the check targets a separate empty-string field rather than the
+    // boolean `value` itself — this still exercises the exact same
+    // _renderChecks wiring, since it doesn't care what path a check reads.
+    const ctx = makeReactiveContext({ agree: false, agreeName: '' }, { required: requiredFn });
+    const wrapper = renderer.renderComponent(
+      {
+        id: 'cb1', component: 'CheckBox', label: 'Agree', value: { path: '/agree' },
+        checks: [{ functionCall: { call: 'required', args: { value: { path: '/agreeName' } } }, message: 'You must agree' }],
+      },
+      ctx
+    );
+    const input = wrapper.children.find((c) => c.tagName === 'INPUT');
+    assert.equal(input.attributes['aria-invalid'], 'true');
   });
 });
 
