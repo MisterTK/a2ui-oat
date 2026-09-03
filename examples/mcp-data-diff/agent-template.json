@@ -1,0 +1,123 @@
+[
+  {
+    "version": "v0.9",
+    "createSurface": {
+      "surfaceId": "ticker-surface",
+      "catalogId": "https://unpkg.com/a2ui-oat/catalog/oat-catalog.json",
+      "theme": {
+        "primaryColor": "#3B82F6",
+        "backgroundColor": "#111827",
+        "textColor": "#F9FAFB",
+        "fontFamily": "system-ui, sans-serif",
+        "borderRadius": "8px",
+        "spacing": "1rem",
+        "mode": "dark"
+      },
+      "sendDataModel": false
+    }
+  },
+  {
+    "version": "v0.9",
+    "updateComponents": {
+      "surfaceId": "ticker-surface",
+      "components": [
+        {
+          "id": "ticker-card",
+          "component": "Card",
+          "title": "Live Quote",
+          "child": "ticker-column"
+        },
+        {
+          "id": "ticker-column",
+          "component": "Column",
+          "children": ["ticker-header", "price-row", "updated-row", "status-row", "refresh-button"]
+        },
+        {
+          "id": "ticker-header",
+          "component": "Row",
+          "justify": "space-between",
+          "align": "center",
+          "children": ["ticker-symbol", "ticker-badge"]
+        },
+        {
+          "id": "ticker-symbol",
+          "component": "Text",
+          "variant": "h2",
+          "text": "ACME Corp (ACME)"
+        },
+        {
+          "id": "ticker-badge",
+          "component": "Badge",
+          "text": "MCP",
+          "variant": "info"
+        },
+        {
+          "id": "price-row",
+          "component": "Row",
+          "align": "center",
+          "children": ["price-label", "price-value"]
+        },
+        {
+          "id": "price-label",
+          "component": "Text",
+          "variant": "p",
+          "text": "Price"
+        },
+        {
+          "id": "price-value",
+          "component": "Text",
+          "variant": "h1",
+          "text": { "path": "/ticker/price" }
+        },
+        {
+          "id": "updated-row",
+          "component": "Row",
+          "align": "center",
+          "children": ["updated-label", "updated-value"]
+        },
+        {
+          "id": "updated-label",
+          "component": "Text",
+          "variant": "small",
+          "text": "Last updated"
+        },
+        {
+          "id": "updated-value",
+          "component": "Text",
+          "variant": "small",
+          "text": { "path": "/ticker/lastUpdated" }
+        },
+        {
+          "id": "status-row",
+          "component": "Row",
+          "align": "center",
+          "children": ["status-badge"]
+        },
+        {
+          "id": "status-badge",
+          "component": "Badge",
+          "text": { "path": "/ticker/status" },
+          "variant": "default"
+        },
+        {
+          "id": "refresh-button",
+          "component": "Button",
+          "variant": "primary",
+          "child": "refresh-button-text",
+          "action": {
+            "functionCall": {
+              "call": "callMcpTool",
+              "args": { "name": "getQuote" }
+            }
+          }
+        },
+        {
+          "id": "refresh-button-text",
+          "component": "Text",
+          "variant": "span",
+          "text": "Refresh Quote"
+        }
+      ]
+    }
+  }
+]

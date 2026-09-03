@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCP Static-Template + Data-Diff -- Oat Renderer Example</title>
+
+  <!-- Oat CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/@knadh/oat/oat.min.css">
+
+  <style>
+    :root {
+      --color-primary: #3B82F6;
+      --color-bg: #111827;
+      --color-text: #F9FAFB;
+      --font-family: system-ui, sans-serif;
+      --border-radius: 8px;
+      --spacing: 1rem;
+    }
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-family);
+      margin: 0;
+      padding: var(--spacing);
+    }
+    #surface { max-width: 420px; margin: 2rem auto 0; }
+    article {
+      background: #1F2937;
+      border: 1px solid #374151;
+      border-radius: var(--border-radius);
+      padding: var(--spacing);
+    }
+    article > header {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9CA3AF;
+      margin-bottom: 0.75rem;
+    }
+    .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    .row.space-between { justify-content: space-between; }
+    .col-1 { display: flex; flex-direction: column; gap: 0.6rem; }
+    h1 { margin: 0; font-size: 2.25rem; font-variant-numeric: tabular-nums; }
+    h2 { margin: 0; font-size: 1.1rem; }
+    p { margin: 0; color: #9CA3AF; font-size: 0.875rem; min-width: 4.5rem; }
+    small { color: #6B7280; }
+    [data-badge], .badge {
+      display: inline-block; padding: 0.2rem 0.6rem;
+      border-radius: 999px; font-size: 0.75rem; font-weight: 600;
+      background: #374151; color: #E5E7EB;
+    }
+    .badge[data-variant="info"] { background: #1E3A5F; color: #93C5FD; }
+    button {
+      background: var(--color-primary); color: #fff; border: none;
+      padding: 0.55rem 1rem; border-radius: var(--border-radius);
+      cursor: pointer; font-size: 0.9rem; font-family: inherit;
+    }
+    button:disabled { opacity: 0.6; cursor: default; }
+    .updated-flash { animation: flash 0.7s ease-out; border-radius: 4px; }
+    @keyframes flash {
+      0% { background: rgba(59, 130, 246, 0.35); }
+      100% { background: transparent; }
+    }
+    .log {
+      max-width: 420px; margin: 1.5rem auto 0; font-size: 0.75rem;
+      color: #6B7280; font-family: ui-monospace, monospace;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+<div id="surface"></div>
+<p class="log" id="log">Loading static template from agent-template.json…</p>
+
+<script type="module">
+  // ---------------------------------------------------------------------------
+  // This example demonstrates the "static template + data diff" pattern:
+  //
+  //   1. The component tree in agent-template.json is applied to the DOM ONCE,
+  //      via renderer.renderComponent(). It contains no literal data values --
+  //      every quantity that can change is a { path: "/ticker/..." } binding.
+  //   2. Every "tool call" after that (the initial load, and each click of
+  //      "Refresh Quote") only ever writes new values into the data model.
+  //      The existing _bindValue()/context.subscribe() machinery in
+  //      renderer/oat-renderer.js notices the change and patches just the
+  //      bound DOM nodes -- renderComponent() is never called again.
+  //
+  // See README.md for why this matters and what's simplified about the mock
+  // MCP server used here.
+  // ---------------------------------------------------------------------------
+
+  import { createOatRenderer } from '../../renderer/index.js';
+  import { mockMcpClient } from './mock-mcp-server.js';
+
+  const { renderer, functions } = createOatRenderer();
+
+  // ---------------------------------------------------------------------------
+  // Data model with real pub/sub. Unlike a full-re-render example, `subscribe`
+  // here is not a no-op: it is what lets _bindValue() patch existing DOM nodes
+  // in place when applyQuote() below writes new values.
+  // ---------------------------------------------------------------------------
+  const dataModel = { ticker: { price: null, lastUpdated: null, status: 'Waiting for first quote…' } };
+  const listeners = new Map(); // path -> Set<callback>
+
+  function pathSegments(path) {
+    return path.replace(/^\//, '').split(/[/.]/);
+  }
+
+  function getByPath(path) {
+    let cur = dataModel;
+    for (const seg of pathSegments(path)) {
+      if (cur == null) return undefined;
+      cur = cur[seg];
+    }
+    return cur;
+  }
+
+  function setByPath(path, value) {
+    const segs = pathSegments(path);
+    let cur = dataModel;
+    for (let i = 0; i < segs.length - 1; i++) {
+      cur = cur[segs[i]] = cur[segs[i]] ?? {};
+    }
+    cur[segs[segs.length - 1]] = value;
+    const set = listeners.get(path);
+    if (set) for (const cb of set) cb(value);
+  }
+
+  function subscribe(path, callback) {
+    if (!listeners.has(path)) listeners.set(path, new Set());
+    listeners.get(path).add(callback);
+    return () => listeners.get(path)?.delete(callback);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Component tree + render context
+  // ---------------------------------------------------------------------------
+  let componentMap = {};
+
+  const context = {
+    getDataModel: () => dataModel,
+    setDataModel: setByPath,
+    subscribe,
+    renderChild: (id) => {
+      const comp = componentMap[id];
+      return comp ? renderer.renderComponent(comp, context) : null;
+    },
+    dispatchAction: (action) => dispatchAction(action),
+    getRegisteredFunction: (name) => functions[name] ?? null,
+  };
+
+  function applyTheme(theme) {
+    if (!theme) return;
+    const map = {
+      primaryColor: '--color-primary', backgroundColor: '--color-bg',
+      textColor: '--color-text', fontFamily: '--font-family',
+      borderRadius: '--border-radius', spacing: '--spacing',
+    };
+    for (const [key, cssVar] of Object.entries(map)) {
+      if (theme[key]) document.documentElement.style.setProperty(cssVar, theme[key]);
+    }
+    if (theme.mode === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+  }
+
+  function log(msg) {
+    document.getElementById('log').textContent = msg;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Action dispatch: the Button's `action.functionCall` in agent-template.json
+  // names a registered function (here, callMcpTool) plus its arguments. This
+  // mirrors how a real A2UI action would be resolved against the function
+  // registry returned by createOatRenderer().
+  // ---------------------------------------------------------------------------
+  let refreshCount = 0;
+
+  async function dispatchAction(action) {
+    const call = action?.functionCall;
+    if (!call) {
+      console.warn('[A2UI] Unhandled action (no functionCall):', action);
+      return;
+    }
+    const fn = functions[call.call];
+    if (!fn) {
+      console.warn(`[A2UI] No registered function named "${call.call}"`);
+      return;
+    }
+
+    setButtonDisabled(true);
+    setByPath('/ticker/status', 'Refreshing…');
+
+    try {
+      // callMcpTool(args, context) expects context.mcpClient -- exposing
+      // callTool({ name, arguments }). See mock-mcp-server.js.
+      const quote = await fn(call.args ?? {}, { mcpClient: mockMcpClient });
+      applyQuote(quote);
+      refreshCount += 1;
+      log(`Tool call #${refreshCount} via callMcpTool("${call.args?.name}") -- ` +
+          `only /ticker/* was written; the component tree above was rendered exactly once.`);
+    } catch (err) {
+      setByPath('/ticker/status', 'Error');
+      log(`Tool call failed: ${err.message}`);
+      console.error('[A2UI] callMcpTool failed:', err);
+    } finally {
+      setButtonDisabled(false);
+    }
+  }
+
+  /**
+   * The "data diff": write the MCP tool's result into the data model at
+   * /ticker/*. No component is created, removed, or re-rendered here --
+   * this is the equivalent of an `updateDataModel` message.
+   */
+  function applyQuote(quote) {
+    setByPath('/ticker/price', quote.price);
+    setByPath('/ticker/lastUpdated', quote.lastUpdated);
+    setByPath('/ticker/status', quote.status);
+    flash('price-value');
+    flash('updated-value');
+  }
+
+  function flash(componentId) {
+    const el = document.querySelector(`[data-component-id="${componentId}"]`);
+    if (!el) return;
+    el.classList.remove('updated-flash');
+    // Force reflow so the animation restarts on rapid consecutive clicks.
+    void el.offsetWidth;
+    el.classList.add('updated-flash');
+  }
+
+  function setButtonDisabled(disabled) {
+    const btn = document.querySelector('[data-component-id="refresh-button"]');
+    if (btn) btn.disabled = disabled;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Bootstrap: fetch the static template, render it ONCE, then simulate the
+  // first "tool call" to populate the empty bindings.
+  // ---------------------------------------------------------------------------
+  fetch('agent-template.json')
+    .then((res) => res.json())
+    .then((messages) => {
+      for (const msg of messages) {
+        if (msg.createSurface) applyTheme(msg.createSurface.theme);
+        if (msg.updateComponents) {
+          for (const c of msg.updateComponents.components) componentMap[c.id] = c;
+        }
+      }
+
+      const root = componentMap['ticker-card'];
+      const target = document.getElementById('surface');
+      target.appendChild(renderer.renderComponent(root, context));
+
+      log('Static template rendered. Fetching first quote…');
+
+      // Simulate the agent's first tool call -- same code path as clicking
+      // "Refresh Quote". The template above is never touched again.
+      const initialAction = componentMap['refresh-button'].action;
+      dispatchAction(initialAction);
+    })
+    .catch((err) => {
+      document.getElementById('surface').textContent =
+        'Failed to load agent-template.json. Serve this directory over HTTP (e.g. `npx serve .`) rather than opening it via file://.';
+      console.error(err);
+    });
+</script>
+
+</body>
+</html>
