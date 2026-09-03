@@ -21,6 +21,7 @@ import { formatNumber } from '../renderer/functions/formatNumber.js';
 import { formatCurrency } from '../renderer/functions/formatCurrency.js';
 import { formatString } from '../renderer/functions/formatString.js';
 import { pluralize } from '../renderer/functions/pluralize.js';
+import { callMcpTool } from '../renderer/functions/callMcpTool.js';
 
 // Shared minimal context
 const ctx = { resolveDynamic: (v) => v };
@@ -189,5 +190,35 @@ describe('targetPath write-back', () => {
     formatDate({ value: '2026-01-01', locale: 'en-US', targetPath: '/formatted/date' }, writeCtx);
     assert.equal(writtenPath, '/formatted/date');
     assert.ok(typeof writtenValue === 'string');
+  });
+});
+
+// ── MCP integration ───────────────────────────────────────────────────────────
+
+describe('callMcpTool', () => {
+  it('calls client.callTool with name and arguments', async () => {
+    let called;
+    const client = { callTool: async (params) => { called = params; return { content: [{ type: 'text', text: 'ok' }] }; } };
+    const result = await callMcpTool({ name: 'search', arguments: { q: 'test' } }, { mcpClient: client });
+    assert.deepEqual(called, { name: 'search', arguments: { q: 'test' } });
+    assert.deepEqual(result, { content: [{ type: 'text', text: 'ok' }] });
+  });
+
+  it('defaults arguments to an empty object', async () => {
+    let called;
+    const client = { callTool: async (params) => { called = params; return {}; } };
+    await callMcpTool({ name: 'ping' }, { mcpClient: client });
+    assert.deepEqual(called, { name: 'ping', arguments: {} });
+  });
+
+  it('supports a client getter function', async () => {
+    let called;
+    const client = { callTool: async (params) => { called = params; return {}; } };
+    await callMcpTool({ name: 'ping' }, { mcpClient: () => client });
+    assert.deepEqual(called, { name: 'ping', arguments: {} });
+  });
+
+  it('throws when no client is available', async () => {
+    await assert.rejects(() => callMcpTool({ name: 'ping' }, {}), /no MCP client/);
   });
 });

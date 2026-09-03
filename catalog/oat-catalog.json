@@ -1439,6 +1439,21 @@
         }
       },
       "requiredParameters": ["value"]
+    },
+
+    "callMcpTool": {
+      "description": "Executes a tool on a connected Model Context Protocol (MCP) server and returns its result. Requires an MCP client to be supplied via the renderer context.",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "description": "The name of the MCP tool to execute."
+        },
+        "arguments": {
+          "type": "object",
+          "description": "Arguments to pass to the MCP tool."
+        }
+      },
+      "requiredParameters": ["name"]
     }
   },
 

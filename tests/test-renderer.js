@@ -131,7 +131,7 @@ describe('createOatRenderer', () => {
     const result = createOatRenderer();
     assert.ok(result.renderer instanceof OatRenderer);
     assert.equal(typeof result.functions, 'object');
-    assert.equal(Object.keys(result.functions).length, 21);
+    assert.equal(Object.keys(result.functions).length, 22);
     assert.equal(result.catalogId, CATALOG_ID);
     assert.equal(result.version, 'v0.9');
   });
@@ -149,7 +149,7 @@ describe('registerWithWebLib', () => {
     assert.ok(result instanceof OatRenderer);
     assert.equal(calls.renderer.id, CATALOG_ID);
     assert.ok(calls.renderer.renderer instanceof OatRenderer);
-    assert.equal(calls.functions.length, 21);
+    assert.equal(calls.functions.length, 22);
     assert.equal(calls.catalogId, CATALOG_ID);
   });
 });

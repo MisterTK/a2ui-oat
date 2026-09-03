@@ -86,8 +86,8 @@ describe('components', () => {
 describe('functions', () => {
   const functionNames = Object.keys(functions);
 
-  it('has 21 registered functions', () => {
-    assert.equal(functionNames.length, 21);
+  it('has 22 registered functions', () => {
+    assert.equal(functionNames.length, 22);
   });
 
   for (const name of functionNames) {

@@ -27,6 +27,7 @@ import { formatString } from "./functions/formatString.js";
 import { formatCurrency } from "./functions/formatCurrency.js";
 import { pluralize } from "./functions/pluralize.js";
 import { and } from "./functions/and.js";
+import { callMcpTool } from "./functions/callMcpTool.js";
 import { or } from "./functions/or.js";
 import { not } from "./functions/not.js";
 import { required } from "./functions/required.js";
@@ -74,6 +75,7 @@ export function createOatRenderer(options = {}) {
     formatCurrency,
     pluralize,
     and,
+    callMcpTool,
     or,
     not,
     required,
@@ -134,6 +136,7 @@ export {
   formatCurrency,
   pluralize,
   and,
+  callMcpTool,
   or,
   not,
   required,
