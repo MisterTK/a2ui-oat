@@ -20,18 +20,19 @@ SVP & Global Head of AI, Onix | Google Cloud Premier Partner
 7. [Oat Renderer Implementation](#7-oat-renderer-implementation)
 8. [Security Model](#8-security-model)
 9. [A2A Integration](#9-a2a-integration)
-10. [Companion Libraries](#10-companion-libraries)
-11. [Theming](#11-theming)
-12. [Project Structure](#12-project-structure)
-13. [Implementation Roadmap](#13-implementation-roadmap)
-14. [Competitive Position](#14-competitive-position)
-15. [Appendix: Key References](#15-appendix-key-references)
+10. [MCP Integration](#10-mcp-integration)
+11. [Companion Libraries](#11-companion-libraries)
+12. [Theming](#12-theming)
+13. [Project Structure](#13-project-structure)
+14. [Implementation Roadmap](#14-implementation-roadmap)
+15. [Competitive Position](#15-competitive-position)
+16. [Appendix: Key References](#16-appendix-key-references)
 
 ---
 
 ## 1. Executive Summary
 
-a2ui-oat is an open-source A2UI community renderer that pairs Google's A2UI protocol with Kailash Nadh's Oat CSS library and its companion micro-libraries. It consists of two artifacts: the **Oat Catalog**, a custom A2UI catalog JSON schema exposing 37 UI components, and the **Oat Renderer**, a minimal JavaScript renderer built on @a2ui/web-lib that converts A2UI JSON messages into semantic HTML styled automatically by Oat.
+a2ui-oat is an open-source A2UI community renderer that pairs Google's A2UI protocol with Kailash Nadh's Oat CSS library and its companion micro-libraries. It consists of two artifacts: the **Oat Catalog**, a custom A2UI catalog JSON schema exposing 39 UI components, and the **Oat Renderer**, a minimal JavaScript renderer built on @a2ui/web-lib that converts A2UI JSON messages into semantic HTML styled automatically by Oat.
 
 The project addresses a gap in the A2UI renderer ecosystem. Every maintained renderer today targets a framework: React, Angular, Lit, or Flutter. There is no lightweight, framework-free option for web-only deployments. a2ui-oat fills this gap with a total client-side footprint of approximately 13KB while delivering more component coverage than any existing renderer.
 
@@ -117,7 +118,7 @@ The a2ui-oat system is composed of four layers. The first two are authored by th
 
 | Layer | Artifact | Author | Role |
 |-------|----------|--------|------|
-| Oat Catalog | oat-catalog.json | a2ui-oat project | Defines 37 components and 22 functions as A2UI-compliant JSON Schema |
+| Oat Catalog | oat-catalog.json | a2ui-oat project | Defines 39 components and 22 functions as A2UI-compliant JSON Schema |
 | Oat Renderer | oat-renderer.js | a2ui-oat project | Maps catalog components to semantic HTML elements |
 | Protocol Engine | @a2ui/web-lib | Google (existing) | Stream parsing, state management, data binding, validation |
 | Styling | Oat CSS + JS + companions | Kailash Nadh (existing) | Automatic semantic styling, Web Components for dynamic elements |
@@ -203,6 +204,8 @@ The Oat Catalog is a JSON Schema file conforming to the A2UI Catalog schema. It 
 | DateTimeInput | `<input type="date/time">` | value, enableDate, enableTime | Basic Catalog |
 | ChoicePicker | `<select>` / radio group | options, selections, maxSelections | Basic Catalog |
 | Autocomplete | `<input>` + floatype.js | source, minChars, action | Oat + floatype.js |
+| FileUpload | `<ot-upload>` | accept, multiple, disabled, hint, files, action, checks | Oat Upload WC |
+| TagInput | `<ot-taginput>` | value, placeholder, disabled, suggestions, checks | Oat TagInput WC |
 
 ### 5.4 Components: Container
 
@@ -212,7 +215,7 @@ The Oat Catalog is a JSON Schema file conforming to the A2UI Catalog schema. It 
 | Modal | `<dialog>` | entryPointChild, contentChild | Basic Catalog + Oat Dialog |
 | Tabs | `<oat-tabs>` | tabItems [{title, child}] | Basic Catalog + Oat Tabs WC |
 | Accordion | `<details><summary>` | items [{title, child}], grouped | Oat Accordion |
-| Tooltip | `<span data-tooltip>` | child, text, position | Oat Tooltip |
+| Tooltip | `<span data-tooltip>` | child, text, placement | Oat Tooltip |
 | Dropdown | `<ot-dropdown>` | child (trigger), items [{label, action}] | Oat Dropdown WC |
 
 ### 5.5 Components: Data & Feedback
@@ -227,7 +230,7 @@ The Oat Catalog is a JSON Schema file conforming to the A2UI Catalog schema. It 
 
 ### 5.6 Component Summary
 
-**Total: 37 components.** The Basic Catalog's 16 are fully included. The additional 21 are native Oat primitives that require no custom implementation beyond semantic HTML mapping.
+**Total: 39 components.** The Basic Catalog's 16 are fully included. The additional 23 are native Oat primitives that require no custom implementation beyond semantic HTML mapping.
 
 ---
 
@@ -289,6 +292,33 @@ Validation functions return a boolean. They are used in `checks` arrays on Butto
 | length | value, min, max | Returns `true` if string length falls within `[min, max]`. |
 | numeric | value | Returns `true` if value is a valid number. |
 | email | value | Returns `true` if value matches a basic email address pattern. |
+
+### 6.6a Checkable Fields
+
+The `checks` mechanism generalizes validation beyond gating a Button's action: any Checkable component can carry a `checks` array that the renderer evaluates continuously (re-evaluating whenever a referenced data-model path changes) and reflects directly onto the DOM, independent of whether an action ever fires.
+
+Each entry in a `checks` array has the shape:
+
+```json
+{
+  "functionCall": {
+    "call": "required",
+    "args": { "value": { "path": "/form/email" } }
+  },
+  "message": "Email is required."
+}
+```
+
+`functionCall.call` names a registered logic or validation function (Section 6.5–6.6); `functionCall.args` are resolved from the data model exactly like an action's args. `message` is optional freeform text shown to the user when the check fails.
+
+**Components supporting `checks`:** Button, TextField, CheckBox, Switch, DateTimeInput, ChoicePicker, Autocomplete, FileUpload, and TagInput.
+
+**Two distinct behaviors, by component role:**
+
+- **On Button**, `checks` gates the button's `action`: the renderer evaluates every check in the array, and the action only fires if all of them pass. This is the pattern documented in Section 6.7's precursor use case (form submission gating).
+- **On the field components** (TextField, CheckBox, Switch, DateTimeInput, ChoicePicker, Autocomplete, FileUpload, TagInput), `checks` does not gate anything — there is no action to block. Instead, the renderer sets `aria-invalid="true"` on the control element whenever any check fails (and removes it once all checks pass), so assistive technology and CSS (e.g. `[aria-invalid="true"]` selectors) can react. For TextField, CheckBox, and Switch, the renderer additionally appends a `<small class="error">` element next to the control containing the first failed check's `message` (or a default "This field is invalid." if no message was supplied).
+
+This gives agents a declarative way to build live-validating forms — required fields, pattern-matched inputs, min/max lengths — entirely from catalog-defined `checks` arrays, without any custom client-side validation code.
 
 ### 6.7 Client-Side Pagination Pattern
 
@@ -398,9 +428,9 @@ The Oat Renderer is the JavaScript layer that maps A2UI catalog components to se
 | `Pagination {currentPage: 1, totalPages: 10}` | `<nav>[page links with action bindings]</nav>` |
 | `Progress {value: 75, max: 100}` | `<progress value="75" max="100"></progress>` |
 | `Spinner {size: "medium"}` | `<div class="spinner"></div>` |
-| `Skeleton {variant: "text"}` | `<div class="skeleton"></div>` |
+| `Skeleton {variant: "line"}` | `<div class="skeleton"></div>` |
 | `Badge {text: "3", variant: "info"}` | `<span data-badge>3</span>` |
-| `Breadcrumb {items: [...]}` | `<nav aria-label="breadcrumb"><ol>...</ol></nav>` |
+| `Breadcrumb {items: [...]}` | `<nav aria-label="breadcrumb"><ol class="unstyled">...</ol></nav>` |
 | `Switch {label: "Dark mode", value: path}` | `<label><input type="checkbox" role="switch"> Dark mode</label>` |
 | `Meter {value: 0.7, low: 0.3, high: 0.8}` | `<meter value="0.7" low="0.3" high="0.8"></meter>` |
 | `Autocomplete {source: url}` | `<input>[floatype.js attached]</input>` |
@@ -483,7 +513,7 @@ The A2A client running the Oat Renderer includes the Oat Catalog ID in every mes
 }
 ```
 
-If the remote agent supports the Oat Catalog, it uses it. If not, it falls back to the Basic Catalog, which the Oat Renderer also supports since the 37 Oat components are a superset of the Basic Catalog's 16. If the agent accepts inline catalogs, the client can send the full Oat Catalog schema at runtime, enabling any conformant agent to generate Oat components without prior configuration.
+If the remote agent supports the Oat Catalog, it uses it. If not, it falls back to the Basic Catalog, which the Oat Renderer also supports since the 39 Oat components are a superset of the Basic Catalog's 16. If the agent accepts inline catalogs, the client can send the full Oat Catalog schema at runtime, enabling any conformant agent to generate Oat components without prior configuration.
 
 ### 9.3 Message Encoding
 
@@ -522,7 +552,7 @@ For agents that accept inline catalogs but have never encountered the Oat Catalo
 
 1. Client detects `acceptsInlineCatalogs: true` in the agent's AgentCard
 2. Client includes the Oat Catalog schema in `a2uiClientCapabilities.inlineCatalogs`
-3. Agent reads the schema on the fly, sees 37 component definitions with descriptions
+3. Agent reads the schema on the fly, sees 39 component definitions with descriptions
 4. Agent generates valid Oat Catalog JSON without prior configuration
 5. Client renders using the Oat Renderer as normal
 
@@ -534,7 +564,31 @@ In multi-agent orchestration, multiple remote agents may each create their own s
 
 ---
 
-## 10. Companion Libraries
+## 10. MCP Integration
+
+a2ui-oat integrates with the Model Context Protocol (MCP) through a registered function, `callMcpTool`, that lets an agent-authored surface invoke an MCP tool directly from the client — without a round trip back through the agent.
+
+### 10.1 The `callMcpTool` Function
+
+| Function | Backed By | Parameters | Purpose |
+|----------|-----------|------------|---------|
+| callMcpTool | MCP Client (`context.mcpClient`) | name, arguments | Executes a tool on a connected MCP server and returns its result. |
+
+`callMcpTool` reads an MCP client instance (or a getter function returning one) off the renderer context — `context.mcpClient` — and calls `client.callTool({ name, arguments })`, matching the shape of the official `@modelcontextprotocol/sdk` `Client#callTool()` method. It can therefore be wired to a real MCP client or, for examples and tests, a minimal object exposing the same `callTool` method. Like the other registered functions, it runs entirely on the client, inside an `action.functionCall` or a `checks` entry.
+
+### 10.2 The Static-Template + Data-Diff Pattern
+
+A common MCP integration shape is "send the UI once, send data forever after": the agent emits a static A2UI component tree exactly once, and every subsequent MCP tool call only writes new values into the data model rather than re-sending components. The Oat Renderer's existing data-binding machinery (`_bindValue()` / `context.subscribe()`) notices the change and patches just the bound DOM nodes in place — no component is ever re-created.
+
+This works because a static template can express literal values as data-model bindings (`{ "path": "/ticker/price" }`) instead of literal strings, even before any data exists at that path. The template renders once with empty bindings; the first `callMcpTool` result populates them, and every subsequent call just updates them. Compared to re-sending `createSurface`/`updateComponents` on every tool call, this scales the amount of data sent with the size of the *change*, not the size of the UI, and it avoids disrupting scroll position, input focus, CSS transitions, or third-party widget state that a full re-render would blow away.
+
+### 10.3 Example: `examples/mcp-data-diff/`
+
+See [`examples/mcp-data-diff/`](../examples/mcp-data-diff/) for a complete, runnable implementation of this pattern: a live-quote ticker card whose static template (`agent-template.json`) is applied once via `renderer.renderComponent()`, after which every "tool call" — including the first — calls `callMcpTool` and writes its result into `/ticker/*` via `context.setDataModel()`. The example ships a dependency-free mock MCP client (`mock-mcp-server.js`) that matches the `callTool({ name, arguments })` shape `callMcpTool` expects, so it can be swapped for a real `@modelcontextprotocol/sdk` `Client` without changing any renderer code.
+
+---
+
+## 11. Companion Libraries
 
 The Oat ecosystem includes several zero-dependency micro-libraries by Kailash Nadh. a2ui-oat integrates these as backing implementations for registered functions and catalog components.
 
@@ -550,7 +604,7 @@ The Oat ecosystem includes several zero-dependency micro-libraries by Kailash Na
 
 ---
 
-## 11. Theming
+## 12. Theming
 
 The Oat Catalog's theme schema exposes Oat CSS custom properties as A2UI theme parameters. Agents set these in the createSurface message.
 
@@ -583,12 +637,12 @@ Oat supports light/dark mode via CSS media queries. The theme includes a **mode*
 
 ---
 
-## 12. Project Structure
+## 13. Project Structure
 
 ```
 a2ui-oat/
 ├── catalog/
-│   ├── oat-catalog.json              # A2UI catalog JSON Schema (37 components)
+│   ├── oat-catalog.json              # A2UI catalog JSON Schema (39 components)
 │   ├── oat-catalog-rules.txt          # Natural language prompt rules for LLMs
 │   └── functions/                     # Function schema definitions
 ├── renderer/
@@ -625,13 +679,13 @@ a2ui-oat/
 
 ---
 
-## 13. Implementation Roadmap
+## 14. Implementation Roadmap
 
 ### Phase 1: Foundation (Weeks 1–2)
 
-- Author oat-catalog.json with all 37 component definitions
+- Author oat-catalog.json with all 39 component definitions
 - Author oat-catalog-rules.txt prompt fragment
-- Implement Oat Renderer core with component mapping for all 37 components
+- Implement Oat Renderer core with component mapping for all 39 components
 - Integrate with @a2ui/web-lib for protocol handling
 - Build basic example: single-surface dashboard rendering via A2UI Mode
 
@@ -659,12 +713,12 @@ a2ui-oat/
 
 ---
 
-## 14. Competitive Position
+## 15. Competitive Position
 
 | Attribute | a2ui-oat | Lit Renderer | React Renderer | Angular Renderer |
 |-----------|---------|-------------|---------------|-----------------|
 | Client footprint | ~13KB | ~15KB+ | ~45KB+ | ~60KB+ |
-| Components | 37 | 16 | 16 | 16 |
+| Components | 39 | 16 | 16 | 16 |
 | Registered functions | 22 | Basic set | Basic set | Basic set |
 | Framework dependency | None | Lit | React | Angular |
 | Build tooling required | No | Yes | Yes | Yes |
@@ -680,7 +734,7 @@ a2ui-oat/
 
 ---
 
-## 15. Appendix: Key References
+## 16. Appendix: Key References
 
 | Resource | URL |
 |----------|-----|

@@ -41,7 +41,7 @@ describe('catalog top-level structure', () => {
 describe('components', () => {
   const componentNames = Object.keys(components);
 
-  it('has 37 components', () => {
+  it('has 39 components', () => {
     assert.equal(componentNames.length, 39);
   });
 

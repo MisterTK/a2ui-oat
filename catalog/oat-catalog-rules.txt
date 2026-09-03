@@ -368,7 +368,7 @@ Send components to a surface with updateComponents:
   }
 }
 
-Every component must have a unique "id" (string) and a "component" (one of the 37 types).
+Every component must have a unique "id" (string) and a "component" (one of the 39 types).
 
 Update the data model with updateDataModel:
 
@@ -688,6 +688,12 @@ Pattern 5: Form validation with checks on Button
     }
   }
 
+  Note: "checks" is not limited to Button. TextField, CheckBox, Switch,
+  DateTimeInput, ChoicePicker, Autocomplete, FileUpload, and TagInput also
+  support a "checks" array. On these components it does not gate an action —
+  there is none to gate — instead it sets aria-invalid on the control when a
+  check fails (and, on TextField/CheckBox/Switch, shows an error message).
+
 Pattern 6: Loading states with Skeleton and Spinner
 
   Show Skeleton placeholders while data loads, then replace with real components
@@ -729,7 +735,7 @@ Do not do any of the following:
    Wrong: {"component": "div", "innerHTML": "<b>Hello</b>"}
    Right: {"id": "t1", "component": "Text", "text": "Hello", "variant": "p"}
 
-2. Do not use undefined component types. Only the 37 listed types are valid.
+2. Do not use undefined component types. Only the 39 listed types are valid.
    Wrong: {"component": "Chart"}
    Wrong: {"component": "video"}
 

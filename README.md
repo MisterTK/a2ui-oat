@@ -18,14 +18,14 @@ a2ui-oat is an open-source community renderer that pairs [Google's A2UI protocol
 
 a2ui-oat provides two artifacts:
 
-- **Oat Catalog** -- A custom A2UI catalog JSON schema exposing 37 UI components and 22 registered functions.
+- **Oat Catalog** -- A custom A2UI catalog JSON schema exposing 39 UI components and 22 registered functions.
 - **Oat Renderer** -- A minimal JavaScript renderer built on `@a2ui/web-lib` that converts A2UI JSON messages into semantic HTML styled automatically by Oat.
 
 The project supports a **dual-mode architecture**: A2UI Mode for structured, catalog-constrained rendering with full security guarantees, and Direct Mode for trusted-agent scenarios where the LLM emits semantic HTML and Oat styles it with zero intermediary. Both modes share the same CSS, JS, and companion libraries. The choice between them is a security architecture decision.
 
 ## Features
 
-- **37 components** -- Full Basic Catalog (16) plus 21 Oat-native components: tables, pagination, progress, meter, skeleton loaders, toasts, tooltips, alerts, breadcrumbs, sidebars, accordions, switches, badges, avatars, video, audio, grid, dropdown, and more.
+- **39 components** -- Full Basic Catalog (16) plus 23 Oat-native components: tables, pagination, progress, meter, skeleton loaders, toasts, tooltips, alerts, breadcrumbs, sidebars, accordions, switches, badges, avatars, video, audio, grid, dropdown, file upload, tag input, and more.
 - **22 registered functions** -- Data (`fetchPage`, `fetchAndAppend`, `subscribeSSE`, `subscribeWebSocket`), navigation (`openUrl`, `navigateTo`), UI (`showToast`, `debounce`), formatting (`formatDate`, `formatNumber`, `formatString`, `formatCurrency`, `pluralize`), logic (`and`, `or`, `not`), and validation (`required`, `regex`, `length`, `numeric`, `email`).
 - **~13KB total client footprint** -- Oat CSS + JS + companion libraries, minified and gzipped.
 - **Zero framework dependencies** -- No React, Angular, Lit, or build tooling required. Deploy via CDN include.
@@ -125,6 +125,8 @@ See [docs/when-to-use-which.md](docs/when-to-use-which.md) for guidance on choos
 | DateTimeInput | `<input type="date/time">` | Basic Catalog |
 | ChoicePicker | `<select>` / radio group | Basic Catalog |
 | Autocomplete | `<input>` + floatype.js | Oat + floatype.js |
+| FileUpload | `<ot-upload>` | Oat Upload WC |
+| TagInput | `<ot-taginput>` | Oat TagInput WC |
 
 ### Container
 
@@ -147,7 +149,7 @@ See [docs/when-to-use-which.md](docs/when-to-use-which.md) for guidance on choos
 | Toast | `<oat-toast>` | Oat Toast WC |
 | Breadcrumb | `<nav aria-label="breadcrumb">` | Oat Breadcrumb |
 
-**Total: 37 components.** The Basic Catalog's 16 are fully included. The additional 21 are native Oat primitives.
+**Total: 39 components.** The Basic Catalog's 16 are fully included. The additional 23 are native Oat primitives.
 
 ## Registered Functions
 
@@ -202,6 +204,12 @@ See [docs/when-to-use-which.md](docs/when-to-use-which.md) for guidance on choos
 | numeric | vanilla JS | Validates that a value is a valid number. |
 | email | vanilla JS | Validates that a value matches a basic email address pattern. |
 
+### MCP
+
+| Function | Backed By | Purpose |
+|----------|-----------|---------|
+| callMcpTool | MCP Client | Executes a tool on a connected MCP server and returns its result. |
+
 ## Architecture
 
 ```
@@ -225,7 +233,7 @@ Browser DOM
 
 | Layer | Artifact | Author | Role |
 |-------|----------|--------|------|
-| Oat Catalog | oat-catalog.json | a2ui-oat project | Defines 37 components and 22 registered functions as A2UI-compliant JSON Schema |
+| Oat Catalog | oat-catalog.json | a2ui-oat project | Defines 39 components and 22 registered functions as A2UI-compliant JSON Schema |
 | Oat Renderer | oat-renderer.js | a2ui-oat project | Maps catalog components to semantic HTML elements |
 | Protocol Engine | @a2ui/web-lib | Google (existing) | Stream parsing, state management, data binding, validation |
 | Styling | Oat CSS + JS + companions | Kailash Nadh (existing) | Automatic semantic styling, Web Components for dynamic elements |
@@ -267,7 +275,7 @@ See [docs/when-to-use-which.md](docs/when-to-use-which.md) for a detailed decisi
 | Attribute | a2ui-oat | Lit Renderer | React Renderer | Angular Renderer |
 |-----------|---------|-------------|---------------|-----------------|
 | Client footprint | ~13KB | ~15KB+ | ~45KB+ | ~60KB+ |
-| Components | 37 | 16 | 16 | 16 |
+| Components | 39 | 16 | 16 | 16 |
 | Registered functions | 22 | Basic set | Basic set | Basic set |
 | Framework dependency | None | Lit | React | Angular |
 | Build tooling required | No | Yes | Yes | Yes |

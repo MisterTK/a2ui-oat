@@ -26,7 +26,7 @@
  */
 
 /**
- * OatRenderer maps all 37 Oat Catalog component types to semantic HTML.
+ * OatRenderer maps all 39 Oat Catalog component types to semantic HTML.
  */
 
 const TEXT_VARIANT_TAGS = {
@@ -73,7 +73,7 @@ export class OatRenderer {
   // Internal registration
   // ---------------------------------------------------------------------------
 
-  /** Register all 37 component renderers. */
+  /** Register all 39 component renderers. */
   _registerAll() {
     // Layout
     this.renderers.set('Row', (c, ctx) => this._renderRow(c, ctx));

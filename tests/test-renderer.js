@@ -1,5 +1,5 @@
 /**
- * Tests for OatRenderer — verifies all 37 components render correctly.
+ * Tests for OatRenderer — verifies all 39 components render correctly.
  * Uses a minimal DOM shim (no external dependencies).
  *
  * Run: node --test tests/test-renderer.js
