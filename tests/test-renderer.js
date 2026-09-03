@@ -195,6 +195,33 @@ describe('component output correctness', () => {
     assert.equal(el.tagName, 'TABLE');
   });
 
+  it('Badge renders class="badge" and data-variant for color variants', () => {
+    const el = renderer.renderComponent(
+      { id: 'bd1', component: 'Badge', text: 'New', variant: 'success' },
+      makeContext()
+    );
+    assert.equal(el.className, 'badge');
+    assert.equal(el.dataset.variant, 'success');
+  });
+
+  it('Badge renders outline variant as a class, not data-variant', () => {
+    const el = renderer.renderComponent(
+      { id: 'bd2', component: 'Badge', text: 'New', variant: 'outline' },
+      makeContext()
+    );
+    assert.equal(el.className, 'badge outline');
+    assert.equal(el.dataset.variant, undefined);
+  });
+
+  it('Badge default variant has no data-variant or extra class', () => {
+    const el = renderer.renderComponent(
+      { id: 'bd3', component: 'Badge', text: 'New', variant: 'default' },
+      makeContext()
+    );
+    assert.equal(el.className, 'badge');
+    assert.equal(el.dataset.variant, undefined);
+  });
+
   it('Alert renders with role="alert"', () => {
     const el = renderer.renderComponent(
       { id: 'a1', component: 'Alert', text: 'Warning!' },

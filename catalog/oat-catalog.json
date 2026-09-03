@@ -216,7 +216,7 @@
         },
         "variant": {
           "type": "string",
-          "enum": ["default", "info", "success", "warning", "error"],
+          "enum": ["default", "secondary", "success", "warning", "danger", "outline"],
           "description": "Visual style variant."
         }
       },

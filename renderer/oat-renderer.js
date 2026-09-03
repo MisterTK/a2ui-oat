@@ -391,9 +391,13 @@ export class OatRenderer {
   /** @returns {HTMLElement} */
   _renderBadge(c, ctx) {
     const el = document.createElement('span');
-    el.dataset.badge = '';
+    el.className = 'badge';
     const variant = this._resolve(this._asBinding(c.variant), ctx);
-    this._addClass(el, variant);
+    if (variant === 'outline') {
+      this._addClass(el, 'outline');
+    } else if (variant && variant !== 'default') {
+      el.dataset.variant = variant;
+    }
     this._bindValue(this._asBinding(c.text), ctx, (val) => { el.textContent = val ?? ''; });
     return el;
   }
