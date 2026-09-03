@@ -104,7 +104,7 @@ See [docs/when-to-use-which.md](docs/when-to-use-which.md) for guidance on choos
 | Image | `<img>` | Basic Catalog |
 | Icon | `<span>` (icon class) | Basic Catalog |
 | Divider | `<hr>` | Basic Catalog |
-| Badge | `<span data-badge>` | Oat Badge |
+| Badge | `<span class="badge">` | Oat Badge |
 | Avatar | `<img class="avatar">` | Oat Avatar |
 | Spinner | `<div class="spinner">` | Oat Spinner |
 | Skeleton | `<div class="skeleton">` | Oat Skeleton |

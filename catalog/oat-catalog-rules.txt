@@ -71,7 +71,7 @@ Display components:
 
   Badge
     required: text (string or data binding)
-    optional: variant ("info"|"success"|"warning"|"error")
+    optional: variant ("default"|"secondary"|"success"|"warning"|"danger"|"outline")
 
   Avatar
     required: url (string or data binding) OR initials (string)

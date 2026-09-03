@@ -309,15 +309,20 @@ export class OatRenderer {
    * @returns {string[]}
    */
   _extractCheckPaths(checks) {
-    const paths = [];
+    const paths = new Set();
+    const collect = (v) => {
+      if (Array.isArray(v)) {
+        v.forEach(collect);
+        return;
+      }
+      const bound = this._asBinding(v);
+      if (this._isBound(bound)) paths.add(bound.path);
+    };
     for (const check of checks || []) {
       const args = check?.functionCall?.args || {};
-      for (const v of Object.values(args)) {
-        const bound = this._asBinding(v);
-        if (this._isBound(bound)) paths.push(bound.path);
-      }
+      for (const v of Object.values(args)) collect(v);
     }
-    return paths;
+    return [...paths];
   }
 
   /**
@@ -860,7 +865,7 @@ export class OatRenderer {
       }
       if (c.action) ctx.dispatchAction(c.action);
     });
-    this._renderChecks(input, null, c.checks, ctx);
+    this._renderChecks(el, null, c.checks, ctx);
 
     return el;
   }

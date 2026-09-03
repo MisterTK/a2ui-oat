@@ -728,7 +728,7 @@
         },
         "checks": {
           "type": "array",
-          "description": "Validation checks to run against the selected files. On failure, sets aria-invalid on the file input.",
+          "description": "Validation checks to run against the selected files. On failure, sets aria-invalid on the upload control (the ot-upload element), not the hidden file input.",
           "items": {
             "type": "object"
           }

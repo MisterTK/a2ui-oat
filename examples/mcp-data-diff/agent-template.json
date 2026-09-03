@@ -49,7 +49,7 @@
           "id": "ticker-badge",
           "component": "Badge",
           "text": "MCP",
-          "variant": "info"
+          "variant": "secondary"
         },
         {
           "id": "price-row",

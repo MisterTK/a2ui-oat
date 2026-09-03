@@ -183,7 +183,7 @@ The Oat Catalog is a JSON Schema file conforming to the A2UI Catalog schema. It 
 | Image | `<img>` | url, fit, variant | Basic Catalog |
 | Icon | `<span>` (icon class) | name | Basic Catalog |
 | Divider | `<hr>` | axis | Basic Catalog |
-| Badge | `<span data-badge>` | text, variant | Oat Badge |
+| Badge | `<span class="badge">` | text, variant (maps to data-variant or .outline class) | Oat Badge |
 | Avatar | `<img class="avatar">` | url, size, initials | Oat Avatar |
 | Spinner | `<div class="spinner">` | size | Oat Spinner |
 | Skeleton | `<div class="skeleton">` | width, height, variant | Oat Skeleton |
@@ -429,7 +429,7 @@ The Oat Renderer is the JavaScript layer that maps A2UI catalog components to se
 | `Progress {value: 75, max: 100}` | `<progress value="75" max="100"></progress>` |
 | `Spinner {size: "medium"}` | `<div class="spinner"></div>` |
 | `Skeleton {variant: "line"}` | `<div class="skeleton"></div>` |
-| `Badge {text: "3", variant: "info"}` | `<span data-badge>3</span>` |
+| `Badge {text: "3", variant: "secondary"}` | `<span class="badge" data-variant="secondary">3</span>` |
 | `Breadcrumb {items: [...]}` | `<nav aria-label="breadcrumb"><ol class="unstyled">...</ol></nav>` |
 | `Switch {label: "Dark mode", value: path}` | `<label><input type="checkbox" role="switch"> Dark mode</label>` |
 | `Meter {value: 0.7, low: 0.3, high: 0.8}` | `<meter value="0.7" low="0.3" high="0.8"></meter>` |

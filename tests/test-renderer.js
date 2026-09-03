@@ -528,6 +528,44 @@ describe('Checkable / checks validation', () => {
     );
     assert.equal(el.attributes['aria-invalid'], 'true');
   });
+
+  it('re-evaluates compound and/or checks when a path nested inside an array-valued arg changes', () => {
+    // `and`'s `conditions` arg is an array of bindings, e.g.
+    // { functionCall: { call: 'and', args: { conditions: [{path:'/form/a'}, {path:'/form/b'}] } } }.
+    // `_evaluateCheck` only resolves top-level args, so `conditions` arrives at the
+    // function unresolved; the function must resolve each element itself via
+    // `resolveDynamic`. The point of this test is `_extractCheckPaths`: paths
+    // referenced ONLY inside that nested array must still be subscribed to, so the
+    // check re-evaluates when one of them changes.
+    const andFn = ({ conditions }, { resolveDynamic }) =>
+      (conditions || []).every((c) => {
+        const v = resolveDynamic(c);
+        return v != null && v !== '';
+      });
+    const ctx = makeReactiveContext({ form: { a: '', b: 'x' } }, { and: andFn });
+    const wrapper = renderer.renderComponent(
+      {
+        id: 'tf-and', component: 'TextField', label: 'Both', value: { path: '/form/a' },
+        checks: [{
+          functionCall: {
+            call: 'and',
+            args: { conditions: [{ path: '/form/a' }, { path: '/form/b' }] },
+          },
+          message: 'Both fields are required',
+        }],
+      },
+      ctx
+    );
+    const input = wrapper.children.find((c) => c.tagName === 'INPUT');
+    // /form/a is '' so the compound check fails initially.
+    assert.equal(input.attributes['aria-invalid'], 'true');
+    // /form/a appears only nested inside the `conditions` array, never as a
+    // top-level check arg — before the fix, _extractCheckPaths found no paths
+    // for this check at all, so no subscription was ever set up and this
+    // change would not clear aria-invalid.
+    ctx.fireChange('/form/a', 'y');
+    assert.equal(input.attributes['aria-invalid'], undefined);
+  });
 });
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
