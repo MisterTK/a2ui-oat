@@ -17,7 +17,11 @@ class MiniElement {
     this.children = [];
     this.attributes = {};
     this.dataset = {};
-    this.style = {};
+    this.style = {
+      _props: {},
+      setProperty(name, value) { this._props[name] = value; },
+      getPropertyValue(name) { return this._props[name] ?? ''; },
+    };
     this.className = '';
     this.textContent = '';
     this.innerHTML = '';
@@ -322,6 +326,33 @@ describe('component output correctness', () => {
       makeContext()
     );
     assert.equal(el.dataset.tooltipPlacement, 'left');
+  });
+
+  it('Tabs sets data-anchor from anchorKey', () => {
+    const el = renderer.renderComponent(
+      { id: 'tb1', component: 'Tabs', tabs: [{ title: 'One' }], anchorKey: 'section' },
+      makeContext()
+    );
+    assert.equal(el.dataset.anchor, 'section');
+  });
+
+  it('Sidebar sets --sidebar-width from width property', () => {
+    const el = renderer.renderComponent(
+      { id: 'sb1', component: 'Sidebar', width: '20rem' },
+      makeContext()
+    );
+    assert.equal(el.style.getPropertyValue('--sidebar-width'), '20rem');
+  });
+
+  it('Breadcrumb renders an unstyled list and unstyled links', () => {
+    const el = renderer.renderComponent(
+      { id: 'bc1', component: 'Breadcrumb', items: [{ label: 'Home', action: { event: { name: 'go' } } }, { label: 'Here' }] },
+      makeContext()
+    );
+    const ol = el.children[0];
+    assert.equal(ol.className, 'unstyled');
+    const link = ol.children[0].children[0];
+    assert.equal(link.className, 'unstyled');
   });
 });
 

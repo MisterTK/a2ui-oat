@@ -116,6 +116,10 @@
         "collapsible": {
           "type": "boolean",
           "description": "Whether the sidebar can be collapsed by the user."
+        },
+        "width": {
+          "type": "string",
+          "description": "CSS length value overriding the sidebar's default width (--sidebar-width)."
         }
       },
       "requiredProperties": ["child"]
@@ -712,6 +716,10 @@
         "activeTab": {
           "type": "DynamicNumber",
           "description": "Index of the initially active tab. Supports data binding."
+        },
+        "anchorKey": {
+          "type": "string",
+          "description": "When set, deep-links the active tab's id into the URL hash under this key."
         }
       },
       "requiredProperties": ["tabs"]

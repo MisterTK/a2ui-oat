@@ -337,6 +337,7 @@ export class OatRenderer {
   _renderSidebar(c, ctx) {
     const wrapper = document.createElement('div');
     wrapper.dataset.sidebarLayout = '';
+    if (c.width) wrapper.style.setProperty('--sidebar-width', c.width);
     const aside = document.createElement('aside');
     aside.dataset.sidebar = '';
     if (c.position === 'right') aside.dataset.sidebarPosition = 'right';
@@ -777,6 +778,7 @@ export class OatRenderer {
   /** @returns {HTMLElement} */
   _renderTabs(c, ctx) {
     const el = document.createElement('ot-tabs');
+    if (c.anchorKey) el.dataset.anchor = c.anchorKey;
     const tabs = c.tabs ?? c.tabItems;
     const items = tabs || [];
     const activeTab = c.activeTab != null ? this._resolve(c.activeTab, ctx) : 0;
@@ -1040,12 +1042,14 @@ export class OatRenderer {
     const nav = document.createElement('nav');
     nav.setAttribute('aria-label', 'breadcrumb');
     const ol = document.createElement('ol');
+    ol.className = 'unstyled';
     const items = c.items || [];
 
     for (const item of items) {
       const li = document.createElement('li');
       if (item.action) {
         const a = document.createElement('a');
+        a.className = 'unstyled';
         a.href = '#';
         a.textContent = item.label || '';
         this._wireAction(a, 'click', item.action, ctx);
