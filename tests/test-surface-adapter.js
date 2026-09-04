@@ -451,3 +451,163 @@ describe('structural resolution', () => {
       'valid value clears aria-invalid');
   });
 });
+
+// oat-catalog.json's `theme` schema (see catalog/oat-catalog.json's top-level
+// `theme` key) declares exactly these 7 properties: primaryColor,
+// backgroundColor, textColor, fontFamily, borderRadius, spacing, mode --
+// matching THEME_VARS's 6 CSS-variable entries in surface-adapter.js plus
+// the separately-handled `mode` -> `data-theme` attribute. `theme` itself
+// flows from `createSurface.theme` straight into `SurfaceModel.theme`
+// unvalidated (message-processor.js's processCreateSurfaceMessage destructures
+// it directly into `new SurfaceModel(surfaceId, catalog, theme, ...)`), so
+// the adapter's applyTheme() is the only place that shape is consumed.
+describe('theme, deletion, disposal', () => {
+  it('applies createSurface theme to the surface element', () => {
+    const { adapter, container } = makeAdapter();
+    adapter.processMessages([
+      create('s1', { theme: { primaryColor: '#ff0000', mode: 'dark' } }),
+      update([{ id: 'root', component: 'Text', text: 'themed' }]),
+    ]);
+    const surfaceEl = findEl(container, (el) => el.dataset.surfaceId === 's1');
+    assert.equal(surfaceEl.style.getPropertyValue('--color-primary'), '#ff0000');
+    assert.equal(surfaceEl.getAttribute('data-theme'), 'dark');
+  });
+
+  // Verified against real source: MessageProcessor.onSurfaceDeleted
+  // (processing/message-processor.js) is a thin passthrough to
+  // `this.model.onSurfaceDeleted` (state/surface-group-model.js) -- the exact
+  // same EventEmitter `processor.model.onSurfaceDeleted` exposes, not a
+  // distinct one -- so hooking either is equivalent; the adapter's existing
+  // `processor.onSurfaceDeleted(...)` subscription already fires correctly.
+  // SurfaceGroupModel.deleteSurface() also confirms the ordering the brief
+  // flagged as ambiguous: it deletes from `this.surfaces`, calls
+  // `surface.dispose()` (which disposes dataModel/componentsModel/action
+  // emitters WITHOUT emitting per-component onDeleted events -- see
+  // SurfaceComponentsModel.dispose(), which clears its listener sets instead
+  // of firing them), and only THEN emits `onSurfaceDeleted`. So by the time
+  // this fires, the surface's model data is already torn down, but nothing
+  // in the emit path depends on it still being present -- unmountSurface only
+  // touches the adapter's own `mounted` entry (resolver/effect/DOM).
+  it('removes the surface DOM on deleteSurface', () => {
+    const { adapter, container } = makeAdapter();
+    adapter.processMessages([create(), update([
+      { id: 'root', component: 'Text', text: 'bye' }])]);
+    adapter.processMessages([{ version: V, deleteSurface: { surfaceId: 's1' } }]);
+    assert.equal(findEl(container, (el) => el.dataset.surfaceId === 's1'), null);
+  });
+
+  it('dispose() tears everything down', () => {
+    const { adapter, container } = makeAdapter();
+    adapter.processMessages([
+      create(),
+      data('/x', 1),
+      update([
+        { id: 'root', component: 'Column', children: ['t1'] },
+        { id: 't1', component: 'Text', text: { path: '/x' } },
+      ]),
+    ]);
+    adapter.dispose();
+    assert.equal(findEl(container, (el) => el.dataset.surfaceId === 's1'), null,
+      'surface DOM removed');
+    // data updates after dispose must not touch the old DOM or throw: the
+    // adapter's own resolver/effect are gone, even though the underlying
+    // processor/SurfaceModel (a separate layer -- dispose() only tears down
+    // the adapter's rendering side, not the wire-protocol model) still
+    // accepts the message.
+    adapter.processMessages([data('/x', 2)]);
+  });
+
+  // Verified against real source: NodeResolver.dispose() (nodes/node-resolver.js)
+  // disposes every node bottom-up (children before their parent, via
+  // disposeNode's recursion over childEdges) and each MutableComponentNode.dispose()
+  // (nodes/component-node.js) runs ALL of its accumulated `cleanups` --
+  // idempotently and in a try/catch per cleanup -- before emitting
+  // onDestroyed. The adapter's unmountSurface() stops the surface-level
+  // `stopEffect` (tracking resolver.rootNode) BEFORE calling
+  // `resolver.dispose()`, so no per-node `watchNode` effect can be triggered
+  // by the resolver's own teardown (e.g. its final `setValue(rootNode,
+  // undefined)`) after the fact.
+  it('disposes every effect/subscription created over a live node\'s lifetime -- including stale ones from superseded re-renders -- once the adapter is disposed', () => {
+    // Task 3's accepted characteristic: watchNode's persistent per-node effect
+    // rebuilds the whole element (renderOnce + replaceWith) on every change to
+    // a bound value that changes `node.props` identity (a bound value that
+    // resolves to a genuinely different value produces a new ResolvedBinding
+    // that fails `sameBinding`'s value comparison -- see
+    // nodes/resolved-binding.js -- so it does NOT keep prop-reference
+    // identity the way an unrelated static prop would). Each rebuild calls
+    // renderOnce -> a fresh OatRenderer render -> a fresh
+    // `context.subscribe()` -> a fresh `DataContext.subscribeDynamicValue()`
+    // registered via `node.addCleanup` -- and the PREVIOUS render's now-
+    // orphaned subscription is never proactively unsubscribed, only added to
+    // the same node's `cleanups` array (see surface-adapter.js's
+    // `watchNode`/`makeRenderContext.subscribe` docstrings). This spies on
+    // `DataContext.subscribeDynamicValue` (not `webCore.effect`: that
+    // function is called through a direct internal module import inside
+    // data-context.js, not through the `webCore` namespace object the
+    // adapter holds, so wrapping `webCore.effect` -- as the "does not stack
+    // watchers" test above does for the adapter's OWN effects -- would not
+    // observe these).
+    const original = webCore.DataContext.prototype.subscribeDynamicValue;
+    let created = 0;
+    let unsubscribed = 0;
+    webCore.DataContext.prototype.subscribeDynamicValue = function (...args) {
+      created += 1;
+      const sub = original.apply(this, args);
+      let done = false;
+      return {
+        get value() { return sub.value; },
+        unsubscribe: () => {
+          if (!done) { done = true; unsubscribed += 1; }
+          sub.unsubscribe();
+        },
+      };
+    };
+    try {
+      const { adapter, container } = makeAdapter();
+      adapter.processMessages([
+        create(),
+        data('/x', 'v1'),
+        update([{ id: 'root', component: 'Text', text: { path: '/x' } }]),
+      ]);
+      assert.ok(findEl(container, (el) => el.textContent === 'v1'));
+      for (let i = 2; i <= 5; i += 1) {
+        adapter.processMessages([data('/x', `v${i}`)]);
+      }
+      assert.ok(findEl(container, (el) => el.textContent === 'v5'),
+        'latest value rendered');
+      assert.ok(created > unsubscribed,
+        `stale per-render subscriptions accumulate on the live node while it ` +
+        `keeps re-rendering (expected, harmless -- observed ${created} created ` +
+        `vs ${unsubscribed} unsubscribed before dispose)`);
+      adapter.dispose();
+      assert.equal(created, unsubscribed,
+        'every subscription created over the node\'s lifetime -- including ' +
+        'ones from superseded, already-replaced renders -- is unsubscribed ' +
+        'once dispose() tears the node down; none are leaked');
+    } finally {
+      webCore.DataContext.prototype.subscribeDynamicValue = original;
+    }
+  });
+
+  // Verified against real source: MessageProcessor.processCreateSurfaceMessage
+  // (processing/message-processor.js) throws A2uiStateError synchronously
+  // ("Catalog not found: ...") BEFORE calling `this.model.addSurface(...)` --
+  // so `onSurfaceCreated` never fires and `mountSurface` never runs. The
+  // adapter's own `processMessages` wraps `processor.processMessages(...)` in
+  // try/catch -> onError, so this never throws back to the caller and never
+  // leaves a half-mounted surface element behind.
+  it('routes renderer exceptions to onError without breaking the surface', () => {
+    const { adapter, container, errors } = makeAdapter();
+    adapter.processMessages([
+      { version: V, createSurface: { surfaceId: 'sX', catalogId: 'urn:nope' } },
+    ]);
+    assert.equal(errors.length, 1, 'the create-surface failure is routed to onError');
+    assert.match(errors[0].message, /urn:nope/);
+    assert.equal(findEl(container, (el) => el.dataset.surfaceId === 'sX'), null,
+      'no half-mounted surface element left behind');
+    // The adapter itself must still be usable afterwards.
+    adapter.processMessages([create('s1'), update([
+      { id: 'root', component: 'Text', text: 'still works' }])]);
+    assert.ok(findEl(container, (el) => el.textContent === 'still works'));
+  });
+});
