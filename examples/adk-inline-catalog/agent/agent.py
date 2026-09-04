@@ -29,7 +29,7 @@ def create_agent(mode: str = 'oat') -> LlmAgent:
     else:
         catalog_path = _OAT_CATALOG_PATH
         catalog_name = 'oat_catalog'
-        component_count = 35
+        component_count = 39
 
     schema_manager = A2uiSchemaManager(
         version=VERSION_0_9,
