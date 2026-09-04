@@ -327,3 +327,88 @@ describe('action dispatch', () => {
       'formatString ran locally and wrote through context.setDataModel');
   });
 });
+
+describe('structural resolution', () => {
+  it('expands a List template into one child per data item', () => {
+    const { adapter, container } = makeAdapter();
+    adapter.processMessages([
+      create(),
+      data('/items', [{ label: 'a' }, { label: 'b' }, { label: 'c' }]),
+      update([
+        { id: 'root', component: 'List',
+          children: { componentId: 'itemTpl', path: '/items' } },
+        { id: 'itemTpl', component: 'Text', text: { path: 'label' } },
+      ]),
+    ]);
+    for (const t of ['a', 'b', 'c']) {
+      assert.ok(findEl(container, (el) => el.textContent === t),
+        `template item '${t}' rendered with item-scoped binding`);
+    }
+  });
+
+  it('tracks template item additions', () => {
+    const { adapter, container } = makeAdapter();
+    adapter.processMessages([
+      create(),
+      data('/items', [{ label: 'a' }]),
+      update([
+        { id: 'root', component: 'List',
+          children: { componentId: 'itemTpl', path: '/items' } },
+        { id: 'itemTpl', component: 'Text', text: { path: 'label' } },
+      ]),
+    ]);
+    adapter.processMessages([data('/items', [{ label: 'a' }, { label: 'b' }])]);
+    assert.ok(findEl(container, (el) => el.textContent === 'b'));
+  });
+
+  it('renders nested refs (Tabs items[].child) via the componentsModel fallback', () => {
+    const { adapter, container } = makeAdapter();
+    adapter.processMessages([
+      create(),
+      update([
+        { id: 'root', component: 'Tabs',
+          tabs: [{ title: 'One', child: 'p1' }, { title: 'Two', child: 'p2' }] },
+        { id: 'p1', component: 'Text', text: 'panel one' },
+        { id: 'p2', component: 'Text', text: 'panel two' },
+      ]),
+    ]);
+    assert.ok(findEl(container, (el) => el.textContent === 'panel one'));
+    assert.ok(findEl(container, (el) => el.textContent === 'panel two'));
+  });
+
+  it('renders the unknown-component fallback for a missing child (no throw)', () => {
+    const { adapter, container, errors } = makeAdapter();
+    adapter.processMessages([
+      create(),
+      update([{ id: 'root', component: 'Card', child: 'ghost' }]),
+    ]);
+    // 'ghost' never arrives: NodeResolver reports a pending placeholder.
+    const fallback = findEl(container,
+      (el) => el.dataset.unknownComponent !== undefined);
+    assert.ok(fallback, 'placeholder rendered through OatRenderer fallback');
+    assert.equal(errors.filter((e) => e instanceof TypeError).length, 0);
+  });
+
+  // The renderer's `_renderChecks`/`_evaluateCheck` contract (pinned by
+  // tests/test-renderer.js's "Checkable / checks validation" describe block)
+  // is `{ functionCall: { call, args }, message }` -- NOT the plan's
+  // originally-drafted `{ condition: { call: { name, args } } }` shape.
+  it('evaluates Checkable checks through the adapter (aria-invalid)', () => {
+    const { adapter, container } = makeAdapter();
+    adapter.processMessages([
+      create(),
+      data('/form', { email: '' }),
+      update([{ id: 'root', component: 'TextField',
+        label: 'Email', value: { path: '/form/email' },
+        checks: [{ functionCall: { call: 'required',
+                                    args: { value: { path: '/form/email' } } },
+                   message: 'Email is required' }] }]),
+    ]);
+    const input = findEl(container, (el) => el.tagName === 'INPUT');
+    assert.equal(input.getAttribute('aria-invalid'), 'true',
+      'empty required field flagged invalid');
+    adapter.processMessages([data('/form/email', 'a@b.co')]);
+    assert.notEqual(input.getAttribute('aria-invalid'), 'true',
+      'valid value clears aria-invalid');
+  });
+});

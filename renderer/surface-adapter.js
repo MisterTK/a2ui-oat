@@ -224,6 +224,72 @@ export function createSurfaceAdapter(options = {}) {
     node.addCleanup(stop);
   }
 
+  /** componentId -> Map<node, surface> of nodes whose `renderChild` fallback
+   *  is waiting on it (see `waitForRawChild` / `settlePendingRawChildren`). */
+  const pendingRawChildren = new Map();
+
+  /**
+   * Registers `node` to be rebuilt (via the same rebuild-and-`replaceWith`
+   * step `watchNode` uses) once `id` appears in the surface's component
+   * model. `renderChild`'s componentsModel fallback is a one-shot lookup
+   * with no NodeResolver-managed placeholder/upgrade lifecycle behind it
+   * (that lifecycle only exists for ref shapes `extractRefFields`
+   * classifies — see catalog-compat.js's note on why an array-of-objects
+   * shape like Tabs' `tabs: [{title, child}]` never gets one, even after
+   * cataloging `child` as a ComponentId: schema_loader.js's own
+   * `convertPropertyToZod` collapses every nested `type: 'object'` to an
+   * untyped `z.record(z.any())`, so `extractRefFields`'s nested-ComponentId
+   * detection — which requires a real `ZodObject` — can never fire for it
+   * regardless of what shape this catalog declares), so without this, a
+   * forward reference to a component sent later would never be discovered.
+   *
+   * Deliberately does not subscribe to `surface.componentsModel.onCreated`:
+   * that emitter's own `emit` is `async` and iterates its listener Set with
+   * `await` between each one (see @a2ui/web_core's `common/events.js`), and
+   * `addComponent` never awaits it — so only the *first* listener ever
+   * registered (NodeResolver's own) runs before `addComponent` returns;
+   * every listener added afterwards (like one registered here, from inside
+   * that first listener's own synchronous call chain) is only reached on a
+   * later microtask, well after `processMessages` has already returned to
+   * its caller. `settlePendingRawChildren` below is called synchronously at
+   * the end of every `processMessages` batch instead, re-reading
+   * `componentsModel.get(id)` directly — a plain, synchronous Map read that
+   * is already up to date by then regardless of that emitter's async fan-out.
+   */
+  function waitForRawChild(id, node, surface) {
+    let waiters = pendingRawChildren.get(id);
+    if (!waiters) { waiters = new Map(); pendingRawChildren.set(id, waiters); }
+    if (waiters.has(node)) return;
+    waiters.set(node, surface);
+    node.addCleanup(() => {
+      const stillWaiting = pendingRawChildren.get(id);
+      if (!stillWaiting) return;
+      stillWaiting.delete(node);
+      if (stillWaiting.size === 0) pendingRawChildren.delete(id);
+    });
+  }
+
+  /** Rebuilds every node whose awaited raw-child id has since appeared in
+   *  its surface's component model. Called once per `processMessages` batch. */
+  function settlePendingRawChildren() {
+    for (const [id, waiters] of [...pendingRawChildren]) {
+      for (const [node, surface] of [...waiters]) {
+        if (!surface.componentsModel.get(id)) continue;
+        waiters.delete(node);
+        if (waiters.size === 0) pendingRawChildren.delete(id);
+        const entry = liveNodes.get(node);
+        if (!entry) continue; // node's own element was itself replaced/disposed meanwhile
+        try {
+          const replacement = renderOnce(node, surface);
+          entry.el.replaceWith(replacement);
+          entry.el = replacement;
+        } catch (err) {
+          onError(err);
+        }
+      }
+    }
+  }
+
   /**
    * Replace child-reference property values (which NodeResolver resolves to
    * live ComponentNode objects) with plain id strings/arrays so every
@@ -279,8 +345,19 @@ export function createSurfaceAdapter(options = {}) {
   function makeRenderContext(node, surface, componentContext, childMap) {
     const dc = componentContext?.dataContext ?? null;
     return {
+      // Scoped to `node.dataPath`, not hardcoded to the surface root: for
+      // every non-list-template node that's `'/'` anyway (unchanged
+      // behavior), but a List template item's own dataPath is its
+      // per-element base path (e.g. '/items/0'), and OatRenderer's
+      // `_getByPath` resolves a property's `{path}` binding by splitting the
+      // path (leading '/' stripped unconditionally) directly against
+      // whatever this returns — it has no separate notion of "scope" the way
+      // `DataContext.resolvePath` does. So an item template's relative
+      // binding (e.g. `text: {path: 'label'}`, meaning "this item's own
+      // label") only resolves correctly on the *initial* synchronous render
+      // if this is the item's own scoped model, not the surface root.
       getDataModel: () => {
-        try { return surface.dataModel.get('/'); } catch { return {}; }
+        try { return surface.dataModel.get(node.dataPath); } catch { return {}; }
       },
       setDataModel: (path, value) => {
         if (!dc) return;
@@ -297,6 +374,21 @@ export function createSurfaceAdapter(options = {}) {
         if (childNode) return renderNode(childNode, surface);
         const model = surface.componentsModel.get(id);
         if (model) return renderRawComponent(model, node, surface);
+        // Not yet in the surface's component model. This happens whenever a
+        // ref shape `extractRefFields` cannot classify (e.g. Tabs' array-of-
+        // objects `tabs[].child` — see catalog-compat.js's comment on
+        // relaxing array/object properties to a permissive schema) points at
+        // a component sent later in the *same* updateComponents batch: the
+        // batch applies components in array order and fires
+        // componentsModel.onCreated synchronously per component (see
+        // message-processor.js's processUpdateComponentsMessage), so a
+        // forward reference is genuinely absent from the model at the moment
+        // this parent first renders. Unlike a ref-classified child (whose
+        // placeholder/upgrade lifecycle NodeResolver itself manages via
+        // pendingParents), nothing else ever retries this lookup — wait for
+        // the id to arrive and then rebuild this node in place, the same way
+        // `watchNode` reacts to a `node.props` change.
+        waitForRawChild(id, node, surface);
         return null;
       },
       dispatchAction: (action) => {
@@ -333,6 +425,8 @@ export function createSurfaceAdapter(options = {}) {
         processor.processMessages(messages);
       } catch (err) {
         onError(err);
+      } finally {
+        settlePendingRawChildren();
       }
     },
     processor,
