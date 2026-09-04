@@ -148,7 +148,7 @@ Container components:
 
   Tabs
     required: tabs (array of {title: string, child: string ID})
-    optional: action (action object for tab change)
+    optional: activeTab (integer index or data binding, initially active tab), anchorKey (string, deep-links active tab into the URL hash)
 
   Accordion
     required: items (array of {title: string, child: string ID})
@@ -517,10 +517,11 @@ Pattern 2: Real-time streaming (subscribeSSE + bound components)
 
   The client opens the SSE connection and updates all bound components automatically.
 
-Pattern 3: Client-side routing (navigateTo + Tabs)
+Pattern 3: Client-side routing (Tabs + anchorKey)
 
-  Use Tabs for top-level navigation and wire each tab change to navigateTo
-  so the URL updates and browser back/forward work.
+  Tabs has no "action" property -- do not wire a functionCall to it. To deep-link
+  the active tab into the URL (so it can be bookmarked and browser back/forward
+  work), set anchorKey; the ot-tabs web component syncs the URL hash itself.
 
   {
     "version": "v0.9",
@@ -540,14 +541,7 @@ Pattern 3: Client-side routing (navigateTo + Tabs)
             {"title": "Archived", "child": "archived-view"},
             {"title": "Flagged", "child": "flagged-view"}
           ],
-          "action": {
-            "functionCall": {
-              "call": "navigateTo",
-              "args": {
-                "path": {"path": "/navigation/currentPath"}
-              }
-            }
-          }
+          "anchorKey": "view"
         },
         {
           "id": "active-view",

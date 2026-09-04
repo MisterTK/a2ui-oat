@@ -44,7 +44,7 @@ function defaultApplyTheme(theme, el) {
  * @param {object} options.webCore - The imported '@a2ui/web_core/v0_9' module.
  * @param {HTMLElement} options.container - Default mount point for surfaces.
  * @param {function(object): void} [options.onAction] - Server-bound event actions.
- * @param {function(Error, object=): void} [options.onError]
+ * @param {function(Error): void} [options.onError]
  * @param {function(string): HTMLElement} [options.resolveContainer] - Per-surface mount.
  * @param {function(object, HTMLElement): void} [options.applyTheme]
  * @param {object} [options.rendererOptions] - Forwarded to OatRenderer.

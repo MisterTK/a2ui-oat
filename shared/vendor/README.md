@@ -282,7 +282,7 @@ Replace `@latest` with a specific tag (e.g., `@v1.0.0`) or a commit SHA (e.g., `
 For unpkg, pin using an npm version:
 
 ```
-https://unpkg.com/@knadh/oat@0.5.1/oat.min.css
+https://unpkg.com/@knadh/oat@0.7.2/oat.min.css
 ```
 
 ---

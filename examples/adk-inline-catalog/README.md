@@ -1,6 +1,6 @@
 # ADK Inline Catalog -- Basic vs Oat Comparison
 
-Demonstrates that the same agent can produce dramatically different UIs depending on the catalog injected at runtime. Sends the same prompt to two agents side-by-side: one with Basic Catalog (18 components) and one with the full Oat Catalog (35 components).
+Demonstrates that the same agent can produce dramatically different UIs depending on the catalog injected at runtime. Sends the same prompt to two agents side-by-side: one with Basic Catalog (18 components) and one with the full Oat Catalog (39 components).
 
 ## Architecture
 
@@ -10,7 +10,7 @@ Browser  <-->  FastAPI server
           +-------+-------+
           |               |
     Basic Agent      Oat Agent
-    (18 components)  (35 components)
+    (18 components)  (39 components)
           |               |
     Basic A2UI       Rich A2UI
     (left panel)     (right panel)

@@ -1,6 +1,6 @@
 # ADK Single Agent -- Oat Dashboard
 
-A single Google ADK agent that uses the full Oat Catalog (35 components) to generate rich dashboard UIs via Gemini 2.0 Flash.
+A single Google ADK agent that uses the full Oat Catalog (39 components) to generate rich dashboard UIs via Gemini 2.0 Flash.
 
 ## Architecture
 
@@ -9,7 +9,7 @@ Browser  <-->  FastAPI server  <-->  ADK Runner  <-->  Gemini 2.0 Flash
                   |                                        |
             Serves HTML              System prompt includes full
             Parses A2UI              Oat Catalog JSON schema
-            Returns JSON             (56KB, 35 components)
+            Returns JSON             (56KB, 39 components)
 ```
 
 ## Running
@@ -27,7 +27,7 @@ python server.py
 2. When the user sends a message, the server runs the ADK agent via `Runner.run_async()`.
 3. The agent responds with text containing `<a2ui-json>...</a2ui-json>` blocks.
 4. The server uses `parse_response()` to extract the A2UI JSON.
-5. The frontend receives the A2UI JSON and renders it using a built-in component renderer that maps all 35 Oat components to styled DOM elements.
+5. The frontend receives the A2UI JSON and renders it using a built-in component renderer that maps all 39 Oat components to styled DOM elements.
 
 ## Try These Prompts
 

@@ -237,8 +237,8 @@ The Oat Catalog is a JSON Schema file conforming to the A2UI Catalog schema. It 
 | Component | HTML Output | Key Properties | Source |
 |-----------|------------|----------------|--------|
 | Card | `<article>` / `<section>` | child | Basic Catalog |
-| Modal | `<dialog>` | entryPointChild, contentChild | Basic Catalog + Oat Dialog |
-| Tabs | `<oat-tabs>` | tabItems [{title, child}] | Basic Catalog + Oat Tabs WC |
+| Modal | `<dialog>` | trigger, content | Basic Catalog + Oat Dialog |
+| Tabs | `<oat-tabs>` | tabs [{title, child}] | Basic Catalog + Oat Tabs WC |
 | Accordion | `<details><summary>` | items [{title, child}], grouped | Oat Accordion |
 | Tooltip | `<span data-tooltip>` | child, text, placement | Oat Tooltip |
 | Dropdown | `<ot-dropdown>` | child (trigger), items [{label, action}] | Oat Dropdown WC |
@@ -448,7 +448,7 @@ The Oat Renderer is the JavaScript layer that maps A2UI catalog components to se
 | `Alert {text: "Warning", variant: "warning"}` | `<div role="alert" data-variant="warning">Warning</div>` |
 | `Card {child: "content"}` | `<article>[render content]</article>` |
 | `Accordion {items: [...]}` | `<details><summary>Title</summary>[render child]</details>` |
-| `Modal {contentChild: "mc"}` | `<dialog>[render mc]</dialog>` |
+| `Modal {content: "mc"}` | `<dialog>[render mc]</dialog>` |
 | `Sidebar {child: "nav"}` | `<aside>[render nav]</aside>` |
 | `Pagination {currentPage: 1, totalPages: 10}` | `<nav>[page links with action bindings]</nav>` |
 | `Progress {value: 75, max: 100}` | `<progress value="75" max="100"></progress>` |
