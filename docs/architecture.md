@@ -171,7 +171,7 @@ Adapter mode satisfies that same six-method contract by implementing each method
 
 | `RenderContext` method | Adapter implementation |
 |---|---|
-| `getDataModel()` | `surface.dataModel.get('/')` — the whole-surface snapshot (the same pattern `getClientDataModel()` uses internally) |
+| `getDataModel()` | `surface.dataModel.get('/')` — the whole-surface snapshot (the same pattern `getClientDataModel()` uses internally). For a node inside a List-template item (`node.dataPath !== '/'`), this is shallow-merged with the item's own scope (`surface.dataModel.get(node.dataPath)`, item keys winning), so both relative (`{path: 'label'}`) and absolute (`{path: '/global/msg'}`) bindings resolve correctly from the same item |
 | `setDataModel(path, val)` | `dataContext.set(path, val)` — the one write primitive; two-way bindings (e.g. `TextField`) flow through it |
 | `subscribe(path, cb)` | `dataContext.subscribeDynamicValue({path}, cb)`, returning an unsubscribe function; every subscription is registered against the owning node via `node.addCleanup()` so `@a2ui/web_core`'s own node-destruction path releases it |
 | `renderChild(id)` | Looks up the child among the current node's resolved structural children (ref fields / list-template items) first; falls back to the surface's raw `componentsModel` for ref shapes `NodeResolver` cannot classify (e.g. Tabs' `tabs[].child`, an array-of-objects shape). Placeholder states (`pending`, `unknown-type`, `cyclic`) render `OatRenderer`'s existing `[Unknown component: ...]` fallback element, not a throw |
