@@ -38,29 +38,36 @@ The project supports a **dual-mode architecture**: A2UI Mode for structured, cat
 ### A2UI Mode (ES Module)
 
 ```js
-import { createOatRenderer, registerWithWebLib } from 'a2ui-oat';
+import { createSurfaceAdapter } from 'a2ui-oat/surface-adapter';
+import * as webCore from '@a2ui/web_core/v0_9';
 
-const { renderer, functions } = createOatRenderer();
-registerWithWebLib(webLib); // one-call setup for @a2ui/web_core
+const adapter = createSurfaceAdapter({ webCore, container: document.body });
+adapter.processMessages(a2uiMessages); // wire A2UI JSON in as it arrives
 ```
+
+`createSurfaceAdapter` builds the Oat Renderer internally and wires it to the real `@a2ui/web_core` protocol engine (`MessageProcessor` + `NodeResolver`) — see [Protocol integration](#protocol-integration-a2uiweb_core) below for the full option set, the version requirement, and how server-bound actions come back out.
 
 ### A2UI Mode (CDN)
 
-Include Oat CSS, `@a2ui/web_core`, and the Oat Renderer. The agent emits A2UI JSON against the Oat Catalog schema. The protocol engine parses the stream, manages state, and delegates to the renderer for HTML output.
+`@a2ui/web_core` ships as pure ESM with no CJS/UMD build, so it's imported from a bare-specifier-resolving ESM CDN (e.g. esm.sh) inside a `<script type="module">`, not loaded as a plain `<script src>` global. Oat CSS/JS load normally. The agent emits A2UI JSON against the Oat Catalog schema; the protocol engine parses the stream, manages state, and delegates to the Oat Renderer for HTML output.
 
 ```html
 <!-- Oat CSS + JS -->
 <link rel="stylesheet" href="https://unpkg.com/@knadh/oat/oat.min.css">
 <script src="https://unpkg.com/@knadh/oat/oat.min.js"></script>
 
-<!-- A2UI Protocol Engine -->
-<script src="https://unpkg.com/@a2ui/web_core"></script>
+<div id="surface-root"></div>
 
-<!-- Oat Renderer -->
 <script type="module">
-  import { createOatRenderer } from 'https://unpkg.com/a2ui-oat/renderer/index.js';
-  const { renderer, functions } = createOatRenderer();
-  // Connect to your agent transport (A2A, MCP, WebSocket, SSE)
+  import * as webCore from 'https://esm.sh/@a2ui/web_core@0.10.7/v0_9';
+  import { createSurfaceAdapter } from 'https://unpkg.com/a2ui-oat/renderer/surface-adapter.js';
+
+  const adapter = createSurfaceAdapter({
+    webCore,
+    container: document.getElementById('surface-root'),
+  });
+  // Connect to your agent transport (A2A, MCP, WebSocket, SSE), then call
+  // adapter.processMessages(messages) as A2UI wire messages arrive.
 </script>
 ```
 
@@ -83,6 +90,41 @@ Include only Oat CSS + JS. The agent emits semantic HTML directly. Oat styles it
 ```
 
 See [docs/when-to-use-which.md](docs/when-to-use-which.md) for guidance on choosing between modes.
+
+## Protocol integration (`@a2ui/web_core`)
+
+`createSurfaceAdapter` (`a2ui-oat/surface-adapter`) is the supported way to run A2UI Mode against a real agent: it feeds wire messages through `@a2ui/web_core`'s actual `MessageProcessor`/`NodeResolver`, and renders every surface with the Oat Renderer. It requires **`@a2ui/web_core >= 0.10.7`** — construction throws immediately if `webCore.NodeResolver` or `webCore.ComponentContext` is missing (both are absent in earlier versions such as 0.9.2).
+
+```js
+import * as webCore from "https://esm.sh/@a2ui/web_core@0.10.7/v0_9";
+import { createSurfaceAdapter } from "a2ui-oat/surface-adapter";
+
+const adapter = createSurfaceAdapter({
+  webCore,                     // required: the imported v0_9 module (npm or CDN)
+  container: document.body,    // required: default mount point
+  onAction: (action) => {},    // server-bound `event` actions -> your transport
+  resolveContainer: (surfaceId) => document.getElementById(surfaceId), // optional: per-surface mount
+  onError: (err) => {},        // optional; default is console.error
+  catalogJson: undefined,      // optional: override the bundled oat-catalog.json
+  rendererOptions: {},         // forwarded to createOatRenderer()
+});
+
+adapter.processMessages(messages); // wire input: an array of A2UI messages
+adapter.processor;                 // escape hatch: the underlying MessageProcessor
+adapter.dispose();                 // full teardown: disposes every surface's NodeResolver
+```
+
+a2ui-oat never imports `@a2ui/web_core` itself — you import it (from npm, or from an ESM CDN such as esm.sh, as shown above) and pass the module in as `webCore`, so the adapter works identically against an npm install or a CDN build while a2ui-oat keeps its zero-runtime-dependency footprint.
+
+`onAction` receives a **flat** object — `{name, surfaceId, sourceComponentId, timestamp, context}` — not an `{event: {...}}` wrapper, even though the wire-level `action` property on a Button is itself written as `{ event: { name, context } }`. Any `{path: ...}`/`{call: ...}` values inside `context` are already resolved by the time `onAction` runs:
+
+```js
+onAction: (action) => {
+  console.log(action.name, action.sourceComponentId, action.context);
+},
+```
+
+See [`examples/web-core-adapter/`](examples/web-core-adapter/) for a complete, runnable page built on this adapter, and [docs/architecture.md](docs/architecture.md#44-adapter-mode-vs-direct-mode) for how adapter mode compares to the hand-rolled direct mode every other example uses.
 
 ## Components
 

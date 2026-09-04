@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.3.0 — 2026-09-03
+
+### Added
+
+- `createSurfaceAdapter` (`a2ui-oat/surface-adapter`): real `@a2ui/web_core`
+  (>= 0.10.7) protocol integration — wire messages flow through a real
+  `MessageProcessor`/`NodeResolver`, rendered by the existing Oat Renderer.
+  Dependency-injected: a2ui-oat still declares zero runtime dependencies.
+- `renderer/catalog-compat.js`: transforms `oat-catalog.json` into
+  `@a2ui/web_core`'s `Catalog.fromSchema()` format (child-ref markers,
+  binding-tolerant property schemas).
+- Flagship example `examples/web-core-adapter/` (CDN ESM, no build step)
+  demonstrating the adapter against a scripted agent conversation.
+- New "Adapter mode vs. direct mode" documentation in `docs/architecture.md`
+  and a "Protocol integration" section in `README.md`.
+
+### Changed
+
+- Wire protocol version bumped to `v0.9.1` (messages declaring `v0.9` are
+  still accepted).
+- MIME type references corrected to `application/a2ui+json`
+  (previously the nonexistent `application/json+a2ui`).
+- All `@a2ui/web-lib` references corrected to `@a2ui/web_core`.
+
+### Removed
+
+- **Breaking:** `registerWithWebLib()` — it called `registerRenderer`,
+  `registerFunction`, and `setCatalogId`, none of which exist in any
+  published `@a2ui/web_core` version. It never worked against a real
+  package. `createSurfaceAdapter` is the real integration; see the
+  README's Protocol integration section for the replacement usage.
+
 ## v0.2.0 — 2026-09-02
 
 ### Catalog

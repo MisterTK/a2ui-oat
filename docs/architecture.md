@@ -159,6 +159,29 @@ Browser DOM (innerHTML / HTMX swap)
 Rendered UI
 ```
 
+### 4.4 Adapter Mode vs. Direct Mode
+
+Within A2UI Mode there are two distinct ways to drive the Oat Renderer, and only one of them talks to `@a2ui/web_core`'s real protocol engine.
+
+**Adapter mode** — `createSurfaceAdapter()` (`a2ui-oat/surface-adapter`) — is the supported wire path: raw A2UI wire messages go into a real `@a2ui/web_core` `MessageProcessor`, which validates them and owns surface/data-model state; one `NodeResolver` per surface handles structural concerns only — child-ref resolution, list-template expansion, and cyclic/pending/unknown-type placeholders. The adapter never consumes `NodeResolver`'s resolved property values; for each resolved node it reads the node's raw, pre-resolution properties (`ComponentContext.componentModel.properties`) and calls `OatRenderer.renderComponent()` with them unchanged — the same raw-props shape every `_render*` method and every existing test already consumes. See the [README's Protocol integration section](../README.md#protocol-integration-a2uiweb_core) for the construction snippet, and [`examples/web-core-adapter/`](../examples/web-core-adapter/) for a runnable page built on it.
+
+**Direct mode** is what every other example in this repo does: the example itself builds a `RenderContext` object by hand — its own data-model store, subscription bookkeeping, and action dispatcher — and calls `renderer.renderComponent()` directly, with no `@a2ui/web_core` involved at all. This is a fully supported way to use the Oat Renderer: its entire contract with the outside world is the six `RenderContext` methods documented in `renderer/oat-renderer.js` — `getDataModel`, `setDataModel`, `subscribe`, `renderChild`, `dispatchAction`, `getRegisteredFunction`. A direct-mode caller is simply responsible for everything `@a2ui/web_core` would otherwise provide: message parsing, surface/state management, and data binding.
+
+Adapter mode satisfies that same six-method contract by implementing each method as a thin bridge onto `@a2ui/web_core`'s real primitives:
+
+| `RenderContext` method | Adapter implementation |
+|---|---|
+| `getDataModel()` | `surface.dataModel.get('/')` — the whole-surface snapshot (the same pattern `getClientDataModel()` uses internally) |
+| `setDataModel(path, val)` | `dataContext.set(path, val)` — the one write primitive; two-way bindings (e.g. `TextField`) flow through it |
+| `subscribe(path, cb)` | `dataContext.subscribeDynamicValue({path}, cb)`, returning an unsubscribe function; every subscription is registered against the owning node via `node.addCleanup()` so `@a2ui/web_core`'s own node-destruction path releases it |
+| `renderChild(id)` | Looks up the child among the current node's resolved structural children (ref fields / list-template items) first; falls back to the surface's raw `componentsModel` for ref shapes `NodeResolver` cannot classify (e.g. Tabs' `tabs[].child`, an array-of-objects shape). Placeholder states (`pending`, `unknown-type`, `cyclic`) render `OatRenderer`'s existing `[Unknown component: ...]` fallback element, not a throw |
+| `dispatchAction(action)` | Mirrors `GenericBinder.bindAction`: deep-walks the raw action JSON, synchronously resolving any nested `{path}`/`{call}` value via `dataContext.resolveDynamicValue` (a local `functionCall` executes as a side effect of this resolution), then calls `surface.dispatchAction()` — validated `event` actions reach `onAction`; already-run local calls hit the documented no-op branch |
+| `getRegisteredFunction(name)` | Returns the raw `renderer/functions/*.js` implementation directly (not through `Catalog`'s own invoker), preserving Checkable `checks` evaluation exactly as it behaves in direct mode |
+
+**Choosing between them:** use adapter mode when something — a real agent, a test harness replaying wire traffic, anything speaking the A2UI protocol — is producing actual A2UI wire messages and you want `@a2ui/web_core`'s schema validation, data-model management, and action dispatch for free. Use direct mode, as every other example in this repo does, when you already have (or want to hand-write) a `RenderContext` implementation and don't need the wire protocol at all.
+
+**Re-render granularity.** In both modes the user-visible guarantee is the same: a data-bound value change (for example, a `Text` node's bound `text` property) produces correct final content with no flicker and no user-visible artifact, and any part of the tree unrelated to the change is left completely untouched — its DOM elements, focus, scroll position, and any CSS-transition state all survive. What adapter mode does **not** guarantee is that the *changed* element's own DOM node keeps its identity across the update: the adapter rebuilds a resolved node fresh and swaps it in with `replaceWith()` (its `watchNode` effect, keyed off that node's `props` signal, whose identity changes on every value change reaching that node) rather than patching the existing element in place. So "no DOM replacement" is not literally true at the level of the individual bound element itself — only at the level of everything else in the surface, which a given node's rebuild never touches. Structural changes (the root replaced; list items added, removed, or reordered; a child upgrading from a placeholder once its definition arrives) go through the same rebuild-and-`replaceWith` path, keyed by the node's own identity in the resolver's tree.
+
 ---
 
 ## 5. Oat Catalog Specification
