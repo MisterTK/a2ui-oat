@@ -345,19 +345,39 @@ export function createSurfaceAdapter(options = {}) {
   function makeRenderContext(node, surface, componentContext, childMap) {
     const dc = componentContext?.dataContext ?? null;
     return {
-      // Scoped to `node.dataPath`, not hardcoded to the surface root: for
-      // every non-list-template node that's `'/'` anyway (unchanged
-      // behavior), but a List template item's own dataPath is its
-      // per-element base path (e.g. '/items/0'), and OatRenderer's
-      // `_getByPath` resolves a property's `{path}` binding by splitting the
-      // path (leading '/' stripped unconditionally) directly against
-      // whatever this returns — it has no separate notion of "scope" the way
-      // `DataContext.resolvePath` does. So an item template's relative
-      // binding (e.g. `text: {path: 'label'}`, meaning "this item's own
-      // label") only resolves correctly on the *initial* synchronous render
-      // if this is the item's own scoped model, not the surface root.
+      // OatRenderer's `_getByPath` (renderer/oat-renderer.js) has no notion
+      // of "scope" of its own: it unconditionally strips any leading '/' off
+      // a binding's path and indexes straight into whatever this returns —
+      // unlike `DataContext.resolvePath`, which treats a leading '/' as
+      // root-anchored regardless of the calling context's own scope, and
+      // anything else as relative to it. A List template item's own
+      // `node.dataPath` is its per-element base path (e.g. '/items/0'), so
+      // serving *either* the surface root alone (relative item paths like
+      // `{path: 'label'}` resolve to the wrong, root-level object) or the
+      // item's own scope alone (absolute paths like `{path: '/global/msg'}`,
+      // legitimately reaching outside the item's own subtree, resolve to
+      // undefined) breaks one of the two path styles. Shallow-merging both —
+      // item-scope keys winning — lets `_getByPath`'s single unconditional
+      // strip-and-index serve both: a bare `'label'` finds the item's own
+      // key (present only in the item scope for a normal, non-colliding
+      // template), and a leading-`/` path like `/global/msg` strips to
+      // `global/msg` and finds it via the root scope, since a template
+      // item's own fields don't ordinarily share a name with a root-level
+      // data key. (A field that *does* collide with a root-level key of the
+      // same name — e.g. an item shaped `{global: ...}` used alongside a
+      // root `/global/...` path from the same item's subtree — would still
+      // resolve to the item's own value; this is a narrow, accepted
+      // limitation of `_getByPath` having no real absolute/relative
+      // distinction, not something fixable without touching it.)
       getDataModel: () => {
-        try { return surface.dataModel.get(node.dataPath); } catch { return {}; }
+        try {
+          const root = surface.dataModel.get('/') ?? {};
+          if (node.dataPath === '/') return root;
+          const scoped = surface.dataModel.get(node.dataPath);
+          return scoped && typeof scoped === 'object' && !Array.isArray(scoped)
+            ? { ...root, ...scoped }
+            : root;
+        } catch { return {}; }
       },
       setDataModel: (path, value) => {
         if (!dc) return;

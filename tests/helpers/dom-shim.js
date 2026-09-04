@@ -101,3 +101,14 @@ export function findEl(root, pred) {
   }
   return null;
 }
+
+/** Depth-first collection of every matching element, not just the first. */
+export function findAllEl(root, pred) {
+  const out = [];
+  (function walk(el) {
+    if (!el || el.tagName === '#text') return;
+    if (pred(el)) out.push(el);
+    for (const c of el.children ?? []) walk(c);
+  })(root);
+  return out;
+}

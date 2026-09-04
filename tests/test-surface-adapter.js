@@ -4,7 +4,7 @@
  */
 import { describe, it, beforeEach } from 'node:test';
 import { strict as assert } from 'node:assert';
-import { installDomShim, findEl } from './helpers/dom-shim.js';
+import { installDomShim, findEl, findAllEl } from './helpers/dom-shim.js';
 
 installDomShim();
 
@@ -359,6 +359,45 @@ describe('structural resolution', () => {
     ]);
     adapter.processMessages([data('/items', [{ label: 'a' }, { label: 'b' }])]);
     assert.ok(findEl(container, (el) => el.textContent === 'b'));
+  });
+
+  // Regression test for a review finding: getDataModel() scoping a template
+  // item to its own dataPath (fixing the relative-path case above) must not
+  // break an ABSOLUTE path read from inside that same item's subtree.
+  // OatRenderer's _getByPath has no real absolute/relative distinction of
+  // its own -- it always strips a leading '/' and indexes into whatever
+  // getDataModel() returns -- so both styles have to resolve out of one
+  // object.
+  it('resolves an absolute (root-anchored) binding alongside a relative (item-scoped) one inside the same template item', () => {
+    const { adapter, container } = makeAdapter();
+    adapter.processMessages([
+      create(),
+      data('/items', [{ label: 'a' }, { label: 'b' }]),
+      data('/global', { msg: 'shared' }),
+      update([
+        { id: 'root', component: 'List',
+          children: { componentId: 'itemTpl', path: '/items' } },
+        // Each template item is a Row with two children: one bound to its
+        // own item-relative field, one bound to a path outside the item's
+        // own subtree entirely.
+        { id: 'itemTpl', component: 'Row', children: ['tplLabel', 'tplGlobal'] },
+        { id: 'tplLabel', component: 'Text', text: { path: 'label' } },
+        { id: 'tplGlobal', component: 'Text', text: { path: '/global/msg' } },
+      ]),
+    ]);
+    assert.ok(findEl(container, (el) => el.textContent === 'a'),
+      'first item\'s relative binding still resolves');
+    assert.ok(findEl(container, (el) => el.textContent === 'b'),
+      'second item\'s relative binding still resolves');
+    assert.equal(findAllEl(container, (el) => el.textContent === 'shared').length, 2,
+      'absolute binding resolves via the surface root for every item, not just once');
+
+    adapter.processMessages([data('/global/msg', 'shared2')]);
+    assert.equal(findAllEl(container, (el) => el.textContent === 'shared2').length, 2,
+      'absolute binding keeps resolving via the surface root after a data change');
+    adapter.processMessages([data('/items/0/label', 'a2')]);
+    assert.ok(findEl(container, (el) => el.textContent === 'a2'),
+      'relative binding keeps resolving via its own item scope after a data change');
   });
 
   it('renders nested refs (Tabs items[].child) via the componentsModel fallback', () => {
