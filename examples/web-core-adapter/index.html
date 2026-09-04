@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>a2ui-oat x @a2ui/web_core -- real protocol adapter</title>
+
+  <!-- Oat CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/@knadh/oat/oat.min.css">
+
+  <style>
+    :root {
+      --color-primary: #3b6ea5;
+      --color-bg: #111827;
+      --color-text: #f9fafb;
+      --font-family: system-ui, sans-serif;
+      --border-radius: 6px;
+      --spacing: 1rem;
+    }
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font-family);
+      margin: 0;
+      padding: var(--spacing);
+    }
+    .container { max-width: 720px; margin: 0 auto; }
+    article, section, aside { background: #1f2937; border: 1px solid #374151; border-radius: var(--border-radius); padding: var(--spacing); }
+    h1 { margin: 0 0 0.25rem; font-size: 1.5rem; }
+    header p { color: #9ca3af; font-size: 0.9rem; }
+    #surface-root { margin: 1.5rem 0; }
+    #surface-root [data-surface-id] { display: flex; flex-direction: column; gap: 1rem; }
+    #surface-root .row, #surface-root [class*="row"] { display: flex; gap: 1rem; }
+    #action-log {
+      background: #0d1117; color: #e2e8f0; border: 1px solid #374151;
+      border-radius: var(--border-radius); padding: 0.75rem 1rem;
+      max-height: 220px; overflow: auto; font-size: 0.8rem; white-space: pre-wrap;
+    }
+    code { color: #7dd3fc; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Real @a2ui/web_core adapter</h1>
+      <p>
+        Unlike the other examples in this repo (which hand-roll a message loop
+        directly against <code>OatRenderer</code>), this page feeds A2UI wire
+        messages through the real <code>@a2ui/web_core</code>
+        <code>MessageProcessor</code> via <code>createSurfaceAdapter</code> --
+        the same schema validation, data-model signals, and action-dispatch
+        pipeline a production A2UI client uses.
+      </p>
+    </header>
+
+    <div id="surface-root"></div>
+
+    <h2>Action log</h2>
+    <p>Click "Refresh" below -- the resolved action (context values already
+      substituted for their data-model paths) is appended here as JSON.</p>
+    <pre id="action-log"></pre>
+  </main>
+
+  <script type="module">
+    // Bare-specifier import from an ESM CDN that resolves npm packages --
+    // no build step, no npm install needed to run this page.
+    import * as webCore from 'https://esm.sh/@a2ui/web_core@0.10.7/v0_9';
+    import { createSurfaceAdapter } from '../../renderer/surface-adapter.js';
+    import { CATALOG_ID } from '../../renderer/index.js';
+
+    const log = document.getElementById('action-log');
+    const adapter = createSurfaceAdapter({
+      webCore,
+      container: document.getElementById('surface-root'),
+      onAction: (action) => {
+        // The runtime payload delivered here is FLAT --
+        // {name, surfaceId, sourceComponentId, timestamp, context} -- never
+        // the {event: {name, context}} envelope the wire-level `action`
+        // property declares on the Button component below. web_core resolves
+        // any {path: ...}/{call: ...} values inside `context` synchronously
+        // before this callback runs, so `context.at` below arrives as a
+        // plain number, not a data-model reference.
+        log.textContent += JSON.stringify(action) + '\n';
+      },
+    });
+
+    const V = 'v0.9.1';
+
+    // Scripted "agent" conversation: create the surface, seed the data
+    // model, then declare the component tree. Button has no `label` property
+    // in the real Oat catalog -- like Card, its visible content is a `child`
+    // component ref, so "Refresh" is its own Text node.
+    adapter.processMessages([
+      { version: V, createSurface: { surfaceId: 'demo', catalogId: CATALOG_ID,
+        theme: { primaryColor: '#3b6ea5', mode: 'dark' } } },
+      { version: V, updateDataModel: { surfaceId: 'demo', path: '/stats',
+        value: { orders: 0, revenue: '$0.00' } } },
+      { version: V, updateComponents: { surfaceId: 'demo', components: [
+        { id: 'root', component: 'Column', children: ['title', 'statsRow', 'refresh'] },
+        { id: 'title', component: 'Text', variant: 'h2', text: 'Live dashboard' },
+
+        { id: 'statsRow', component: 'Row', children: ['ordersCard', 'revenueCard'] },
+
+        { id: 'ordersCard', component: 'Card', title: 'Orders', child: 'ordersValue' },
+        { id: 'ordersValue', component: 'Text', variant: 'h3', text: { path: '/stats/orders' } },
+
+        { id: 'revenueCard', component: 'Card', title: 'Revenue', child: 'revenueValue' },
+        { id: 'revenueValue', component: 'Text', variant: 'h3', text: { path: '/stats/revenue' } },
+
+        { id: 'refresh', component: 'Button', variant: 'primary', child: 'refreshLabel',
+          action: { event: { name: 'refresh',
+                             context: { at: { path: '/stats/orders' } } } } },
+        { id: 'refreshLabel', component: 'Text', text: 'Refresh' },
+      ] } },
+    ]);
+
+    // Simulate the agent streaming data-model diffs -- no component resends,
+    // just updateDataModel messages the bound Text nodes pick up in place.
+    let orders = 0;
+    setInterval(() => {
+      orders += Math.ceil(Math.random() * 3);
+      const revenue = '$' + (orders * 19.99).toFixed(2);
+      adapter.processMessages([
+        { version: V, updateDataModel: { surfaceId: 'demo',
+          path: '/stats/orders', value: orders } },
+        { version: V, updateDataModel: { surfaceId: 'demo',
+          path: '/stats/revenue', value: revenue } },
+      ]);
+    }, 2000);
+  </script>
+</body>
+</html>
