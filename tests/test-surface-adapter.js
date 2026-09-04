@@ -273,3 +273,57 @@ describe('fine-grained structural re-render (no coarse full-surface rebuild)', (
       'every effect created over the adapter lifetime is eventually disposed');
   });
 });
+
+describe('action dispatch', () => {
+  // Button has no `label` string prop in the real catalog (see
+  // catalog/oat-catalog.json) — its content comes from a `child` component
+  // ref, same as the "static rendering" describe block above.
+  it('delivers event actions to onAction with dynamic values resolved', () => {
+    const { adapter, container, actions } = makeAdapter();
+    adapter.processMessages([
+      create(),
+      data('/cart', { total: 42 }),
+      update([
+        { id: 'root', component: 'Button', child: 'lbl',
+          action: { event: { name: 'checkout',
+                             context: { total: { path: '/cart/total' } } } } },
+        { id: 'lbl', component: 'Text', text: 'Buy' },
+      ]),
+    ]);
+    const btn = findEl(container, (el) => el.tagName === 'BUTTON');
+    btn.dispatchEvent({ type: 'click', preventDefault() {} });
+    assert.equal(actions.length, 1);
+    // web_core's real A2uiClientActionSchema (schema/client-to-server.js) is
+    // flat -- {name, surfaceId, sourceComponentId, timestamp, context} -- not
+    // the {event: {name, context}} envelope the wire-level action carries.
+    assert.equal(actions[0].name, 'checkout');
+    assert.equal(actions[0].context.total, 42, 'binding resolved before dispatch');
+  });
+
+  // formatString (renderer/functions/formatString.js) is the registered
+  // function used here: it writes its result through context.setDataModel,
+  // making the side effect directly observable via surface.dataModel.get().
+  // navigateTo (the plan's suggested example) was checked and rejected: its
+  // real signature is (args.path, args.params) -- not (args.url,
+  // args.targetPath) as drafted -- and it touches `window.history`/
+  // `window.dispatchEvent`, neither of which the dom-shim provides.
+  it('executes local functionCall actions without reaching onAction', () => {
+    const { adapter, container, actions } = makeAdapter();
+    adapter.processMessages([
+      create(),
+      data('/msg', 'before'),
+      update([
+        { id: 'root', component: 'Button', child: 'lbl',
+          action: { functionCall: { call: 'formatString',
+                                    args: { template: 'after', targetPath: '/msg' } } } },
+        { id: 'lbl', component: 'Text', text: 'Nav' },
+      ]),
+    ]);
+    const btn = findEl(container, (el) => el.tagName === 'BUTTON');
+    btn.dispatchEvent({ type: 'click', preventDefault() {} });
+    assert.equal(actions.length, 0, 'local call never reaches onAction');
+    const surface = adapter.processor.model.getSurface('s1');
+    assert.equal(surface.dataModel.get('/msg'), 'after',
+      'formatString ran locally and wrote through context.setDataModel');
+  });
+});
