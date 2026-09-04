@@ -25,7 +25,7 @@ Start here:
    - No --> Continue to question 5
 
 5. **Do you need bidirectional data binding and server-push state management?**
-   - Yes --> **A2UI Mode** (built into the protocol via `@a2ui/web-lib`)
+   - Yes --> **A2UI Mode** (built into the protocol via `@a2ui/web_core`)
    - No --> Continue to question 6
 
 6. **Is the agent controlled by the same team operating the frontend?**
@@ -54,7 +54,7 @@ Use OatHTML when:
 | **Security** | Catalog allowlist + schema validation + sandboxed functions | Trust the agent; optional sanitizer | Catalog allowlist + HTML sanitizer |
 | **Complexity** | Higher (catalog schema, protocol engine, renderer) | Lower (semantic HTML + Oat CSS) | Moderate (A2UI infrastructure + sanitizer config) |
 | **Flexibility** | Constrained to 37 catalog components + 22 registered functions | Unconstrained HTML | Catalog components + arbitrary sanitized HTML |
-| **Performance** | ~13KB (Oat) + @a2ui/web-lib overhead | ~13KB (Oat only) | Same as A2UI Mode |
+| **Performance** | ~13KB (Oat) + @a2ui/web_core overhead | ~13KB (Oat only) | Same as A2UI Mode |
 | **Data binding** | Built-in via A2UI data model with path resolution | Manual (vanilla JS or HTMX) | Built-in for catalog components; manual within OatHTML blocks |
 | **Streaming updates** | `updateDataModel` messages via protocol | SSE/WebSocket to DOM directly | Mixed |
 | **Cross-platform** | Yes (same JSON to web + Flutter renderers) | No (web only) | Partially (OatHTML blocks are web-specific) |

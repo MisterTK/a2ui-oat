@@ -73,7 +73,7 @@ const agentCardB = {
 function makeDataPart(messages) {
   return {
     kind: "data",
-    metadata: { mimeType: "application/json+a2ui" },
+    metadata: { mimeType: "application/a2ui+json" },
     data: messages,
   };
 }

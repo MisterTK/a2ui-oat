@@ -1,6 +1,6 @@
 # Vendor Dependencies
 
-This directory documents the third-party libraries used by a2ui-oat. All libraries are authored by Kailash Nadh, are MIT-licensed, zero-dependency micro-libraries designed for minimal footprint. The one external reference outside this set is Google's @a2ui/web-lib, required only for A2UI Mode.
+This directory documents the third-party libraries used by a2ui-oat. All libraries are authored by Kailash Nadh, are MIT-licensed, zero-dependency micro-libraries designed for minimal footprint. The one external reference outside this set is Google's @a2ui/web_core, required only for A2UI Mode.
 
 **Total client-side footprint: ~13KB minified and gzipped.**
 
@@ -157,7 +157,7 @@ https://unpkg.com/@knadh/indexed-cache/indexed-cache.min.js
 
 ---
 
-## @a2ui/web-lib (Google)
+## @a2ui/web_core (Google)
 
 The A2UI protocol engine. Required only for A2UI Mode (not needed for Direct Mode).
 
@@ -182,7 +182,7 @@ This library handles stream parsing, surface lifecycle management, data model st
 | indexed-cache.js  | ~2.1KB          |
 | **Total**         | **~13KB**       |
 
-Note: @a2ui/web-lib is excluded from this total as it is a separate dependency required only for A2UI Mode.
+Note: @a2ui/web_core is excluded from this total as it is a separate dependency required only for A2UI Mode.
 
 ---
 
@@ -291,4 +291,4 @@ https://unpkg.com/@knadh/oat@0.5.1/oat.min.css
 
 All companion libraries (Oat, tinyrouter.js, floatype.js, dragmove.js, indexed-cache.js) are created and maintained by [Kailash Nadh](https://github.com/knadh) and released under the MIT License.
 
-@a2ui/web-lib is maintained by Google and released under the Apache 2.0 License.
+@a2ui/web_core is maintained by Google and released under the Apache 2.0 License.

@@ -1,7 +1,7 @@
 /**
  * Oat Renderer — maps A2UI catalog components to semantic HTML elements.
  *
- * This module is the bridge between @a2ui/web-lib (protocol engine) and
+ * This module is the bridge between @a2ui/web_core (protocol engine) and
  * Oat CSS (styling). It takes A2UI component definitions and produces
  * DOM elements that Oat CSS styles automatically.
  *
@@ -51,7 +51,7 @@ export class OatRenderer {
    * Render a component definition into a DOM element.
    *
    * @param {ComponentDef} component - The A2UI component definition.
-   * @param {RenderContext} context - Rendering context provided by @a2ui/web-lib.
+   * @param {RenderContext} context - Rendering context provided by @a2ui/web_core.
    * @returns {HTMLElement} The rendered DOM element.
    */
   renderComponent(component, context) {

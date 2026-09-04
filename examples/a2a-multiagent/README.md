@@ -6,7 +6,7 @@ Demonstrates A2A integration with catalog negotiation as described in Section 9 
 
 - **Agent Discovery** (Section 9.1): Two agents expose AgentCards at well-known URLs, each advertising Oat Catalog support in their `supportedCatalogIds`.
 - **Catalog Negotiation** (Section 9.2): The client includes `supportedCatalogIds` in every message's metadata. Both agents and client agree on the Oat Catalog.
-- **A2UI DataParts** (Section 9.3): Agents respond with `mimeType: application/json+a2ui` DataParts containing `createSurface`, `updateDataModel`, and `updateComponents` messages.
+- **A2UI DataParts** (Section 9.3): Agents respond with `mimeType: application/a2ui+json` DataParts containing `createSurface`, `updateDataModel`, and `updateComponents` messages.
 - **Inline Catalog Flow** (Section 9.4): Agent A (`acceptsInlineCatalogs: true`) receives the catalog schema at runtime. Agent B does not accept inline catalogs, demonstrating the negotiation difference.
 - **Surface Ownership Isolation** (Section 9.5): Each agent creates its own surface. Surfaces are rendered in separate containers with isolated data models.
 

@@ -14,9 +14,9 @@ This example builds the same operations dashboard content as the `a2ui-dashboard
 |--------|------------------------------|---------------------------|
 | Agent output | A2UI JSON constrained by the Oat Catalog | Semantic HTML |
 | Security | Catalog allowlist + schema validation | Agent must be trusted |
-| Intermediary | `@a2ui/web-lib` + Oat Renderer | None |
+| Intermediary | `@a2ui/web_core` + Oat Renderer | None |
 | Data binding | A2UI data model with path resolution | Manual (vanilla JS, SSE, HTMX) |
-| Client footprint | ~13KB (Oat) + `@a2ui/web-lib` | ~13KB (Oat only) |
+| Client footprint | ~13KB (Oat) + `@a2ui/web_core` | ~13KB (Oat only) |
 | Live updates | `subscribeSSE` registered function | `EventSource` or HTMX directly |
 
 ## Trust assumptions

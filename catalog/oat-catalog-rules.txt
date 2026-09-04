@@ -5,7 +5,7 @@ You are generating A2UI JSON against the Oat Catalog. Follow these rules exactly
 
 VERSION AND CATALOG
 -------------------
-Always set version to "v0.9" in every A2UI message.
+Always set version to "v0.9.1" in every A2UI message (the renderer still accepts "v0.9" for backwards compatibility).
 Always reference catalogId "https://unpkg.com/a2ui-oat/catalog/oat-catalog.json" when creating surfaces.
 
 
@@ -751,7 +751,7 @@ Do not do any of the following:
 
 6. Do not omit the "id" or "component" field on any component.
 
-7. Do not use version values other than "v0.9".
+7. Do not use version values other than "v0.9.1" (the legacy "v0.9" is still accepted).
 
 8. Do not omit catalogId in createSurface messages.
 

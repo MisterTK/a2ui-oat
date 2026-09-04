@@ -21,7 +21,7 @@ The `index.html` file includes a `const agentOutput` variable containing the exa
 6. Wires Pagination to `fetchPage`
 7. Binds the Table to the data model
 
-After this single interaction, the surface is self-sufficient. The page manually implements the rendering to demonstrate the pattern without requiring the full Oat Renderer and @a2ui/web-lib infrastructure.
+After this single interaction, the surface is self-sufficient. The page manually implements the rendering to demonstrate the pattern without requiring the full Oat Renderer and @a2ui/web_core infrastructure.
 
 ## How to Run
 

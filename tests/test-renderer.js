@@ -67,7 +67,7 @@ globalThis.document = {
 
 // ── Import renderer after DOM shim is in place ────────────────────────────────
 
-const { OatRenderer, createOatRenderer, registerWithWebLib, CATALOG_ID, VERSION } = await import('../renderer/index.js');
+const { OatRenderer, createOatRenderer, CATALOG_ID, VERSION } = await import('../renderer/index.js');
 
 // ── Test context factory ──────────────────────────────────────────────────────
 
@@ -133,24 +133,15 @@ describe('createOatRenderer', () => {
     assert.equal(typeof result.functions, 'object');
     assert.equal(Object.keys(result.functions).length, 22);
     assert.equal(result.catalogId, CATALOG_ID);
-    assert.equal(result.version, 'v0.9');
+    assert.equal(result.version, 'v0.9.1');
   });
 });
 
-describe('registerWithWebLib', () => {
-  it('calls registerRenderer, registerFunction, setCatalogId on web-lib mock', () => {
-    const calls = { renderer: null, functions: [], catalogId: null };
-    const mockWebLib = {
-      registerRenderer: (id, r) => { calls.renderer = { id, renderer: r }; },
-      registerFunction: (name, fn) => { calls.functions.push(name); },
-      setCatalogId: (id) => { calls.catalogId = id; },
-    };
-    const result = registerWithWebLib(mockWebLib);
-    assert.ok(result instanceof OatRenderer);
-    assert.equal(calls.renderer.id, CATALOG_ID);
-    assert.ok(calls.renderer.renderer instanceof OatRenderer);
-    assert.equal(calls.functions.length, 22);
-    assert.equal(calls.catalogId, CATALOG_ID);
+describe('module exports', () => {
+  it('does not export the removed registerWithWebLib', async () => {
+    const mod = await import('../renderer/index.js');
+    assert.equal(mod.registerWithWebLib, undefined);
+    assert.equal(mod.VERSION, 'v0.9.1');
   });
 });
 

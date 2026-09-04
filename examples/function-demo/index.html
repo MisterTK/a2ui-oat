@@ -693,7 +693,7 @@
     navigateTo, openUrl, showToast, debounce,
   } from '../../renderer/index.js';
 
-  // Minimal context objects for direct calls (no @a2ui/web-lib needed).
+  // Minimal context objects for direct calls (no @a2ui/web_core needed).
   const mockModel = { user: { name: 'Alice' }, inbox: { count: 7 } };
   const BASE_CTX = { resolveDynamic: (v) => v, getDataModel: () => ({}), setDataModel: () => {} };
   const MODEL_CTX = { resolveDynamic: (v) => v, getDataModel: () => mockModel, setDataModel: () => {} };
@@ -839,7 +839,7 @@
   };
 
   // debounce() requires context.dispatchAction; wiring a mock dispatcher mirrors
-  // the @a2ui/web-lib contract so the call signature is identical to production.
+  // the @a2ui/web_core contract so the call signature is identical to production.
   let lastText = '';
   const mockDispatch = (action) => {
     setOutput('db-out', `Dispatched action: ${JSON.stringify(action)}\nFinal value: "${lastText}"`, 'neutral');

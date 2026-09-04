@@ -27,8 +27,8 @@ describe('catalog top-level structure', () => {
   it('has a catalogId', () => {
     assert.ok(catalog.catalogId);
   });
-  it('is version v0.9', () => {
-    assert.equal(catalog.version, 'v0.9');
+  it('is version v0.9.1', () => {
+    assert.equal(catalog.version, 'v0.9.1');
   });
   it('has a name and description', () => {
     assert.ok(catalog.name);

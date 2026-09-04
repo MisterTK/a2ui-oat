@@ -32,7 +32,7 @@ SVP & Global Head of AI, Onix | Google Cloud Premier Partner
 
 ## 1. Executive Summary
 
-a2ui-oat is an open-source A2UI community renderer that pairs Google's A2UI protocol with Kailash Nadh's Oat CSS library and its companion micro-libraries. It consists of two artifacts: the **Oat Catalog**, a custom A2UI catalog JSON schema exposing 39 UI components, and the **Oat Renderer**, a minimal JavaScript renderer built on @a2ui/web-lib that converts A2UI JSON messages into semantic HTML styled automatically by Oat.
+a2ui-oat is an open-source A2UI community renderer that pairs Google's A2UI protocol with Kailash Nadh's Oat CSS library and its companion micro-libraries. It consists of two artifacts: the **Oat Catalog**, a custom A2UI catalog JSON schema exposing 39 UI components, and the **Oat Renderer**, a minimal JavaScript renderer built on @a2ui/web_core that converts A2UI JSON messages into semantic HTML styled automatically by Oat.
 
 The project addresses a gap in the A2UI renderer ecosystem. Every maintained renderer today targets a framework: React, Angular, Lit, or Flutter. There is no lightweight, framework-free option for web-only deployments. a2ui-oat fills this gap with a total client-side footprint of approximately 13KB while delivering more component coverage than any existing renderer.
 
@@ -84,10 +84,10 @@ a2ui-oat supports two operational modes. Both share the same client-side assets.
 | Agent output | A2UI JSON (catalog-constrained) | Semantic HTML |
 | Security model | Catalog allowlist + schema validation | Trust the agent |
 | Best for | Multi-agent, multi-vendor, A2A, Agentspace | Internal tools, single-agent, prototyping |
-| Intermediary | @a2ui/web-lib + Oat Renderer | None. Browser renders directly. |
+| Intermediary | @a2ui/web_core + Oat Renderer | None. Browser renders directly. |
 | Data binding | A2UI data model with path resolution | Manual (vanilla JS or HTMX) |
 | Streaming updates | updateDataModel messages | SSE/WebSocket to DOM directly |
-| Client footprint | ~13KB (Oat) + @a2ui/web-lib | ~13KB (Oat only) |
+| Client footprint | ~13KB (Oat) + @a2ui/web_core | ~13KB (Oat only) |
 | Transport | A2A, MCP, WebSocket, SSE, REST | Any (no protocol constraint) |
 
 ### 3.2 When to Use Which
@@ -120,7 +120,7 @@ The a2ui-oat system is composed of four layers. The first two are authored by th
 |-------|----------|--------|------|
 | Oat Catalog | oat-catalog.json | a2ui-oat project | Defines 39 components and 22 functions as A2UI-compliant JSON Schema |
 | Oat Renderer | oat-renderer.js | a2ui-oat project | Maps catalog components to semantic HTML elements |
-| Protocol Engine | @a2ui/web-lib | Google (existing) | Stream parsing, state management, data binding, validation |
+| Protocol Engine | @a2ui/web_core | Google (existing) | Stream parsing, state management, data binding, validation |
 | Styling | Oat CSS + JS + companions | Kailash Nadh (existing) | Automatic semantic styling, Web Components for dynamic elements |
 
 ### 4.2 Data Flow: A2UI Mode
@@ -130,9 +130,9 @@ Agent (LLM)
   │  Generates A2UI JSON against Oat Catalog schema
   ▼
 Transport (A2A / MCP / WebSocket / SSE)
-  │  Delivers DataParts with mimeType: application/json+a2ui
+  │  Delivers DataParts with mimeType: application/a2ui+json
   ▼
-@a2ui/web-lib (Protocol Engine)
+@a2ui/web_core (Protocol Engine)
   │  Parses JSONL stream, manages surfaces, resolves data bindings
   ▼
 Oat Renderer
@@ -393,7 +393,7 @@ These are not special features. They are the natural result of combining A2UI's 
 
 ## 7. Oat Renderer Implementation
 
-The Oat Renderer is the JavaScript layer that maps A2UI catalog components to semantic HTML elements. It is intentionally minimal because @a2ui/web-lib handles all protocol concerns and Oat CSS handles all styling.
+The Oat Renderer is the JavaScript layer that maps A2UI catalog components to semantic HTML elements. It is intentionally minimal because @a2ui/web_core handles all protocol concerns and Oat CSS handles all styling.
 
 ### 7.1 Renderer Responsibilities
 
@@ -405,10 +405,10 @@ The Oat Renderer is the JavaScript layer that maps A2UI catalog components to se
 
 ### 7.2 What the Renderer Does NOT Do
 
-- Stream parsing (handled by @a2ui/web-lib)
-- Surface lifecycle management (handled by @a2ui/web-lib)
-- Data model state management (handled by @a2ui/web-lib)
-- Schema validation (handled by @a2ui/web-lib)
+- Stream parsing (handled by @a2ui/web_core)
+- Surface lifecycle management (handled by @a2ui/web_core)
+- Data model state management (handled by @a2ui/web_core)
+- Schema validation (handled by @a2ui/web_core)
 - Visual styling (handled by Oat CSS)
 - Dynamic component behavior for Tabs, Dropdown, Toast (handled by Oat JS Web Components)
 
@@ -517,13 +517,13 @@ If the remote agent supports the Oat Catalog, it uses it. If not, it falls back 
 
 ### 9.3 Message Encoding
 
-A2UI messages are encoded as A2A DataParts with `mimeType: application/json+a2ui`. Multiple messages can be batched in a single DataPart:
+A2UI messages are encoded as A2A DataParts with `mimeType: application/a2ui+json`. Multiple messages can be batched in a single DataPart:
 
 ```json
 {
   "kind": "data",
   "metadata": {
-    "mimeType": "application/json+a2ui"
+    "mimeType": "application/a2ui+json"
   },
   "data": [
     {
@@ -600,7 +600,7 @@ The Oat ecosystem includes several zero-dependency micro-libraries by Kailash Na
 | dragmove.js | ~500B | Draggable component (future) | Make DOM elements draggable and movable |
 | indexed-cache.js | ~2.1KB | Asset caching (optional) | IndexedDB caching for Oat assets across sessions |
 
-**Total shared footprint: ~13KB minified and gzipped.** This is the complete client-side runtime for both modes, excluding @a2ui/web-lib which is only required for A2UI Mode.
+**Total shared footprint: ~13KB minified and gzipped.** This is the complete client-side runtime for both modes, excluding @a2ui/web_core which is only required for A2UI Mode.
 
 ---
 
@@ -686,7 +686,7 @@ a2ui-oat/
 - Author oat-catalog.json with all 39 component definitions
 - Author oat-catalog-rules.txt prompt fragment
 - Implement Oat Renderer core with component mapping for all 39 components
-- Integrate with @a2ui/web-lib for protocol handling
+- Integrate with @a2ui/web_core for protocol handling
 - Build basic example: single-surface dashboard rendering via A2UI Mode
 
 ### Phase 2: Functions & Patterns (Weeks 3–4)
@@ -752,4 +752,4 @@ a2ui-oat/
 | floatype.js | https://github.com/knadh/floatype.js |
 | dragmove.js | https://github.com/knadh/dragmove.js |
 | indexed-cache.js | https://github.com/knadh/indexed-cache |
-| @a2ui/web-lib | https://github.com/google/A2UI/tree/main/renderers |
+| @a2ui/web_core | https://github.com/google/A2UI/tree/main/renderers |

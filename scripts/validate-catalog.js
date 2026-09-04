@@ -58,10 +58,10 @@ if (catalog.$schema) {
   }
 }
 
-if (catalog.version === 'v0.9') {
-  pass('Version is v0.9');
+if (catalog.version === 'v0.9.1') {
+  pass('Version is v0.9.1');
 } else {
-  warn(`Version is "${catalog.version}", expected "v0.9"`);
+  warn(`Version is "${catalog.version}", expected "v0.9.1"`);
 }
 
 // ── Components ────────────────────────────────────────────────

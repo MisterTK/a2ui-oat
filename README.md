@@ -19,7 +19,7 @@ a2ui-oat is an open-source community renderer that pairs [Google's A2UI protocol
 a2ui-oat provides two artifacts:
 
 - **Oat Catalog** -- A custom A2UI catalog JSON schema exposing 39 UI components and 22 registered functions.
-- **Oat Renderer** -- A minimal JavaScript renderer built on `@a2ui/web-lib` that converts A2UI JSON messages into semantic HTML styled automatically by Oat.
+- **Oat Renderer** -- A minimal JavaScript renderer built on `@a2ui/web_core` that converts A2UI JSON messages into semantic HTML styled automatically by Oat.
 
 The project supports a **dual-mode architecture**: A2UI Mode for structured, catalog-constrained rendering with full security guarantees, and Direct Mode for trusted-agent scenarios where the LLM emits semantic HTML and Oat styles it with zero intermediary. Both modes share the same CSS, JS, and companion libraries. The choice between them is a security architecture decision.
 
@@ -41,12 +41,12 @@ The project supports a **dual-mode architecture**: A2UI Mode for structured, cat
 import { createOatRenderer, registerWithWebLib } from 'a2ui-oat';
 
 const { renderer, functions } = createOatRenderer();
-registerWithWebLib(webLib); // one-call setup for @a2ui/web-lib
+registerWithWebLib(webLib); // one-call setup for @a2ui/web_core
 ```
 
 ### A2UI Mode (CDN)
 
-Include Oat CSS, `@a2ui/web-lib`, and the Oat Renderer. The agent emits A2UI JSON against the Oat Catalog schema. The protocol engine parses the stream, manages state, and delegates to the renderer for HTML output.
+Include Oat CSS, `@a2ui/web_core`, and the Oat Renderer. The agent emits A2UI JSON against the Oat Catalog schema. The protocol engine parses the stream, manages state, and delegates to the renderer for HTML output.
 
 ```html
 <!-- Oat CSS + JS -->
@@ -54,7 +54,7 @@ Include Oat CSS, `@a2ui/web-lib`, and the Oat Renderer. The agent emits A2UI JSO
 <script src="https://unpkg.com/@knadh/oat/oat.min.js"></script>
 
 <!-- A2UI Protocol Engine -->
-<script src="https://unpkg.com/@a2ui/web-lib"></script>
+<script src="https://unpkg.com/@a2ui/web_core"></script>
 
 <!-- Oat Renderer -->
 <script type="module">
@@ -217,9 +217,9 @@ Agent (LLM)
   |  Generates A2UI JSON against Oat Catalog schema
   v
 Transport (A2A / MCP / WebSocket / SSE)
-  |  Delivers DataParts with mimeType: application/json+a2ui
+  |  Delivers DataParts with mimeType: application/a2ui+json
   v
-@a2ui/web-lib (Protocol Engine)
+@a2ui/web_core (Protocol Engine)
   |  Parses JSONL stream, manages surfaces, resolves data bindings
   v
 Oat Renderer
@@ -235,7 +235,7 @@ Browser DOM
 |-------|----------|--------|------|
 | Oat Catalog | oat-catalog.json | a2ui-oat project | Defines 39 components and 22 registered functions as A2UI-compliant JSON Schema |
 | Oat Renderer | oat-renderer.js | a2ui-oat project | Maps catalog components to semantic HTML elements |
-| Protocol Engine | @a2ui/web-lib | Google (existing) | Stream parsing, state management, data binding, validation |
+| Protocol Engine | @a2ui/web_core | Google (existing) | Stream parsing, state management, data binding, validation |
 | Styling | Oat CSS + JS + companions | Kailash Nadh (existing) | Automatic semantic styling, Web Components for dynamic elements |
 
 For the full architecture document, see [docs/architecture.md](docs/architecture.md).
@@ -250,7 +250,7 @@ For the full architecture document, see [docs/architecture.md](docs/architecture
 | [dragmove.js](https://github.com/knadh/dragmove.js) | ~500B | Make DOM elements draggable and movable |
 | [indexed-cache.js](https://github.com/knadh/indexed-cache) | ~2.1KB | IndexedDB caching for Oat assets across sessions |
 
-**Total shared footprint: ~13KB minified and gzipped.** This is the complete client-side runtime for both modes, excluding `@a2ui/web-lib` which is only required for A2UI Mode.
+**Total shared footprint: ~13KB minified and gzipped.** This is the complete client-side runtime for both modes, excluding `@a2ui/web_core` which is only required for A2UI Mode.
 
 ## Security Model
 

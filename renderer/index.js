@@ -2,7 +2,8 @@
  * a2ui-oat Renderer Entry Point
  *
  * Single integration point for consumers of the Oat Renderer. Ties together the
- * renderer, all registered functions, and @a2ui/web-lib registration.
+ * renderer and all registered functions. For real `@a2ui/web_core` protocol
+ * integration, see `./surface-adapter.js` (`createSurfaceAdapter`).
  *
  * @module a2ui-oat/renderer
  */
@@ -43,7 +44,7 @@ export const CATALOG_ID =
   "https://unpkg.com/a2ui-oat/catalog/oat-catalog.json";
 
 /** Current specification version of the Oat Renderer. */
-export const VERSION = "v0.9";
+export const VERSION = "v0.9.1";
 
 // --- Public API -----------------------------------------------------------------
 
@@ -86,36 +87,6 @@ export function createOatRenderer(options = {}) {
   };
 
   return { renderer, functions, catalogId: CATALOG_ID, version: VERSION };
-}
-
-/**
- * Register the Oat Renderer and its functions with @a2ui/web-lib.
- *
- * This is the recommended one-call setup for consumers that use @a2ui/web-lib
- * as their protocol engine.
- *
- * @param {object} webLib  - The @a2ui/web-lib instance (or its registration API).
- * @param {object} [options] - Renderer configuration forwarded to OatRenderer.
- * @returns {OatRenderer} The renderer instance, ready for use.
- */
-export function registerWithWebLib(webLib, options = {}) {
-  const { renderer, functions, catalogId } = createOatRenderer(options);
-
-  if (typeof webLib.registerRenderer === "function") {
-    webLib.registerRenderer(catalogId, renderer);
-  }
-
-  if (typeof webLib.registerFunction === "function") {
-    for (const [name, fn] of Object.entries(functions)) {
-      webLib.registerFunction(name, fn);
-    }
-  }
-
-  if (typeof webLib.setCatalogId === "function") {
-    webLib.setCatalogId(catalogId);
-  }
-
-  return renderer;
 }
 
 // --- Re-exports -----------------------------------------------------------------
