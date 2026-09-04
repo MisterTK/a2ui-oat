@@ -116,7 +116,15 @@ describe('reactivity through the real signals pipeline', () => {
     const before = findEl(container, (el) => el.textContent === 'Ada');
     assert.ok(before, 'initial bound value rendered');
     adapter.processMessages([data('/user/name', 'Grace')]);
-    assert.equal(before.textContent, 'Grace', 'same element updated in place');
+    // Assert on DOM identity/attachment, not just a captured reference's
+    // content: `before.textContent` would keep updating even if `before` had
+    // been detached and replaced by a new element, as long as its own
+    // (orphaned) subscribe() callback were still wired to it -- that would
+    // prove nothing about "no re-mount". Confirming `before` is still findable
+    // by reference in the live tree proves it genuinely was never replaced.
+    assert.equal(findEl(container, (el) => el === before), before,
+      'the original element is still attached to the live tree (no replaceWith rebuild)');
+    assert.equal(before.textContent, 'Grace', 'and it was patched in place');
   });
 
   it('writes two-way bindings back into the real DataModel', () => {
@@ -154,6 +162,83 @@ describe('reactivity through the real signals pipeline', () => {
     ]);
     assert.ok(findEl(container, (el) => el.textContent === 'two'),
       'newly added child rendered');
+  });
+});
+
+describe('interactive controls preserve DOM identity across keystrokes (Critical #1)', () => {
+  it('keeps the SAME <input> element attached across multiple keystrokes into a two-way-bound TextField', () => {
+    const { adapter, container } = makeAdapter();
+    adapter.processMessages([
+      create(),
+      data('/form', { name: '' }),
+      update([{ id: 'root', component: 'TextField',
+                label: 'Name', value: { path: '/form/name' } }]),
+    ]);
+    const input = findEl(container, (el) => el.tagName === 'INPUT');
+    assert.ok(input, 'TextField input rendered');
+
+    input.value = 'L';
+    input.dispatchEvent({ type: 'input', target: input });
+    assert.equal(findEl(container, (el) => el === input), input,
+      'input element is still the live one after the first keystroke');
+
+    input.value = 'Li';
+    input.dispatchEvent({ type: 'input', target: input });
+    assert.equal(findEl(container, (el) => el === input), input,
+      'input element is still the SAME reference after a second keystroke -- a ' +
+      'replaceWith-based rebuild would detach the original and this lookup would fail');
+
+    const surface = adapter.processor.model.getSurface('s1');
+    assert.equal(surface.dataModel.get('/form/name'), 'Li');
+  });
+
+  it('does not grow live DataContext subscriptions per keystroke into the same bound TextField', () => {
+    const original = webCore.DataContext.prototype.subscribeDynamicValue;
+    let created = 0;
+    let unsubscribed = 0;
+    webCore.DataContext.prototype.subscribeDynamicValue = function (...args) {
+      created += 1;
+      const sub = original.apply(this, args);
+      let done = false;
+      return {
+        get value() { return sub.value; },
+        unsubscribe: () => {
+          if (!done) { done = true; unsubscribed += 1; }
+          sub.unsubscribe();
+        },
+      };
+    };
+    try {
+      const { adapter, container } = makeAdapter();
+      adapter.processMessages([
+        create(),
+        data('/form', { name: '' }),
+        update([{ id: 'root', component: 'TextField',
+                  label: 'Name', value: { path: '/form/name' } }]),
+      ]);
+      const input = findEl(container, (el) => el.tagName === 'INPUT');
+      const live = () => created - unsubscribed;
+
+      input.value = 'L';
+      input.dispatchEvent({ type: 'input', target: input });
+      const liveAfterFirst = live();
+
+      for (const ch of ['Li', 'Lin', 'Linu', 'Linus']) {
+        input.value = ch;
+        input.dispatchEvent({ type: 'input', target: input });
+      }
+      const liveAfterMore = live();
+
+      assert.equal(liveAfterMore, liveAfterFirst,
+        `live (created-minus-unsubscribed) subscription count must not grow across ` +
+        `keystrokes -- a rebuild-per-keystroke bug leaks one per keystroke (after 1st ` +
+        `keystroke: ${liveAfterFirst}, after 5 more: ${liveAfterMore})`);
+
+      const surface = adapter.processor.model.getSurface('s1');
+      assert.equal(surface.dataModel.get('/form/name'), 'Linus');
+    } finally {
+      webCore.DataContext.prototype.subscribeDynamicValue = original;
+    }
   });
 });
 
@@ -527,20 +612,24 @@ describe('theme, deletion, disposal', () => {
   // `resolver.dispose()`, so no per-node `watchNode` effect can be triggered
   // by the resolver's own teardown (e.g. its final `setValue(rootNode,
   // undefined)`) after the fact.
-  it('disposes every effect/subscription created over a live node\'s lifetime -- including stale ones from superseded re-renders -- once the adapter is disposed', () => {
-    // Task 3's accepted characteristic: watchNode's persistent per-node effect
-    // rebuilds the whole element (renderOnce + replaceWith) on every change to
-    // a bound value that changes `node.props` identity (a bound value that
-    // resolves to a genuinely different value produces a new ResolvedBinding
-    // that fails `sameBinding`'s value comparison -- see
-    // nodes/resolved-binding.js -- so it does NOT keep prop-reference
-    // identity the way an unrelated static prop would). Each rebuild calls
-    // renderOnce -> a fresh OatRenderer render -> a fresh
-    // `context.subscribe()` -> a fresh `DataContext.subscribeDynamicValue()`
-    // registered via `node.addCleanup` -- and the PREVIOUS render's now-
-    // orphaned subscription is never proactively unsubscribed, only added to
-    // the same node's `cleanups` array (see surface-adapter.js's
-    // `watchNode`/`makeRenderContext.subscribe` docstrings). This spies on
+  it('does not accumulate subscriptions on repeated bound-value updates, but still disposes a genuinely superseded one', () => {
+    // Post-Critical-#1-fix characteristic: watchNode's persistent per-node
+    // effect only rebuilds the element (renderOnce + replaceWith) for a
+    // STRUCTURAL change (a ref-field swap, a placeholder->resolved upgrade,
+    // or a resent static-literal property) -- not for a plain bound-value
+    // change delivered via `updateDataModel`, which now leaves the element
+    // alone and lets `context.subscribe()` patch it in place (see
+    // `watchNode`'s docstring in surface-adapter.js). So repeatedly changing
+    // the SAME bound value must NOT create additional
+    // `DataContext.subscribeDynamicValue()` subscriptions -- there is
+    // exactly one, created by the single `renderOnce` call, for the whole
+    // run of value-only updates. A genuine structural resend (a fresh
+    // `updateComponents` for this id) still rebuilds, still creates a fresh
+    // subscription via a fresh `context.subscribe()`, and still leaves the
+    // PREVIOUS render's now-orphaned subscription un-unsubscribed until the
+    // node itself is disposed (only bulk-cleaned via `node.addCleanup`) --
+    // that narrower, still-real leak (deferred items #4/#5 in the final
+    // review) is what this test's second half exercises. This spies on
     // `DataContext.subscribeDynamicValue` (not `webCore.effect`: that
     // function is called through a direct internal module import inside
     // data-context.js, not through the `webCore` namespace object the
@@ -570,19 +659,33 @@ describe('theme, deletion, disposal', () => {
         update([{ id: 'root', component: 'Text', text: { path: '/x' } }]),
       ]);
       assert.ok(findEl(container, (el) => el.textContent === 'v1'));
+      const createdAfterInitialRender = created;
       for (let i = 2; i <= 5; i += 1) {
         adapter.processMessages([data('/x', `v${i}`)]);
       }
       assert.ok(findEl(container, (el) => el.textContent === 'v5'),
         'latest value rendered');
+      assert.equal(created, createdAfterInitialRender,
+        `bound-value-only updates must not create additional subscriptions ` +
+        `(created ${createdAfterInitialRender} at initial render, ${created} ` +
+        `after 4 more value-only updates)`);
+
+      // A genuine structural resend (same id, fresh updateComponents) still
+      // rebuilds and still creates one more subscription, orphaning the
+      // previous render's -- the narrower, still-accepted characteristic.
+      adapter.processMessages([
+        update([{ id: 'root', component: 'Text', text: { path: '/x' } }]),
+      ]);
+      assert.equal(created, createdAfterInitialRender + 1,
+        'a resent component definition still triggers exactly one more rebuild/subscribe');
       assert.ok(created > unsubscribed,
-        `stale per-render subscriptions accumulate on the live node while it ` +
-        `keeps re-rendering (expected, harmless -- observed ${created} created ` +
-        `vs ${unsubscribed} unsubscribed before dispose)`);
+        `the superseded render's subscription is not proactively unsubscribed ` +
+        `(observed ${created} created vs ${unsubscribed} unsubscribed before dispose)`);
+
       adapter.dispose();
       assert.equal(created, unsubscribed,
         'every subscription created over the node\'s lifetime -- including ' +
-        'ones from superseded, already-replaced renders -- is unsubscribed ' +
+        'the one from the superseded, already-replaced render -- is unsubscribed ' +
         'once dispose() tears the node down; none are leaked');
     } finally {
       webCore.DataContext.prototype.subscribeDynamicValue = original;

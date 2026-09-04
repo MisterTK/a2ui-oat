@@ -179,24 +179,58 @@ export function createSurfaceAdapter(options = {}) {
 
   /**
    * One persistent effect per live node (created once in `renderNode` above,
-   * for the node's whole lifetime): whenever `node.props` changes, rebuild
-   * this node's element and swap it in place with `replaceWith`. Covers
-   * every reason `node.props` can change —
-   *   - a ref-field swap (list items added/removed/reordered, a single ref
-   *     replaced),
-   *   - one of this node's children upgrading from a placeholder to its real
-   *     component once the definition arrives (the parent re-materializes
-   *     and its ref-field value becomes a *different* ComponentNode object,
-   *     even though that object's instanceId is unchanged — see
-   *     `node-resolver.js`'s `childNode`/`stabilize`),
-   *   - a changed *static* (non-databound) literal property, resent via a
-   *     fresh `updateComponents` for this component.
-   * Bound (DYNAMIC, `{path: ...}`) values never touch `node.props` — they
-   * update their own DOM in place through `subscribe()`/DataContext — so
-   * this effect never fires for them; no signature/diff check is needed
-   * beyond that, because `MutableComponentNode.setProps` already only calls
-   * through to the signal when a shallow comparison shows a real change, so
-   * every fire here is one this node actually needs to act on.
+   * for the node's whole lifetime): tracks `node.props` and, ONLY when the
+   * change is structural, rebuilds this node's element and swaps it in
+   * place with `replaceWith`. A plain bound-VALUE change (case 3 below)
+   * leaves the element alone — `context.subscribe()` (wired in
+   * `makeRenderContext`, already exercised by every `_bindValue` call in
+   * oat-renderer.js) patches its DOM in place instead, preserving element
+   * identity (and, for a focused `<input>`, focus/cursor position).
+   *
+   * `node.props`'s identity changes for THREE distinct reasons, and only two
+   * of them need a rebuild:
+   *   1. STRUCTURAL: a ref-field child is added/removed/reordered/swapped,
+   *      or one of this node's children upgrades from a placeholder to its
+   *      real component once the definition arrives (the parent
+   *      re-materializes and its ref-field value becomes a *different*
+   *      ComponentNode object — see `node-resolver.js`'s
+   *      `childNode`/`stabilize`). Needs a rebuild.
+   *   2. STATIC LITERAL RESEND: a changed, non-databound literal property
+   *      resent via a fresh `updateComponents` for this component (e.g. an
+   *      agent re-sending `{id:'root', component:'Text', text:'v2'}`).
+   *      Needs a rebuild — this has no `subscribe()` path to patch it in
+   *      place, since a literal was never subscribed to anything.
+   *   3. BOUND VALUE ONLY: the wire-level property definition is unchanged
+   *      (still e.g. `{path: '/form/name'}`) and only the value behind that
+   *      path changed, via `updateDataModel`. `NodeResolver.materialize`
+   *      wraps every DYNAMIC property in a `ResolvedBinding`, and
+   *      `stabilize`/`sameBinding` (nodes/resolved-binding.js) compare THAT
+   *      wrapper by value — so a bound value changing produces a new
+   *      `ResolvedBinding` and changes `node.props` too, exactly like cases
+   *      1 and 2 do. Must NOT rebuild: `subscribe()` already patches this.
+   *
+   * Distinguishing them: `surface.componentsModel.get(node.componentId)
+   * .properties` (the RAW, pre-resolution wire payload for this node's own
+   * component — see `ComponentContext`/`ComponentModel`) only changes
+   * *identity* when an `updateComponents` message resends this exact id
+   * (`processUpdateComponentsMessage`'s `existing.properties = properties`
+   * always assigns a fresh object) — cases 1 (when the resend is what
+   * carries the ref-field change) and 2. It is completely untouched by
+   * `updateDataModel` (case 3), which only ever calls `surface.dataModel
+   * .set(...)`. That alone would miss the "placeholder → resolved" flavor
+   * of case 1, where nothing about *this* node's own wire properties is
+   * resent (only a *child's* component arrives) — so this also tracks a
+   * ref-field signature: the resolved value of every property
+   * `webCore.extractRefFields` classifies as a child pointer. NodeResolver's
+   * own `stabilize` keeps a ref-field's resolved value reference-identical
+   * across a `materialize()` pass whenever every child it points to is
+   * unchanged, and changes it (new array or a new ComponentNode) whenever a
+   * child is added/removed/reordered/upgraded — exactly the structural
+   * signal case 1 needs, independent of whether *this* node's own
+   * properties were resent. A rebuild fires when either signal changed;
+   * when neither did, the fresh `node.props` value is left for
+   * `context.subscribe()` (already reacting to the same underlying data
+   * change) to patch in place.
    *
    * Exactly one of these effects ever exists per live node (never disposed
    * and recreated): `renderNode`'s memoization above is what prevents a
@@ -210,9 +244,23 @@ export function createSurfaceAdapter(options = {}) {
    */
   function watchNode(node, surface, entry) {
     let first = true;
+    let lastRawProps;
+    let lastRefSignature;
     const stop = webCore.effect(() => {
-      webCore.getValue(node.props); // track
-      if (first) { first = false; return; } // this run just registers the dependency
+      const resolved = webCore.getValue(node.props); // track
+      if (first) {
+        first = false; // this run just registers the dependency
+        lastRawProps = rawPropsOf(node, surface);
+        lastRefSignature = refSignatureOf(node, resolved);
+        return;
+      }
+      const rawProps = rawPropsOf(node, surface);
+      const refSignature = refSignatureOf(node, resolved);
+      const structural = rawProps !== lastRawProps
+        || !sameRefSignature(refSignature, lastRefSignature);
+      lastRawProps = rawProps;
+      lastRefSignature = refSignature;
+      if (!structural) return; // bound-value-only change: subscribe() already patched it
       try {
         const replacement = renderOnce(node, surface);
         entry.el.replaceWith(replacement);
@@ -222,6 +270,42 @@ export function createSurfaceAdapter(options = {}) {
       }
     });
     node.addCleanup(stop);
+  }
+
+  /** The RAW, pre-resolution properties object for `node`'s own component
+   *  (or `undefined` if it has since been deleted from the model). Its
+   *  *identity* changes only when an `updateComponents` message resends
+   *  this exact id — never on `updateDataModel`. See `watchNode`'s
+   *  docstring for why this is one of the two structural-change signals. */
+  function rawPropsOf(node, surface) {
+    return surface.componentsModel.get(node.componentId)?.properties;
+  }
+
+  /**
+   * Snapshot of `node`'s own ref-field (child-pointer) values, keyed by
+   * property name, taken from the already-resolved `node.props`. Returns
+   * `null` for a component type with no ref fields (e.g. `Text`,
+   * `TextField`) — such a node's rebuild trigger relies entirely on
+   * `rawPropsOf`. See `watchNode`'s docstring for why comparing these by
+   * reference (not deep equality) is the correct structural-change check.
+   */
+  function refSignatureOf(node, resolvedProps) {
+    const api = catalog.components.get(node.type);
+    const refFields = api ? webCore.extractRefFields(api.schema) : null;
+    if (!refFields || refFields.size === 0) return null;
+    const sig = new Map();
+    for (const key of refFields.keys()) sig.set(key, resolvedProps?.[key]);
+    return sig;
+  }
+
+  /** Reference-equality comparison of two `refSignatureOf` snapshots. */
+  function sameRefSignature(a, b) {
+    if (a === b) return true;
+    if (!a || !b || a.size !== b.size) return false;
+    for (const [key, value] of a) {
+      if (!Object.is(value, b.get(key))) return false;
+    }
+    return true;
   }
 
   /** componentId -> Map<node, surface> of nodes whose `renderChild` fallback
