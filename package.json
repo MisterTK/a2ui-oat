@@ -34,7 +34,9 @@
     "renderer/",
     "direct/",
     "shared/",
-    "docs/"
+    "docs/architecture.md",
+    "docs/when-to-use-which.md",
+    "docs/testing-against-reality.md"
   ],
   "devDependencies": {
     "@a2ui/web_core": "^0.10.7"
