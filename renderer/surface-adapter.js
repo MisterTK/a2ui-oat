@@ -101,9 +101,24 @@ export function createSurfaceAdapter(options = {}) {
     applyTheme(surface.theme, surfaceEl);
 
     const resolver = new webCore.NodeResolver(surface, catalog);
+    // Tracks resolver.rootNode's own identity (undefined -> first root, or a
+    // full teardown/rebuild of root itself, e.g. its type changes). Because
+    // `normalizeRefFields` reads every visited node's `props` via `getValue`
+    // (see its docstring), this effect also transitively re-fires on *any*
+    // change anywhere in the tree, not just root replacement — but every
+    // resolved node already gets its own fine-grained `watchNode` effect
+    // (installed in `renderNode`) that reacts to exactly its own subtree's
+    // changes. So once the root element exists, a re-fire whose root
+    // identity is unchanged means some deeper node's own watcher already
+    // handled it, and re-running the full `replaceChildren` here would just
+    // discard unrelated DOM state (e.g. input focus) elsewhere in the tree
+    // for no benefit.
+    let lastRoot;
     const stopEffect = webCore.effect(() => {
       const root = webCore.getValue(resolver.rootNode);
       if (!root) return;
+      if (root === lastRoot) return;
+      lastRoot = root;
       try {
         surfaceEl.replaceChildren(renderNode(root, surface));
       } catch (err) {
@@ -122,15 +137,37 @@ export function createSurfaceAdapter(options = {}) {
     mounted.delete(surfaceId);
   }
 
+  /**
+   * ComponentNode -> { el }, for every resolved node that currently has a
+   * live element + watcher. NodeResolver reuses the same node object across
+   * a re-materialize when its edge is unchanged (see node-resolver.js's
+   * `childNode`), so looking a node up here — instead of unconditionally
+   * rendering it again — is what lets an ancestor's re-render skip rebuilding
+   * (and re-watching) descendants that did not themselves change.
+   */
+  const liveNodes = new WeakMap();
+
   function renderNode(node, surface) {
     if (node.state !== 'resolved') {
       // pending / unknown-type / cyclic → OatRenderer's unknown-component
-      // fallback element (type is 'Placeholder' for pending/cyclic).
+      // fallback element (type is 'Placeholder' for pending/cyclic). Never
+      // memoized: a placeholder's whole point is to be superseded once its
+      // parent re-materializes with a real (differently-identified) node.
       return renderer.renderComponent(
         { id: node.componentId, component: node.type },
         makeRenderContext(node, surface, null, new Map()),
       );
     }
+    const existing = liveNodes.get(node);
+    if (existing) return existing.el;
+    const entry = { el: renderOnce(node, surface) };
+    liveNodes.set(node, entry);
+    watchNode(node, surface, entry);
+    return entry.el;
+  }
+
+  /** Builds a resolved node's element fresh from its current props. */
+  function renderOnce(node, surface) {
     const componentContext =
       new webCore.ComponentContext(surface, node.componentId, node.dataPath);
     const raw = componentContext.componentModel.properties;
@@ -141,20 +178,66 @@ export function createSurfaceAdapter(options = {}) {
   }
 
   /**
+   * One persistent effect per live node (created once in `renderNode` above,
+   * for the node's whole lifetime): whenever `node.props` changes, rebuild
+   * this node's element and swap it in place with `replaceWith`. Covers
+   * every reason `node.props` can change —
+   *   - a ref-field swap (list items added/removed/reordered, a single ref
+   *     replaced),
+   *   - one of this node's children upgrading from a placeholder to its real
+   *     component once the definition arrives (the parent re-materializes
+   *     and its ref-field value becomes a *different* ComponentNode object,
+   *     even though that object's instanceId is unchanged — see
+   *     `node-resolver.js`'s `childNode`/`stabilize`),
+   *   - a changed *static* (non-databound) literal property, resent via a
+   *     fresh `updateComponents` for this component.
+   * Bound (DYNAMIC, `{path: ...}`) values never touch `node.props` — they
+   * update their own DOM in place through `subscribe()`/DataContext — so
+   * this effect never fires for them; no signature/diff check is needed
+   * beyond that, because `MutableComponentNode.setProps` already only calls
+   * through to the signal when a shallow comparison shows a real change, so
+   * every fire here is one this node actually needs to act on.
+   *
+   * Exactly one of these effects ever exists per live node (never disposed
+   * and recreated): `renderNode`'s memoization above is what prevents a
+   * second one — an ancestor's rebuild calls `renderNode` again for every
+   * child, and an unchanged child (the *same* ComponentNode object) is
+   * returned from `liveNodes` instead of being re-rendered and re-watched.
+   * Without that memoization, every ancestor-triggered rebuild would attach
+   * one more still-live watcher to each stable descendant, stacking
+   * subscriptions that all fire (and all rebuild+replace) on the next change
+   * to that descendant.
+   */
+  function watchNode(node, surface, entry) {
+    let first = true;
+    const stop = webCore.effect(() => {
+      webCore.getValue(node.props); // track
+      if (first) { first = false; return; } // this run just registers the dependency
+      try {
+        const replacement = renderOnce(node, surface);
+        entry.el.replaceWith(replacement);
+        entry.el = replacement;
+      } catch (err) {
+        onError(err);
+      }
+    });
+    node.addCleanup(stop);
+  }
+
+  /**
    * Replace child-reference property values (which NodeResolver resolves to
    * live ComponentNode objects) with plain id strings/arrays so every
    * existing _render* method keeps consuming ids exactly as in direct mode.
    * Everything else stays the raw pre-resolution value.
    *
-   * Reads `node.props` via `getValue` (not `peekValue`): the caller runs
-   * inside the surface's top-level render effect, and this is a deliberate
-   * dependency registration. NodeResolver resolves ref-field children
-   * asynchronously relative to the *first* materialization of a parent (a
-   * child that hasn't arrived yet renders as a placeholder, then the parent
-   * re-materializes once it does) — without tracking `node.props` here, the
-   * render effect would only ever re-fire when the *root* node identity
-   * itself changes, and would miss every subsequent placeholder → resolved
-   * upgrade happening deeper in the tree within the same message batch.
+   * Reads `node.props` via `getValue` (not `peekValue`): this is a
+   * deliberate dependency registration, needed by whichever effect is
+   * currently rendering (the surface's top-level effect on first mount, or
+   * a node's own `watchNode` effect on a targeted re-render) so it re-fires
+   * on every subsequent change, including a placeholder → resolved upgrade
+   * arriving later for one of this node's children (the parent's ref-field
+   * value becomes a *different* ComponentNode object once that happens —
+   * see `watchNode`'s docstring).
    */
   function normalizeRefFields(raw, node) {
     const props = { ...raw };

@@ -104,3 +104,172 @@ describe('static rendering through the real protocol engine', () => {
     assert.ok(findEl(container, (el) => el.textContent === 'still here'));
   });
 });
+
+describe('reactivity through the real signals pipeline', () => {
+  it('updates bound text on updateDataModel without re-mounting', () => {
+    const { adapter, container } = makeAdapter();
+    adapter.processMessages([
+      create(),
+      data('/user', { name: 'Ada' }),
+      update([{ id: 'root', component: 'Text', text: { path: '/user/name' } }]),
+    ]);
+    const before = findEl(container, (el) => el.textContent === 'Ada');
+    assert.ok(before, 'initial bound value rendered');
+    adapter.processMessages([data('/user/name', 'Grace')]);
+    assert.equal(before.textContent, 'Grace', 'same element updated in place');
+  });
+
+  it('writes two-way bindings back into the real DataModel', () => {
+    const { adapter, container } = makeAdapter();
+    adapter.processMessages([
+      create(),
+      data('/form', { name: '' }),
+      update([{ id: 'root', component: 'TextField',
+                label: 'Name', value: { path: '/form/name' } }]),
+    ]);
+    const input = findEl(container, (el) => el.tagName === 'INPUT');
+    assert.ok(input, 'TextField input rendered');
+    input.value = 'Linus';
+    input.dispatchEvent({ type: 'input', target: input });
+    const surface = adapter.processor.model.getSurface('s1');
+    assert.equal(surface.dataModel.get('/form/name'), 'Linus');
+  });
+
+  it('re-renders a container when its child list changes', () => {
+    const { adapter, container } = makeAdapter();
+    adapter.processMessages([
+      create(),
+      update([
+        { id: 'root', component: 'Column', children: ['t1'] },
+        { id: 't1', component: 'Text', text: 'one' },
+      ]),
+    ]);
+    assert.ok(findEl(container, (el) => el.textContent === 'one'));
+    assert.equal(findEl(container, (el) => el.textContent === 'two'), null);
+    adapter.processMessages([
+      update([
+        { id: 'root', component: 'Column', children: ['t1', 't2'] },
+        { id: 't2', component: 'Text', text: 'two' },
+      ]),
+    ]);
+    assert.ok(findEl(container, (el) => el.textContent === 'two'),
+      'newly added child rendered');
+  });
+});
+
+describe('fine-grained structural re-render (no coarse full-surface rebuild)', () => {
+  it('leaves an unrelated sibling element untouched when a nested list changes', () => {
+    const { adapter, container } = makeAdapter();
+    adapter.processMessages([
+      create(),
+      update([
+        { id: 'root', component: 'Column', children: ['list', 'sibling'] },
+        { id: 'list', component: 'Column', children: ['t1'] },
+        { id: 't1', component: 'Text', text: 'one' },
+        { id: 'sibling', component: 'Text', text: 'unchanged' },
+      ]),
+    ]);
+    const siblingBefore = findEl(container, (el) => el.textContent === 'unchanged');
+    assert.ok(siblingBefore, 'sibling rendered');
+    adapter.processMessages([
+      update([
+        { id: 'list', component: 'Column', children: ['t1', 't2'] },
+        { id: 't2', component: 'Text', text: 'two' },
+      ]),
+    ]);
+    assert.ok(findEl(container, (el) => el.textContent === 'two'), 'new item rendered');
+    const siblingAfter = findEl(container, (el) => el.textContent === 'unchanged');
+    assert.equal(siblingAfter, siblingBefore,
+      'sibling is the SAME DOM node instance, not recreated by a full-surface rebuild');
+  });
+
+  it('leaves an unrelated sibling untouched when a placeholder child resolves', () => {
+    const { adapter, container } = makeAdapter();
+    adapter.processMessages([
+      create(),
+      update([
+        { id: 'root', component: 'Column', children: ['group', 'sibling'] },
+        { id: 'group', component: 'Column', children: ['lazy'] },
+        { id: 'sibling', component: 'Text', text: 'unchanged' },
+      ]),
+    ]);
+    const siblingBefore = findEl(container, (el) => el.textContent === 'unchanged');
+    assert.ok(siblingBefore, 'sibling rendered while "lazy" is still a placeholder');
+    assert.equal(findEl(container, (el) => el.textContent === 'arrived late'), null);
+    adapter.processMessages([
+      update([{ id: 'lazy', component: 'Text', text: 'arrived late' }]),
+    ]);
+    assert.ok(findEl(container, (el) => el.textContent === 'arrived late'),
+      'placeholder upgraded to its real component once the definition arrives');
+    const siblingAfter = findEl(container, (el) => el.textContent === 'unchanged');
+    assert.equal(siblingAfter, siblingBefore,
+      'sibling is the SAME DOM node instance across the placeholder upgrade');
+  });
+
+  it('still reflects a changed static (non-databound) literal property', () => {
+    const { adapter, container } = makeAdapter();
+    adapter.processMessages([
+      create(),
+      update([{ id: 'root', component: 'Text', text: 'literal one' }]),
+    ]);
+    assert.ok(findEl(container, (el) => el.textContent === 'literal one'));
+    adapter.processMessages([
+      update([{ id: 'root', component: 'Text', text: 'literal two' }]),
+    ]);
+    assert.ok(findEl(container, (el) => el.textContent === 'literal two'),
+      'resent literal value is reflected');
+    assert.equal(findEl(container, (el) => el.textContent === 'literal one'), null,
+      'stale literal value is gone');
+  });
+
+  it('does not stack watchers on repeated structural updates to the same live node', () => {
+    let created = 0;
+    const disposed = new Set();
+    const countingWebCore = new Proxy(webCore, {
+      get(target, prop) {
+        if (prop !== 'effect') return target[prop];
+        return (fn) => {
+          created += 1;
+          const stop = target.effect(fn);
+          return () => { disposed.add(stop); stop(); };
+        };
+      },
+    });
+    const { adapter, container } = makeAdapter({ webCore: countingWebCore });
+    adapter.processMessages([
+      create(),
+      update([
+        { id: 'root', component: 'Column', children: ['t1'] },
+        { id: 't1', component: 'Text', text: 'one' },
+      ]),
+    ]);
+
+    const aliveCounts = [];
+    for (let i = 0; i < 4; i += 1) {
+      adapter.processMessages([
+        update([
+          { id: 'root', component: 'Column', children: ['t1', 't2'] },
+          { id: 't2', component: 'Text', text: 'two' },
+        ]),
+      ]);
+      adapter.processMessages([
+        update([{ id: 'root', component: 'Column', children: ['t1'] }]),
+      ]);
+      aliveCounts.push(created - disposed.size);
+    }
+    assert.ok(findEl(container, (el) => el.textContent === 'one'));
+    assert.equal(findEl(container, (el) => el.textContent === 'two'), null);
+    // A stacking bug would grow this every round (one more surviving watcher
+    // per repeat); a correctly-disposed design settles to a constant count
+    // once back at the same tree shape.
+    const steadyState = aliveCounts[0];
+    for (const count of aliveCounts) {
+      assert.equal(count, steadyState,
+        `alive effect count must not grow across repeats: ${aliveCounts.join(', ')}`);
+    }
+
+    adapter.dispose();
+    assert.equal(created, disposed.size,
+      'every effect created over the adapter lifetime is eventually disposed');
+  });
+});
